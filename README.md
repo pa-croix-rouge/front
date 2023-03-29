@@ -65,7 +65,7 @@ Let us know your thoughts below. And good luck with development!
 
 | Bootstrap | Chakra |
 | --- | --- |
-| [![Argon Dashboard Bootstrap](https://s3.amazonaws.com/creativetim_bucket/products/96/original/argon-dashboard-2.jpg?1643114907)](https://www.creative-tim.com/product/argon-dashboard?ref=readme-argonchakra) | [![Argon Dashboard Chakra](https://i.ibb.co/WPpvjCn/argon-dashboard-chakra-free.png)](https://www.creative-tim.com/product/argon-dashboard-chakra?ref=readme-argonchakra) 
+| [![Argon Dashboard Bootstrap](https://s3.amazonaws.com/creativetim_bucket/products/96/original/argon-dashboard-2.jpg?1643114907)](https://www.creative-tim.com/product/argon-dashboard?ref=readme-argonchakra) | [![Argon Dashboard Chakra](https://i.ibb.co/WPpvjCn/argon-dashboard-chakra-free.png)](https://www.creative-tim.com/product/argon-dashboard-chakra?ref=readme-argonchakra)| 
 
 ## Demo
 
@@ -140,8 +140,6 @@ argon-dashboard-chakra/
     │   │   ├── AdminNavbar.js
     │   │   ├── AdminNavbarLinks.js
     │   │   └── AuthNavbar.js
-    │   ├── RTLProvider
-    │   │   └── RTLProvider.js
     │   ├── Separator
     │   │   └── Separator.js
     │   ├── Sidebar
@@ -157,8 +155,7 @@ argon-dashboard-chakra/
     │       └── TransactionRow.js
     ├── layouts
     │   ├── Admin.js
-    │   ├── Auth.js
-    │   └── RTL.js
+    │   └── Auth.js
     ├── theme
     │   ├── additions
     │   │   ├── card
@@ -188,8 +185,6 @@ argon-dashboard-chakra/
     │   ├── Pages
     │   │   ├── SignIn.js
     │   │   └── SignUp.js
-    │   └── RTL
-    │       └── RTLPage.js
     ├── index.js
     └── routes.js
 ```

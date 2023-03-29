@@ -47,7 +47,7 @@ export default function Configurator(props) {
       <Drawer
         isOpen={props.isOpen}
         onClose={props.onClose}
-        placement={document.documentElement.dir === "rtl" ? "left" : "right"}
+        placement={"right"}
         finalFocusRef={settingsRef}
         blockScrollOnMount={false}
       >

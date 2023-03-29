@@ -51,7 +51,6 @@ react-datetime                       3.0.4          →         3.1.1
 react-dom                            17.0.2         →         16.14.0
 react-router-dom                     6.2.1          →         5.2.1
 react-swipeable-views                0.13.9         →         0.14.0
-stylis-plugin-rtl                    2.0.1          →         2.1.1
 ```
 
 ## [1.0.0] 2022-01-31

@@ -14,20 +14,6 @@ export const renderTrack = ({ style, ...props }) => {
   };
   return <div style={{ ...style, ...trackStyle }} {...props} />;
 };
-export const renderTrackRTL = ({ style, ...props }) => {
-  const trackStyle = {
-    position: "absolute",
-    width: 6,
-    transition: "opacity 200ms ease 0s",
-    opacity: 0,
-    bottom: 2,
-    top: 2,
-    borderRadius: 3,
-    right: "unset",
-    left: 0,
-  };
-  return <div style={{ ...style, ...trackStyle }} {...props} />;
-};
 export const renderThumbDark = ({ style, ...props }) => {
   const thumbStyle = {
     borderRadius: 15,
@@ -45,13 +31,6 @@ export const renderThumbLight = ({ style, ...props }) => {
 export const renderView = ({ style, ...props }) => {
   const viewStyle = {
     marginRight: -22,
-  };
-  return <div style={{ ...style, ...viewStyle }} {...props} />;
-};
-export const renderViewRTL = ({ style, ...props }) => {
-  const viewStyle = {
-    marginRight: "unset",
-    marginLeft: -15,
   };
   return <div style={{ ...style, ...viewStyle }} {...props} />;
 };
