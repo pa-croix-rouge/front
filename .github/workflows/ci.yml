@@ -72,7 +72,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: node-modules
-          path: ./node_modules.tgz
+          path: .
 
       - name: Extract node_modules
         run: tar xvf node_modules.tgz
