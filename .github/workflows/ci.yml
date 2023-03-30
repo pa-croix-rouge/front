@@ -59,6 +59,32 @@ jobs:
           name: node-modules
           path: ./node_modules.tgz
 
+  sca_testing:
+    needs: install_dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download code
+        uses: actions/download-artifact@v2
+        with:
+          name: source-code
+
+      - name: Download node_modules archive
+        uses: actions/download-artifact@v2
+        with:
+          name: node-modules
+          path: .
+
+      - name: Extract node_modules
+        run: tar xvf node_modules.tgz
+
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Run Snyk test
+        run: snyk test --all-projects
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
   build:
     needs: install_dependencies
     runs-on: ubuntu-latest
