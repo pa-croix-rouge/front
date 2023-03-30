@@ -51,7 +51,7 @@ jobs:
         run: npm i
 
       - name: Archive node_modules
-        run: tar -czvf node_modules.tar.gz node_modules
+        run: tar czvf node_modules.tgz node_modules
 
       - name: Upload node_modules artifact
         uses: actions/upload-artifact@v2
@@ -75,7 +75,7 @@ jobs:
           path: ./node_modules.tar.gz
 
       - name: Extract node_modules
-        run: tar -xvf node_modules.tar.gz
+        run: tar xvf node_modules.tgz
 
       - name: Build
         run: npm run build
