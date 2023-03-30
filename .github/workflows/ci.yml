@@ -77,16 +77,13 @@ jobs:
       - name: Extract node_modules
         run: tar xvf node_modules.tgz
 
-      - name: Install Snyk CLI
-        run: npm install -g snyk
-
-      - name: Run Snyk test
-        run: snyk test --all-projects
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
   build:
-    needs: install_dependencies
+    needs: sca_testing
     runs-on: ubuntu-latest
     steps:
       - name: Download code
