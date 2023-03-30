@@ -48,13 +48,16 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Install dependencies
-        run: npm i
+        run: npm ci
 
       - name: Archive node_modules
+        run: tar -czf node_modules.tar.gz node_modules
+
+      - name: Upload node_modules artifact
         uses: actions/upload-artifact@v2
         with:
           name: node-modules
-          path: ./node_modules
+          path: ./node_modules.tar.gz
 
   build:
     needs: install_dependencies
@@ -65,11 +68,14 @@ jobs:
         with:
           name: source-code
 
-      - name: Download node_modules
+      - name: Download node_modules archive
         uses: actions/download-artifact@v2
         with:
           name: node-modules
-          path: ./node_modules
+          path: ./node_modules.tar.gz
+
+      - name: Extract node_modules
+        run: tar -xzf node_modules.tar.gz
 
       - name: Build
         run: npm run build
