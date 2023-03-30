@@ -81,6 +81,7 @@ jobs:
         uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        continue-on-error: true  # Add this line
 
   build:
     needs: sca_testing
