@@ -9,6 +9,8 @@ import SignUp from "views/Pages/SignUp.js";
 
 import {CreditIcon, DocumentIcon, HomeIcon, PersonIcon, RocketIcon, StatsIcon,} from "components/Icons/Icons";
 import LocalUnit from "./views/Dashboard/LocalUnit";
+import {InfoIcon} from "@chakra-ui/icons";
+import ULDashboard from "./views/Dashboard/ULDashboard";
 
 var dashRoutes = [
   {
@@ -16,6 +18,13 @@ var dashRoutes = [
     name: "Dashboard",
     icon: <HomeIcon color='inherit' />,
     component: Dashboard,
+    layout: "/admin",
+  },
+  {
+    path: "/ul-dashboard",
+    name: "UL Dashboard",
+    icon: <InfoIcon color='inherit' />,
+    component: ULDashboard,
     layout: "/admin",
   },
   {
