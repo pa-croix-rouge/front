@@ -8,6 +8,7 @@ import SignIn from "views/Pages/SignIn.js";
 import SignUp from "views/Pages/SignUp.js";
 
 import {CreditIcon, DocumentIcon, HomeIcon, PersonIcon, RocketIcon, StatsIcon,} from "components/Icons/Icons";
+import LocalUnit from "./views/Dashboard/LocalUnit";
 
 var dashRoutes = [
   {
@@ -29,6 +30,13 @@ var dashRoutes = [
     name: "Billing",
     icon: <CreditIcon color='inherit' />,
     component: Billing,
+    layout: "/admin",
+  },
+  {
+    path: "/local-unit",
+    name: "Local Unit",
+    icon: <HomeIcon color='inherit' />,
+    component: LocalUnit,
     layout: "/admin",
   },
   {
