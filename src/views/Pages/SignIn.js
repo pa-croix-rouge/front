@@ -1,31 +1,14 @@
 import React from "react";
 // Chakra imports
-import {
-  Box,
-  Flex,
-  Button,
-  FormControl,
-  FormLabel,
-  HStack,
-  Input,
-  Icon,
-  Link,
-  Switch,
-  Text,
-  useColorModeValue,
-} from "@chakra-ui/react";
+import {Box, Button, Flex, FormControl, FormLabel, Input, Link, Text, useColorModeValue,} from "@chakra-ui/react";
 // Assets
 import signInImage from "assets/img/signInImage.png";
-import { FaApple, FaFacebook, FaGoogle } from "react-icons/fa";
 
 function SignIn() {
   // Chakra color mode
   const textColor = useColorModeValue("gray.700", "white");
   const bgForm = useColorModeValue("white", "navy.800");
   const titleColor = useColorModeValue("gray.700", "blue.500");
-  const colorIcons = useColorModeValue("gray.700", "white");
-  const bgIcons = useColorModeValue("trasnparent", "navy.700");
-  const bgIconsHover = useColorModeValue("gray.50", "whiteAlpha.100");
   return (
     <Flex position='relative' mb='40px'>
       <Flex
@@ -58,115 +41,31 @@ function SignIn() {
               "0px 5px 14px rgba(0, 0, 0, 0.05)",
               "unset"
             )}>
-            <Text
-              fontSize='xl'
-              color={textColor}
-              fontWeight='bold'
-              textAlign='center'
-              mb='22px'>
-              Register With
-            </Text>
-            <HStack spacing='15px' justify='center' mb='22px'>
-              <Flex
-                justify='center'
-                align='center'
-                w='75px'
-                h='75px'
-                borderRadius='8px'
-                border={useColorModeValue("1px solid", "0px")}
-                borderColor='gray.200'
-                cursor='pointer'
-                transition='all .25s ease'
-                bg={bgIcons}
-                _hover={{ bg: bgIconsHover }}>
-                <Link href='#'>
-                  <Icon as={FaFacebook} color={colorIcons} w='30px' h='30px' />
-                </Link>
-              </Flex>
-              <Flex
-                justify='center'
-                align='center'
-                w='75px'
-                h='75px'
-                borderRadius='8px'
-                border={useColorModeValue("1px solid", "0px")}
-                borderColor='gray.200'
-                cursor='pointer'
-                transition='all .25s ease'
-                bg={bgIcons}
-                _hover={{ bg: bgIconsHover }}>
-                <Link href='#'>
-                  <Icon
-                    as={FaApple}
-                    color={colorIcons}
-                    w='30px'
-                    h='30px'
-                    _hover={{ filter: "brightness(120%)" }}
-                  />
-                </Link>
-              </Flex>
-              <Flex
-                justify='center'
-                align='center'
-                w='75px'
-                h='75px'
-                borderRadius='8px'
-                border={useColorModeValue("1px solid", "0px")}
-                borderColor='gray.200'
-                cursor='pointer'
-                transition='all .25s ease'
-                bg={bgIcons}
-                _hover={{ bg: bgIconsHover }}>
-                <Link href='#'>
-                  <Icon
-                    as={FaGoogle}
-                    color={colorIcons}
-                    w='30px'
-                    h='30px'
-                    _hover={{ filter: "brightness(120%)" }}
-                  />
-                </Link>
-              </Flex>
-            </HStack>
-            <Text
-              fontSize='lg'
-              color='gray.400'
-              fontWeight='bold'
-              textAlign='center'
-              mb='22px'>
-              or
-            </Text>
             <FormControl>
               <FormLabel ms='4px' fontSize='sm' fontWeight='normal'>
-                Name
+                Email
               </FormLabel>
               <Input
                 variant='auth'
                 fontSize='sm'
                 ms='4px'
-                type='text'
-                placeholder='Your full name'
+                type='email'
+                placeholder='example@croix-rouge.fr'
                 mb='24px'
                 size='lg'
               />
               <FormLabel ms='4px' fontSize='sm' fontWeight='normal'>
-                Password
+                Mot de passe
               </FormLabel>
               <Input
                 variant='auth'
                 fontSize='sm'
                 ms='4px'
                 type='password'
-                placeholder='Your password'
+                placeholder='Votre mot de passe'
                 mb='24px'
                 size='lg'
               />
-              <FormControl display='flex' alignItems='center' mb='24px'>
-                <Switch id='remember-login' colorScheme='blue' me='10px' />
-                <FormLabel htmlFor='remember-login' mb='0' fontWeight='normal'>
-                  Remember me
-                </FormLabel>
-              </FormControl>
               <Button
                 fontSize='10px'
                 variant='dark'
@@ -174,7 +73,7 @@ function SignIn() {
                 w='100%'
                 h='45'
                 mb='24px'>
-                SIGN UP
+                SE CONNECTER
               </Button>
             </FormControl>
             <Flex
@@ -184,14 +83,14 @@ function SignIn() {
               maxW='100%'
               mt='0px'>
               <Text color={textColor} fontWeight='medium'>
-                Already have an account?
+                Vous n'avez pas encore de compte?
                 <Link
                   color={titleColor}
                   as='span'
                   ms='5px'
-                  href='#'
+                  href='/sign-up'
                   fontWeight='bold'>
-                  Sign In
+                  S'enregistrer
                 </Link>
               </Text>
             </Flex>
@@ -209,7 +108,8 @@ function SignIn() {
             h='100%'
             bgSize='cover'
             bg='blue.500'
-            opacity='0.8'></Box>
+            opacity='0.8'>
+          </Box>
         </Box>
       </Flex>
     </Flex>
