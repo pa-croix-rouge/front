@@ -17,20 +17,20 @@ import {
   Th,
   Thead,
   Tr,
-  useColorMode,
   useColorModeValue,
 } from "@chakra-ui/react";
 // Custom components
 import Card from "components/Card/Card.js";
 import BarChart from "components/Charts/BarChart";
-import LineChart from "components/Charts/LineChart";
 import IconBox from "components/Icons/IconBox";
 // Custom icons
 import {CartIcon, DocumentIcon, GlobeIcon, WalletIcon,} from "components/Icons/Icons.js";
 import React from "react";
 // Variables
-import {barChartDataEvents, barChartOptionsEvents, lineChartDataStock, lineChartOptionsStock,} from "variables/charts";
+import {barChartDataEvents, barChartOptionsEvents} from "variables/charts";
 import {eventList, eventTraffic, stockClothCategories, stockFoodCategories} from "variables/general";
+import FullCalendar from '@fullcalendar/react' // must go before plugins
+import dayGridPlugin from '@fullcalendar/daygrid' // a plugin!
 
 export default function ULDashboard() {
   // Chakra Color Mode
@@ -40,8 +40,6 @@ export default function ULDashboard() {
   const tableRowColor = useColorModeValue("#F7FAFC", "navy.900");
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const textTableColor = useColorModeValue("gray.500", "white");
-
-  const { colorMode } = useColorMode();
 
   return (
     <Flex flexDirection='column' pt={{ base: "120px", md: "75px" }}>
@@ -203,25 +201,20 @@ export default function ULDashboard() {
         templateRows={{ lg: "repeat(2, auto)" }}
         gap='20px'>
         <Card
-          bg={
-            colorMode === "dark"
-              ? "navy.800"
-              : "linear-gradient(81.62deg, #313860 2.25%, #151928 79.87%)"
-          }
           p='0px'
           maxW={{ sm: "320px", md: "100%" }}>
-          <Flex direction='column' mb='40px' p='28px 0px 0px 22px'>
-            <Text color='#fff' fontSize='lg' fontWeight='bold' mb='6px'>
-              Stock alimentaire distribué par mois
-            </Text>
-            <Text color='#fff' fontSize='sm'>
-              en 2022
-            </Text>
-          </Flex>
-          <Box minH='300px'>
-            <LineChart
-              chartData={lineChartDataStock}
-              chartOptions={lineChartOptionsStock}
+          <Box minH='320px' margin='8px'>
+            <FullCalendar
+              plugins={[ dayGridPlugin ]}
+              initialView="dayGridMonth"
+              locale='fr'
+              footerToolbar={
+                {
+                  left: '',
+                  center: '',
+                  right: ''
+                }
+              }
             />
           </Box>
         </Card>
