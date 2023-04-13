@@ -32,9 +32,9 @@ jobs:
         id: local-cache
         run: |
           if [ -f ~/.npm/node_modules.tgz ]; then
-            ::set-output name=cache_exists::true
+            echo "::set-output name=cache_exists::true"
           else
-            ::set-output name=cache_exists::false
+            echo "::set-output name=cache_exists::false"
           fi
 
       - name: Restore local npm cache
@@ -59,7 +59,7 @@ jobs:
         uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        continue-on-error: true
+        continue-on-error: true  # Add this line
 
   build:
     needs: sca_testing
