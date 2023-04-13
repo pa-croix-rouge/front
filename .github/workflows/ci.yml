@@ -43,7 +43,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.local-cache.outputs.cache_exists == 'false'
-        run: npm ci
+        run: npm i
 
       - name: Save local npm cache
         if: steps.local-cache.outputs.cache_exists == 'false'
