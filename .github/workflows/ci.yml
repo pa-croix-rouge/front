@@ -14,92 +14,56 @@ on:
 
 jobs:
   checkout_code:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Archive code
-        uses: actions/upload-artifact@v2
-        with:
-          name: source-code
-          path: .
-
   install_dependencies:
     needs: checkout_code
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - name: Download code
-        uses: actions/download-artifact@v2
-        with:
-          name: source-code
-
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
           node-version: 16
 
-      - name: Cache npm dependencies
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+      - name: Check local npm cache
+        id: local-cache
+        run: |
+          if [ -f ~/.npm/node_modules.tgz ]; then
+            ::set-output name=cache_exists::true
+          else
+            ::set-output name=cache_exists::false
+          fi
+
+      - name: Restore local npm cache
+        if: steps.local-cache.outputs.cache_exists == 'true'
+        run: tar xzf ~/.npm/node_modules.tgz
 
       - name: Install dependencies
-        run: npm i
+        if: steps.local-cache.outputs.cache_exists == 'false'
+        run: npm ci
 
-      - name: Archive node_modules
-        run: tar czvf node_modules.tgz node_modules
-
-      - name: Upload node_modules artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: node-modules
-          path: ./node_modules.tgz
+      - name: Save local npm cache
+        if: steps.local-cache.outputs.cache_exists == 'false'
+        run: |
+          mkdir -p ~/.npm
+          tar czf ~/.npm/node_modules.tgz node_modules
 
   sca_testing:
     needs: install_dependencies
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - name: Download code
-        uses: actions/download-artifact@v2
-        with:
-          name: source-code
-
-      - name: Download node_modules archive
-        uses: actions/download-artifact@v2
-        with:
-          name: node-modules
-          path: .
-
-      - name: Extract node_modules
-        run: tar xvf node_modules.tgz
-
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        continue-on-error: true  # Add this line
+        continue-on-error: true
 
   build:
     needs: sca_testing
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - name: Download code
-        uses: actions/download-artifact@v2
-        with:
-          name: source-code
-
-      - name: Download node_modules archive
-        uses: actions/download-artifact@v2
-        with:
-          name: node-modules
-          path: .
-
-      - name: Extract node_modules
-        run: tar xvf node_modules.tgz
-
       - name: Build
         run: npm run build
