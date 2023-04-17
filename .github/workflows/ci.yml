@@ -71,7 +71,7 @@ jobs:
         run: npm run build
 
   deploy:
-    needs: test
+    needs: build
     runs-on: self-hosted
     steps:
       - name: Copy built artifacts (pre-production)
