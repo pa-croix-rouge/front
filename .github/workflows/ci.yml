@@ -4,11 +4,13 @@ on:
   push:
     branches:
       - master
+      - dev
       - 'feature/**'
       - 'fix/**'
   pull_request:
     branches:
       - master
+      - dev
       - 'feature/**'
       - 'fix/**'
 
@@ -67,3 +69,23 @@ jobs:
     steps:
       - name: Build
         run: npm run build
+
+  deploy:
+    needs: test
+    runs-on: self-hosted
+    steps:
+      - name: Copy built artifacts (pre-production)
+        if: github.ref == 'refs/heads/dev'
+        run: cp -r build/* /root/pa-cxr/pre-prod/front/.
+
+      - name: Run the application (pre-production)
+        if: github.ref == 'refs/heads/dev'
+        run: cd /root/pa-cxr/pre-prod/front/; sh run_front.sh
+
+      - name: Copy built artifacts (production)
+        if: github.ref == 'refs/heads/master'
+        run: cp -r build/* /root/pa-cxr/prod/front/.
+
+      - name: Run the application (production)
+        if: github.ref == 'refs/heads/master'
+        run: cd /root/pa-cxr/prod/front/; sh run_front.sh
