@@ -1,7 +1,7 @@
 // Chakra imports
 import {Box, Button, Flex, FormControl, FormLabel, Input, Link, Text, useColorModeValue,} from "@chakra-ui/react";
 // Assets
-import BgSignUp from "assets/img/BgSignUp.png";
+import BgSignUp from "./../../assets/img/BgSignUp.png";
 import React from "react";
 
 function SignUp() {

@@ -15,8 +15,11 @@
 		"@fontsource/raleway": "^4.5.0",
 		"@fontsource/roboto": "^4.5.0",
 		"apexcharts": "^3.27.3",
+		"babel-loader": "^9.1.2",
 		"classnames": "2.3.1",
+		"dotenv": "^16.0.3",
 		"framer-motion": "4.1.17",
+		"fs": "^0.0.1-security",
 		"match-sorter": "6.3.0",
 		"moment": "2.29.4",
 		"nouislider": "15.0.0",
@@ -36,7 +39,8 @@
 		"react-table": "7.7.0",
 		"react-tagsinput": "3.19.0",
 		"sass": "^1.56.1",
-		"stylis": "^4.0.10"
+		"stylis": "^4.0.10",
+		"typescript": "^4.9.5"
 	},
 	"resolutions": {
 		"react-error-overlay": "6.0.9"
@@ -52,8 +56,7 @@
 		"install:clean": "rm -rf node_modules/ && rm -rf package-lock.json && npm install && npm start"
 	},
 	"optionalDependencies": {
-		"@babel/core": "7.14.0",
-		"typescript": "4.2.4"
+		"@babel/core": "7.14.0"
 	},
 	"devDependencies": {
 		"@babel/plugin-transform-react-jsx-source": "^7.14.5",
@@ -64,7 +67,15 @@
 		"prettier": "2.2.1"
 	},
 	"browserslist": {
-		"production": [ ">0.2%", "not dead", "not op_mini all" ],
-		"development": [ "last 1 chrome version", "last 1 firefox version", "last 1 safari version" ]
+		"production": [
+			">0.2%",
+			"not dead",
+			"not op_mini all"
+		],
+		"development": [
+			"last 1 chrome version",
+			"last 1 firefox version",
+			"last 1 safari version"
+		]
 	}
 }

@@ -2,7 +2,21 @@ import React from "react";
 // Chakra imports
 import {Box, Button, Flex, FormControl, FormLabel, Input, Link, Text, useColorModeValue,} from "@chakra-ui/react";
 // Assets
-import signInImage from "assets/img/signInImage.png";
+import signInImage from "./../../assets/img/signInImage.png";
+import {User} from "./../../model/User";
+import {login} from "./../../controller/LoginController";
+
+function handleLoginClick() {
+  const user = new User('defaultUser', 'defaultPassword');
+
+  login(user)
+      .then((token) => {
+        console.log(token.token);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+}
 
 function SignIn() {
   // Chakra color mode
@@ -72,7 +86,8 @@ function SignIn() {
                 fontWeight='bold'
                 w='100%'
                 h='45'
-                mb='24px'>
+                mb='24px'
+                onClick={handleLoginClick()}>
                 SE CONNECTER
               </Button>
             </FormControl>

@@ -20,17 +20,17 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 // Custom components
-import Card from "components/Card/Card.js";
-import BarChart from "components/Charts/BarChart";
-import LineChart from "components/Charts/LineChart";
-import IconBox from "components/Icons/IconBox";
+import Card from "./../../components/Card/Card.js";
+import BarChart from "./../../components/Charts/BarChart";
+import LineChart from "./../../components/Charts/LineChart";
+import IconBox from "./../../components/Icons/IconBox";
 // Custom icons
 import {
   CartIcon,
   DocumentIcon,
   GlobeIcon,
   WalletIcon,
-} from "components/Icons/Icons.js";
+} from "./../../components/Icons/Icons.js";
 import React from "react";
 // Variables
 import {
@@ -38,8 +38,8 @@ import {
   barChartOptions,
   lineChartData,
   lineChartOptions,
-} from "variables/charts";
-import { pageVisits, socialTraffic } from "variables/general";
+} from "./../../variables/charts";
+import { pageVisits, socialTraffic } from "./../../variables/general";
 
 export default function Dashboard() {
   // Chakra Color Mode

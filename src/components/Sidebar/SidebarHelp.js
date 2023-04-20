@@ -8,7 +8,7 @@ import {
   useColorMode,
   useColorModeValue,
 } from "@chakra-ui/react";
-import SidebarHelpImage from "assets/img/SidebarHelpImage.png";
+import SidebarHelpImage from "./../../assets/img/SidebarHelpImage.png";
 import React from "react";
 
 export function SidebarHelp(props) {

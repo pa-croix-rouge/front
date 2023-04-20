@@ -11,18 +11,18 @@ import {
   useColorModeValue
 } from "@chakra-ui/react";
 // Assets
-import avatar1 from "assets/img/avatars/avatar1.png";
-import avatar2 from "assets/img/avatars/avatar2.png";
-import avatar3 from "assets/img/avatars/avatar3.png";
+import avatar1 from "./../../assets/img/avatars/avatar1.png";
+import avatar2 from "./../../assets/img/avatars/avatar2.png";
+import avatar3 from "./../../assets/img/avatars/avatar3.png";
 // Custom Icons
-import { ArgonLogoDark, ArgonLogoLight, ChakraLogoDark, ChakraLogoLight, ProfileIcon, SettingsIcon } from "components/Icons/Icons";
+import { ArgonLogoDark, ArgonLogoLight, ChakraLogoDark, ChakraLogoLight, ProfileIcon, SettingsIcon } from "./../Icons/Icons";
 // Custom Components
-import { ItemContent } from "components/Menu/ItemContent";
-import { SearchBar } from "components/Navbars/SearchBar/SearchBar";
-import { SidebarResponsive } from "components/Sidebar/Sidebar";
+import { ItemContent } from "./../Menu/ItemContent";
+import { SearchBar } from "./../Navbars/SearchBar/SearchBar";
+import { SidebarResponsive } from "./../Sidebar/Sidebar";
 import React from "react";
 import { NavLink } from "react-router-dom";
-import routes from "routes.js";
+import routes from "./../../routes.js";
 
 export default function HeaderLinks(props) {
   const {
