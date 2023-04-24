@@ -25,9 +25,6 @@ import { ChakraProvider } from "@chakra-ui/react";
 // Custom Chakra theme
 import theme from "./theme/theme.js";
 
-import dotenv from 'dotenv';
-dotenv.config();
-
 ReactDOM.render(
   <ChakraProvider theme={theme} resetCss={false} position="relative">
     <HashRouter>
