@@ -14,8 +14,8 @@ import {
   HomeIcon,
   PersonIcon,
   RocketIcon
-} from "./../Icons/Icons";
-import { SidebarResponsive } from "./../Sidebar/Sidebar";
+} from "../Icons/Icons";
+import { SidebarResponsive } from "../Sidebar/Sidebar";
 import React from "react";
 import { NavLink } from "react-router-dom";
 import routes from "./../../routes.js";
@@ -53,7 +53,7 @@ export default function AuthNavbar(props) {
         <Box w="1px" h="20px" bg={"white"} />
         <ChakraLogoBlue w="82px" h="21px" />
       </Stack>
-      <Text fontsize="sm" mt="3px">
+      <Text fontSize="sm" mt="3px">
         {logoText}
       </Text>
     </Link>

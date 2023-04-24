@@ -3,11 +3,12 @@ import React from "react";
 import {Box, Button, Flex, FormControl, FormLabel, Input, Link, Text, useColorModeValue,} from "@chakra-ui/react";
 // Assets
 import signInImage from "./../../assets/img/signInImage.png";
-import {User} from "./../../model/User";
-import {login} from "./../../controller/LoginController";
+import {User} from "../../model/User";
+import {login} from "../../controller/LoginController";
 
 function handleLoginClick() {
   const user = new User('defaultUser', 'defaultPassword');
+  console.log(user);
 
   login(user)
       .then((token) => {
