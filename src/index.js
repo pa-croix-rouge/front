@@ -24,16 +24,19 @@ import AdminLayout from "./layouts/Admin.js";
 import { ChakraProvider } from "@chakra-ui/react";
 // Custom Chakra theme
 import theme from "./theme/theme.js";
+import TokenProvider from "./providers/TokenProviders";
 
 ReactDOM.render(
-  <ChakraProvider theme={theme} resetCss={false} position="relative">
-    <HashRouter>
-      <Switch>
-        <Route path={`/auth`} component={AuthLayout} />
-        <Route path={`/admin`} component={AdminLayout} />
-        <Redirect from={`/`} to="/admin/dashboard" />
-      </Switch>
-    </HashRouter>
-  </ChakraProvider>,
-  document.getElementById("root")
+    <ChakraProvider theme={theme} resetCss={false} position="relative">
+        <HashRouter>
+            <Switch>
+                <TokenProvider>
+                    <Route path={`/auth`} component={AuthLayout} />
+                    <Route path={`/admin`} component={AdminLayout} />
+                    <Redirect from={`/`} to="/admin/dashboard" />
+                </TokenProvider>
+            </Switch>
+        </HashRouter>
+    </ChakraProvider>,
+    document.getElementById("root")
 );
