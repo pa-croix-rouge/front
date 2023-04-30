@@ -16,15 +16,15 @@ import {
   useColorModeValue,
   useDisclosure
 } from "@chakra-ui/react";
-import IconBox from "components/Icons/IconBox";
+import IconBox from "./../Icons/IconBox";
 import {
   renderThumbDark,
   renderThumbLight,
   renderTrack,
   renderView,
-} from "components/Scrollbar/Scrollbar";
-import { HSeparator } from "components/Separator/Separator";
-import { SidebarHelp } from "components/Sidebar/SidebarHelp";
+} from "./../Scrollbar/Scrollbar";
+import { HSeparator } from "./../Separator/Separator";
+import { SidebarHelp } from "./../Sidebar/SidebarHelp";
 import React from "react";
 import { Scrollbars } from "react-custom-scrollbars";
 import { NavLink, useLocation } from "react-router-dom";

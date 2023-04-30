@@ -53,6 +53,18 @@ jobs:
           mkdir -p ~/.npm
           tar czf ~/.npm/node_modules.tgz node_modules
 
+      - name: Install env (prod)
+        if: github.ref == 'refs/heads/master'
+        run: cp ~/pa-cxr/env/prod/env.js ./src/env.js
+
+      - name: Install env (pr-prod)
+        if: github.ref == 'refs/heads/dev'
+        run: cp ~/pa-cxr/env/pr-prod/env.js ./src/env.js
+
+      - name: Install env
+        if: github.ref != 'refs/heads/master' && github.ref != 'refs/heads/dev'
+        run: cp ~/pa-cxr/env/no_deployment/env.js ./src/env.js
+
   sca_testing:
     needs: install_dependencies
     runs-on: self-hosted

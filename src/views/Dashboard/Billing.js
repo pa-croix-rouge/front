@@ -11,17 +11,17 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 // Assets
-import BackgroundCard1 from "assets/img/BackgroundCard1.png";
+import BackgroundCard1 from "./../../assets/img/BackgroundCard1.png";
 // Custom components
-import Card from "components/Card/Card.js";
-import CardBody from "components/Card/CardBody.js";
-import CardHeader from "components/Card/CardHeader.js";
-import IconBox from "components/Icons/IconBox";
-import { MastercardIcon, VisaIcon } from "components/Icons/Icons";
-import { HSeparator } from "components/Separator/Separator";
-import BillingRow from "components/Tables/BillingRow";
-import InvoicesRow from "components/Tables/InvoicesRow";
-import TransactionRow from "components/Tables/TransactionRow";
+import Card from "./../../components/Card/Card.js";
+import CardBody from "./../../components/Card/CardBody.js";
+import CardHeader from "./../../components/Card/CardHeader.js";
+import IconBox from "./../../components/Icons/IconBox";
+import { MastercardIcon, VisaIcon } from "./../../components/Icons/Icons";
+import { HSeparator } from "./../../components/Separator/Separator";
+import BillingRow from "./../../components/Tables/BillingRow";
+import InvoicesRow from "./../../components/Tables/InvoicesRow";
+import TransactionRow from "./../../components/Tables/TransactionRow";
 import React from "react";
 import {
   FaPaypal,
@@ -35,7 +35,7 @@ import {
   invoicesData,
   newestTransactions,
   olderTransactions,
-} from "variables/general";
+} from "./../../variables/general";
 
 function Billing() {
   // Chakra color mode

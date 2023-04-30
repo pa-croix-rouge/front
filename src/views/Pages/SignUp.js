@@ -1,31 +1,13 @@
 // Chakra imports
-import {
-  Box,
-  Button,
-  Flex,
-  FormControl,
-  FormLabel,
-  HStack,
-  Icon,
-  Input,
-  Link,
-  Switch,
-  Text,
-  useColorModeValue,
-  LightMode,
-} from "@chakra-ui/react";
+import {Box, Button, Flex, FormControl, FormLabel, Input, Link, Text, useColorModeValue,} from "@chakra-ui/react";
 // Assets
-import BgSignUp from "assets/img/BgSignUp.png";
+import BgSignUp from "./../../assets/img/BgSignUp.png";
 import React from "react";
-import { FaApple, FaFacebook, FaGoogle } from "react-icons/fa";
 
 function SignUp() {
   const bgForm = useColorModeValue("white", "navy.800");
   const titleColor = useColorModeValue("gray.700", "blue.500");
   const textColor = useColorModeValue("gray.700", "white");
-  const colorIcons = useColorModeValue("gray.700", "white");
-  const bgIcons = useColorModeValue("trasnparent", "navy.700");
-  const bgIconsHover = useColorModeValue("gray.50", "whiteAlpha.100");
   return (
     <Flex
       direction='column'
@@ -59,7 +41,7 @@ function SignUp() {
         mt='125px'
         mb='30px'>
         <Text fontSize='4xl' color='white' fontWeight='bold'>
-          Welcome!
+          Bienvenue!
         </Text>
         <Text
           fontSize='md'
@@ -68,8 +50,8 @@ function SignUp() {
           mt='10px'
           mb='26px'
           w={{ base: "90%", sm: "60%", lg: "40%", xl: "333px" }}>
-          Use these awesome forms to login or create new account in your project
-          for free.
+          Une fois votre demande d'inscription prise en compte, merci de contacter le référent de votre unité locale
+          afin que ces derniers valident votre inscription.
         </Text>
       </Flex>
       <Flex alignItems='center' justifyContent='center' mb='60px' mt='20px'>
@@ -85,96 +67,30 @@ function SignUp() {
             "0px 5px 14px rgba(0, 0, 0, 0.05)",
             "unset"
           )}>
-          <Text
-            fontSize='xl'
-            color={textColor}
-            fontWeight='bold'
-            textAlign='center'
-            mb='22px'>
-            Register With
-          </Text>
-          <HStack spacing='15px' justify='center' mb='22px'>
-            <Flex
-              justify='center'
-              align='center'
-              w='75px'
-              h='75px'
-              borderRadius='8px'
-              border={useColorModeValue("1px solid", "0px")}
-              borderColor='gray.200'
-              cursor='pointer'
-              transition='all .25s ease'
-              bg={bgIcons}
-              _hover={{ bg: bgIconsHover }}>
-              <Link href='#'>
-                <Icon as={FaFacebook} color={colorIcons} w='30px' h='30px' />
-              </Link>
-            </Flex>
-            <Flex
-              justify='center'
-              align='center'
-              w='75px'
-              h='75px'
-              borderRadius='8px'
-              border={useColorModeValue("1px solid", "0px")}
-              borderColor='gray.200'
-              cursor='pointer'
-              transition='all .25s ease'
-              bg={bgIcons}
-              _hover={{ bg: bgIconsHover }}>
-              <Link href='#'>
-                <Icon
-                  as={FaApple}
-                  color={colorIcons}
-                  w='30px'
-                  h='30px'
-                  _hover={{ filter: "brightness(120%)" }}
-                />
-              </Link>
-            </Flex>
-            <Flex
-              justify='center'
-              align='center'
-              w='75px'
-              h='75px'
-              borderRadius='8px'
-              border={useColorModeValue("1px solid", "0px")}
-              borderColor='gray.200'
-              cursor='pointer'
-              transition='all .25s ease'
-              bg={bgIcons}
-              _hover={{ bg: bgIconsHover }}>
-              <Link href='#'>
-                <Icon
-                  as={FaGoogle}
-                  color={colorIcons}
-                  w='30px'
-                  h='30px'
-                  _hover={{ filter: "brightness(120%)" }}
-                />
-              </Link>
-            </Flex>
-          </HStack>
-          <Text
-            fontSize='lg'
-            color='gray.400'
-            fontWeight='bold'
-            textAlign='center'
-            mb='22px'>
-            or
-          </Text>
           <FormControl>
             <FormLabel ms='4px' fontSize='sm' fontWeight='normal'>
-              Name
+              Nom
             </FormLabel>
             <Input
               variant='auth'
               fontSize='sm'
               ms='4px'
               type='text'
-              placeholder='Your full name'
+              placeholder='Votre nom'
               mb='24px'
               size='lg'
+            />
+            <FormLabel ms='4px' fontSize='sm' fontWeight='normal'>
+              Prénom
+            </FormLabel>
+            <Input
+                variant='auth'
+                fontSize='sm'
+                ms='4px'
+                type='text'
+                placeholder='Votre prénom'
+                mb='24px'
+                size='lg'
             />
             <FormLabel ms='4px' fontSize='sm' fontWeight='normal'>
               Email
@@ -184,28 +100,22 @@ function SignUp() {
               fontSize='sm'
               ms='4px'
               type='email'
-              placeholder='Your email address'
+              placeholder='example@croix-rouge.fr'
               mb='24px'
               size='lg'
             />
             <FormLabel ms='4px' fontSize='sm' fontWeight='normal'>
-              Password
+              Mot de passe
             </FormLabel>
             <Input
               variant='auth'
               fontSize='sm'
               ms='4px'
               type='password'
-              placeholder='Your password'
+              placeholder='Votre mot de passe'
               mb='24px'
               size='lg'
             />
-            <FormControl display='flex' alignItems='center' mb='24px'>
-              <Switch id='remember-login' colorScheme='blue' me='10px' />
-              <FormLabel htmlFor='remember-login' mb='0' fontWeight='normal'>
-                Remember me
-              </FormLabel>
-            </FormControl>
             <Button
               fontSize='10px'
               variant='dark'
@@ -213,7 +123,7 @@ function SignUp() {
               w='100%'
               h='45'
               mb='24px'>
-              SIGN UP
+              S'ENREGISTRER
             </Button>
           </FormControl>
           <Flex
@@ -223,14 +133,14 @@ function SignUp() {
             maxW='100%'
             mt='0px'>
             <Text color={textColor} fontWeight='medium'>
-              Already have an account?
+              Vous avez déjà un compte?
               <Link
                 color={titleColor}
                 as='span'
                 ms='5px'
                 href='#'
                 fontWeight='bold'>
-                Sign In
+                Se connecter
               </Link>
             </Text>
           </Flex>
