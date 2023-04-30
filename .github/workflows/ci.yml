@@ -53,6 +53,9 @@ jobs:
           mkdir -p ~/.npm
           tar czf ~/.npm/node_modules.tgz node_modules
 
+      - name: Install env
+        run: cp ~/pa-cxr/env/env.js ./src/env.js
+
   sca_testing:
     needs: install_dependencies
     runs-on: self-hosted
