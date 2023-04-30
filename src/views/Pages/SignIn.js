@@ -1,4 +1,4 @@
-import React, {useContext, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 // Chakra imports
 import {
     Box,
@@ -18,7 +18,7 @@ import {User} from "../../model/User";
 import {login} from "../../controller/LoginController";
 import TokenContext from "../../contexts/TokenContext";
 import {Token} from "../../model/Token";
-import TokenProvider from "../../providers/TokenProviders";
+import {useHistory} from "react-router-dom";
 
 function SignIn() {
     // Chakra color mode
@@ -30,6 +30,7 @@ function SignIn() {
     const [loading, setLoading] = useState(false);
     const [isError, setIsError] = useState(false);
     const {token, setToken} = useContext(TokenContext);
+    const history = useHistory();
 
     const handleUsernameChange = (event) => {
         setUsername(event.target.value);
@@ -42,21 +43,24 @@ function SignIn() {
     const handleLoginClick = () => {
         setLoading(true);
         const user = new User(username, password);
-        console.log(user);
 
         login(user)
             .then((jwtToken) => {
                 setLoading(false);
-                console.log(jwtToken.token);
-                // setToken(new Token(jwtToken.token));
-                // console.log(token);
+                setToken(new Token(jwtToken.token));
             })
             .catch((error) => {
                 setLoading(false);
                 setIsError(true);
-                console.error(error);
             });
     }
+
+    useEffect(() => {
+        //redirect to dashboard if token is set
+        if (token) {
+            history.push("/admin/dashboard");
+        }
+    }, [token]);
 
     return (
         <Flex position='relative' mb='40px'>
