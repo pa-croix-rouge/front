@@ -1,6 +1,7 @@
 // import
 import React from 'react';
 import Dashboard from "./views/Dashboard/Dashboard.js";
+import Events from "./views/Dashboard/Events";
 import Tables from "./views/Dashboard/Tables.js";
 import Billing from "./views/Dashboard/Billing.js";
 import Profile from "./views/Dashboard/Profile.js";
@@ -25,6 +26,13 @@ var dashRoutes = [
     name: "UL Dashboard",
     icon: <InfoIcon color='inherit' />,
     component: ULDashboard,
+    layout: "/admin",
+  },
+  {
+    path: "/events",
+    name: "Events",
+    icon: <HomeIcon color='inherit' />,
+    component: Events,
     layout: "/admin",
   },
   {
