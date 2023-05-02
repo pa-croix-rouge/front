@@ -31,9 +31,11 @@ ReactDOM.render(
         <HashRouter>
             <Switch>
                 <TokenProvider>
-                    <Route path={`/auth`} component={AuthLayout} />
-                    <Route path={`/admin`} component={AdminLayout} />
-                    <Redirect from={`/`} to="/admin/dashboard" />
+                    {/*<VolunteerProvider>*/}
+                        <Route path={`/auth`} component={AuthLayout} />
+                        <Route path={`/admin`} component={AdminLayout} />
+                        <Redirect from={`/`} to="/admin/dashboard" />
+                    {/*</VolunteerProvider>*/}
                 </TokenProvider>
             </Switch>
         </HashRouter>

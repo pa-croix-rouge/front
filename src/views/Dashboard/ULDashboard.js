@@ -30,7 +30,8 @@ import React from "react";
 import {barChartDataEvents, barChartOptionsEvents} from "variables/charts";
 import {eventList, eventTraffic, stockClothCategories, stockFoodCategories} from "variables/general";
 import FullCalendar from '@fullcalendar/react' // must go before plugins
-import dayGridPlugin from '@fullcalendar/daygrid' // a plugin!
+import dayGridPlugin from '@fullcalendar/daygrid'
+import {getMyProfile} from "../../controller/VolunteerController"; // a plugin!
 
 export default function ULDashboard() {
   // Chakra Color Mode
@@ -40,6 +41,14 @@ export default function ULDashboard() {
   const tableRowColor = useColorModeValue("#F7FAFC", "navy.900");
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const textTableColor = useColorModeValue("gray.500", "white");
+
+  getMyProfile()
+      .then((response) => {
+        console.log(response);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
 
   return (
     <Flex flexDirection='column' pt={{ base: "120px", md: "75px" }}>
