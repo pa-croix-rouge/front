@@ -44,7 +44,7 @@ jobs:
         run: tar xzf ~/.npm/node_modules.tgz
 
       - name: Install dependencies
-        if: steps.local-cache.outputs.cache_exists == 'false'
+#        if: steps.local-cache.outputs.cache_exists == 'false'
         run: npm i
 
       - name: Save local npm cache
