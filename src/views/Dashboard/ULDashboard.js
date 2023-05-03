@@ -25,13 +25,15 @@ import BarChart from "components/Charts/BarChart";
 import IconBox from "components/Icons/IconBox";
 // Custom icons
 import {CartIcon, DocumentIcon, GlobeIcon, WalletIcon,} from "components/Icons/Icons.js";
-import React from "react";
+import React, {useContext} from "react";
 // Variables
 import {barChartDataEvents, barChartOptionsEvents} from "variables/charts";
 import {eventList, eventTraffic, stockClothCategories, stockFoodCategories} from "variables/general";
 import FullCalendar from '@fullcalendar/react' // must go before plugins
 import dayGridPlugin from '@fullcalendar/daygrid'
-import {getMyProfile} from "../../controller/VolunteerController"; // a plugin!
+import {getMyProfile} from "../../controller/VolunteerController";
+import TokenContext from "../../contexts/TokenContext";
+import {useHistory} from "react-router-dom"; // a plugin!
 
 export default function ULDashboard() {
   // Chakra Color Mode
@@ -41,14 +43,21 @@ export default function ULDashboard() {
   const tableRowColor = useColorModeValue("#F7FAFC", "navy.900");
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const textTableColor = useColorModeValue("gray.500", "white");
+  const {token} = useContext(TokenContext);
+  const history = useHistory();
 
-  getMyProfile()
-      .then((response) => {
-        console.log(response);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+  if (token === undefined) {
+    history.push("/auth/signin");
+  } else {
+    getMyProfile()
+        .then((response) => {
+          console.log(response);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+  }
+
 
   return (
     <Flex flexDirection='column' pt={{ base: "120px", md: "75px" }}>

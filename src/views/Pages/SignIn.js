@@ -47,7 +47,7 @@ function SignIn() {
         login(user)
             .then((jwtToken) => {
                 setLoading(false);
-                setToken(new Token(jwtToken.token));
+                setToken(jwtToken.token);
             })
             .catch((error) => {
                 setLoading(false);
