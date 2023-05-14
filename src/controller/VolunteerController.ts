@@ -13,8 +13,8 @@ export const getMyProfile = async (): Promise<Volunteer> => {
         headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + token,
-            'Access-Control-Allow-Origin': '*',
         },
+        redirect: 'follow',
     });
 
     if (!response.ok) {
