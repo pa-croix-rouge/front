@@ -25,7 +25,7 @@ import BarChart from "components/Charts/BarChart";
 import IconBox from "components/Icons/IconBox";
 // Custom icons
 import {CartIcon, DocumentIcon, GlobeIcon, WalletIcon,} from "components/Icons/Icons.js";
-import React, {useContext} from "react";
+import React, {useContext, useState} from "react";
 // Variables
 import {barChartDataEvents, barChartOptionsEvents} from "variables/charts";
 import {eventList, eventTraffic, stockClothCategories, stockFoodCategories} from "variables/general";
@@ -33,7 +33,9 @@ import FullCalendar from '@fullcalendar/react' // must go before plugins
 import dayGridPlugin from '@fullcalendar/daygrid'
 import {getMyProfile} from "../../controller/VolunteerController";
 import TokenContext from "../../contexts/TokenContext";
-import {useHistory} from "react-router-dom"; // a plugin!
+import {useHistory} from "react-router-dom";
+import {getLocalUnit} from "../../controller/LocalUnitController";
+import VolunteerContext from "../../contexts/VolunteerContext"; // a plugin!
 
 export default function ULDashboard() {
   // Chakra Color Mode
@@ -43,24 +45,42 @@ export default function ULDashboard() {
   const tableRowColor = useColorModeValue("#F7FAFC", "navy.900");
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const textTableColor = useColorModeValue("gray.500", "white");
+  const [loadedVolunteer, setLoadedVolunteer] = useState(false);
+  const [loadedLocalUnit, setLoadedLocalUnit] = useState(false);
   const {token} = useContext(TokenContext);
+  const {volunteer, setVolunteer} = useContext(VolunteerContext);
   const history = useHistory();
 
-  if (token === undefined) {
-    history.push("/auth/signin");
-  } else {
-    getMyProfile()
-        .then((response) => {
-          console.log(response);
+  const loadVolunteer = () => {
+    setLoadedVolunteer(true)
+    if (token === undefined) {
+      history.push("/auth/signin");
+    } else {
+      getMyProfile()
+          .then((volunteer) => {
+            setVolunteer(volunteer);
+          })
+          .catch((error) => {
+            setLoadedVolunteer(false);
+          });
+    }
+  }
+
+  const loadLocalUnit = () => {
+    setLoadedLocalUnit(true);
+    getLocalUnit(volunteer.localUnitId)
+        .then((localUnit) => {
+          console.log(localUnit);
         })
         .catch((error) => {
-          console.log(error);
+          setLoadedLocalUnit(false);
         });
   }
 
-
   return (
     <Flex flexDirection='column' pt={{ base: "120px", md: "75px" }}>
+      {!loadedVolunteer && loadVolunteer()}
+      {volunteer && !loadedLocalUnit && loadLocalUnit()}
       <SimpleGrid columns={{ sm: 1, md: 2, xl: 4 }} spacing='24px' mb='20px'>
         <Card minH='125px'>
           <Flex direction='column'>

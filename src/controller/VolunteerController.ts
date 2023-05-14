@@ -7,7 +7,7 @@ const { API_URL } = require('env');
 
 export const getMyProfile = async (): Promise<Volunteer> => {
     const {token}: Token = useContext(TokenContext) as unknown as Token;
-    console.log(token);
+
     const response = await fetch(`${API_URL}/volunteer/token`, {
         method: 'GET',
         headers: {

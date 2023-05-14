@@ -1,13 +1,13 @@
-import VolunteerProvider from "contexts/VolunteerContext";
 import React, { useState } from "react";
+import VolunteerContext from "contexts/VolunteerContext";
 
 const VolunteerProvider = ({ children }) => {
     const [volunteer, setVolunteer] = useState('');
 
     return (
-        <VolunteerProvider.Provider value={{ volunteer, setVolunteer }}>
+        <VolunteerContext.Provider value={{ volunteer, setVolunteer }}>
             {children}
-        </VolunteerProvider.Provider>
+        </VolunteerContext.Provider>
     );
 };
 
