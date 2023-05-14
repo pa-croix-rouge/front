@@ -2,19 +2,62 @@ import {Avatar, Flex, HStack, Text, useColorModeValue} from "@chakra-ui/react";
 
 import crLogo from "assets/img/croix-rouge/logo-croix-rouge-cercle.png";
 
-import React from "react";
+import React, {useContext, useState} from "react";
 import Card from "../../components/Card/Card";
 import CardHeader from "../../components/Card/CardHeader";
 import CardBody from "../../components/Card/CardBody";
+import TokenContext from "../../contexts/TokenContext";
+import VolunteerContext from "../../contexts/VolunteerContext";
+import {useHistory} from "react-router-dom";
+import {getMyProfile} from "../../controller/VolunteerController";
+import {getLocalUnit} from "../../controller/LocalUnitController";
 
 function LocalUnit() {
     const borderProfileColor = useColorModeValue("white", "transparent");
     const bgProfile = useColorModeValue("hsla(0,0%,100%,.8)", "navy.800");
+    const [luName, setLuName] = useState("");
+    const [luAddress, setLuAddress] = useState("");
+    const [luManager, setLuManager] = useState("");
+    const [loadedVolunteer, setLoadedVolunteer] = useState(false);
+    const [loadedLocalUnit, setLoadedLocalUnit] = useState(false);
+    const {token} = useContext(TokenContext);
+    const {volunteer, setVolunteer} = useContext(VolunteerContext);
+    const history = useHistory();
+
+    const loadVolunteer = () => {
+        setLoadedVolunteer(true)
+        if (token === undefined) {
+            history.push("/auth/signin");
+        } else {
+            getMyProfile()
+                .then((volunteer) => {
+                    setVolunteer(volunteer);
+                })
+                .catch((error) => {
+                    setLoadedVolunteer(false);
+                });
+        }
+    }
+
+    const loadLocalUnit = () => {
+        setLoadedLocalUnit(true);
+        getLocalUnit(volunteer.localUnitId)
+            .then((localUnit) => {
+                setLuName(localUnit.name);
+                setLuAddress(localUnit.address.streetNumberAndName + ", " + localUnit.address.postalCode + " " + localUnit.address.city);
+                setLuManager(localUnit.managerName);
+            })
+            .catch((error) => {
+                setLoadedLocalUnit(false);
+            });
+    }
 
     return (
         <Flex
             direction='column'
             pt={{ base: "120px", md: "75px", lg: "100px" }}>
+            {!loadedVolunteer && loadVolunteer()}
+            {volunteer && !loadedLocalUnit && loadLocalUnit()}
             <Flex
                 direction={{ sm: "column", md: "row" }}
                 mb='24px'
@@ -36,10 +79,10 @@ function LocalUnit() {
                         direction='column'>
                         <Text
                             fontWeight="bold">
-                            Unité Locale du Val d'Orge
+                            {luName}
                         </Text>
                         <Text>
-                            34, avenue d’Orgeval, 91360 Villemoisson-sur-Orge
+                            {luAddress}
                         </Text>
                     </Flex>
                 </HStack>
@@ -52,7 +95,7 @@ function LocalUnit() {
                 </CardHeader>
                 <CardBody>
                     <Text>
-                        Gérant: Bernard
+                        Gérant: {luManager}
                     </Text>
                 </CardBody>
             </Card>
