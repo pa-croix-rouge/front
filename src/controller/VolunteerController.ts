@@ -1,21 +1,8 @@
 import {Volunteer} from "../model/Volunteer";
-import {useContext} from "react";
-import TokenContext from "../contexts/TokenContext";
-import {Token} from "../model/Token";
-
-const { API_URL } = require('env');
+import {getWithToken} from "./Controller";
 
 export const getMyProfile = async (): Promise<Volunteer> => {
-    const {token}: Token = useContext(TokenContext) as unknown as Token;
-
-    const response = await fetch(`${API_URL}/volunteer/token`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token,
-        },
-        redirect: 'follow',
-    });
+    const response = await getWithToken(`volunteer/token`);
 
     if (!response.ok) {
         throw new Error(`Fetching my profile failed with status ${response.status}`);
@@ -27,16 +14,7 @@ export const getMyProfile = async (): Promise<Volunteer> => {
 }
 
 export const getVolunteerById = async (volunteerId: string): Promise<Volunteer> => {
-    const {token}: Token = useContext(TokenContext) as unknown as Token;
-
-    const response = await fetch(`${API_URL}/volunteer/${volunteerId}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token,
-        },
-        redirect: 'follow',
-    });
+    const response = await getWithToken(`volunteer/${volunteerId}`);
 
     if (!response.ok) {
         throw new Error(`Fetching volunteer failed with status ${response.status}`);

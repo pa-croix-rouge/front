@@ -1,21 +1,9 @@
-import {Token} from "../model/Token";
 import {Event} from "../model/Event";
-import {useContext} from "react";
-import TokenContext from "../contexts/TokenContext";
-
-const { API_URL } = require('env');
+import {getWithToken} from "./Controller";
 
 export const getAllEvents = async (localUnitId: string): Promise<Event[]> => {
-    const {token}: Token = useContext(TokenContext) as unknown as Token;
 
-    const response = await fetch(`${API_URL}/event/all/${localUnitId}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token,
-        },
-        redirect: 'follow',
-    });
+    const response = await getWithToken(`event/all/${localUnitId}`);
 
     if (!response.ok) {
         throw new Error(`Fetching events failed with status ${response.status}`);
