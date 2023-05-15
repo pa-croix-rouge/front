@@ -1,8 +1,8 @@
 import {Event} from "../model/Event";
 import {getWithToken} from "./Controller";
+import {EventsStats} from "../model/EventsStats";
 
 export const getAllEvents = async (localUnitId: string): Promise<Event[]> => {
-
     const response = await getWithToken(`event/all/${localUnitId}`);
 
     if (!response.ok) {
@@ -30,4 +30,16 @@ export const getAllEvents = async (localUnitId: string): Promise<Event[]> => {
         const endDate = new Date(Date.UTC(yearEndDate, monthEndDate, dayEndDate, hourEndDate, minuteEndDate) - timeZoneOffsetEndDate * 60 * 1000);
         return new Event(event.name, event.description, startDate, endDate, event.referrerId, event.localUnitId, event.numberOfParticipants);
     });
+}
+
+export const getEventsStats = async (localUnitId: string): Promise<EventsStats> => {
+    const response = await getWithToken(`event/stats/${localUnitId}`);
+
+    if (!response.ok) {
+        throw new Error(`Fetching events stats failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    return new EventsStats(data.numberOfEventsOverTheMonth, data.totalParticipantsOverTheMonth, data.numberOfEventsOverTheYear, data.totalParticipantsOverTheYear);
 }
