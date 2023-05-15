@@ -1,7 +1,7 @@
 import {
     Box,
     Button, Center,
-    Flex, Link, SimpleGrid, Stat, StatLabel, StatNumber,
+    Flex, SimpleGrid, Stat, StatLabel, StatNumber,
     Table,
     Tbody,
     Td,
@@ -60,7 +60,6 @@ export default function Events() {
         setLoadedEvents(true);
         getAllEvents(volunteer.localUnitId)
             .then((events) => {
-                console.log(events);
                 setEvents(events);
                 const allReferrersId = events.map((el) => el.referrerId);
                 setReferrersId(Array.from(new Set(allReferrersId)));
@@ -75,7 +74,6 @@ export default function Events() {
         referrersId.forEach(el => {
             getVolunteerById(el)
                 .then((volunteer) => {
-                    console.log(volunteer);
                     setReferrersName([...referrersName, volunteer.firstName + ' ' + volunteer.lastName]);
                 })
                 .catch((error) => {
@@ -331,7 +329,7 @@ export default function Events() {
                                                     fontSize='sm'
                                                     border={index === arr.length - 1 ? "none" : null}
                                                     borderColor={borderColor}>
-                                                    {el.numberOfParticipants}
+                                                    {el.numberOfParticipants} / {el.maxParticipants}
                                                 </Td>
                                             </Tr>
                                         );

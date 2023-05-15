@@ -12,6 +12,7 @@ import {CreditIcon, DocumentIcon, HomeIcon, PersonIcon, RocketIcon, StatsIcon,} 
 import LocalUnit from "./views/Dashboard/LocalUnit";
 import {InfoIcon} from "@chakra-ui/icons";
 import ULDashboard from "./views/Dashboard/ULDashboard";
+import ManageEvents from "./views/Dashboard/ManageEvents";
 
 var dashRoutes = [
   {
@@ -33,6 +34,13 @@ var dashRoutes = [
     name: "Events",
     icon: <HomeIcon color='inherit' />,
     component: Events,
+    layout: "/admin",
+  },
+  {
+    path: "/manage-events",
+    name: "Manage Events",
+    icon: <HomeIcon color='inherit' />,
+    component: ManageEvents,
     layout: "/admin",
   },
   {

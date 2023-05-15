@@ -28,7 +28,7 @@ export const getAllEvents = async (localUnitId: string): Promise<Event[]> => {
         const minuteEndDate = parseInt(endDateParts[4]);
         const timeZoneOffsetEndDate = parseInt(endDateParts[5]);
         const endDate = new Date(Date.UTC(yearEndDate, monthEndDate, dayEndDate, hourEndDate, minuteEndDate) - timeZoneOffsetEndDate * 60 * 1000);
-        return new Event(event.name, event.description, startDate, endDate, event.referrerId, event.localUnitId, event.numberOfParticipants);
+        return new Event(event.name, event.description, startDate, endDate, event.referrerId, event.localUnitId, event.maxParticipants, event.numberOfParticipants);
     });
 }
 
