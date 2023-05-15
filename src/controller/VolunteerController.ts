@@ -25,3 +25,24 @@ export const getMyProfile = async (): Promise<Volunteer> => {
 
     return new Volunteer(data.username, data.firstName, data.lastName, data.phoneNumber, data.isValidated, data.localUnitId);
 }
+
+export const getVolunteerById = async (volunteerId: string): Promise<Volunteer> => {
+    const {token}: Token = useContext(TokenContext) as unknown as Token;
+
+    const response = await fetch(`${API_URL}/volunteer/${volunteerId}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token,
+        },
+        redirect: 'follow',
+    });
+
+    if (!response.ok) {
+        throw new Error(`Fetching volunteer failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    return new Volunteer(data.username, data.firstName, data.lastName, data.phoneNumber, data.isValidated, data.localUnitId);
+}
