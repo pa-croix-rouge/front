@@ -1,5 +1,5 @@
 import {Event} from "../model/Event";
-import {getWithToken} from "./Controller";
+import {deleteWithTokenAndBody, getWithToken} from "./Controller";
 import {EventsStats} from "../model/EventsStats";
 
 export const getAllEvents = async (localUnitId: string): Promise<Event[]> => {
@@ -28,7 +28,7 @@ export const getAllEvents = async (localUnitId: string): Promise<Event[]> => {
         const minuteEndDate = parseInt(endDateParts[4]);
         const timeZoneOffsetEndDate = parseInt(endDateParts[5]);
         const endDate = new Date(Date.UTC(yearEndDate, monthEndDate, dayEndDate, hourEndDate, minuteEndDate) - timeZoneOffsetEndDate * 60 * 1000);
-        return new Event(event.name, event.description, startDate, endDate, event.referrerId, event.localUnitId, event.maxParticipants, event.numberOfParticipants);
+        return new Event(event.eventId, event.sessionId, event.name, event.description, startDate, endDate, event.referrerId, event.localUnitId, event.maxParticipants, event.numberOfParticipants);
     });
 }
 
@@ -42,4 +42,14 @@ export const getEventsStats = async (localUnitId: string): Promise<EventsStats> 
     const data = await response.json();
 
     return new EventsStats(data.numberOfEventsOverTheMonth, data.totalParticipantsOverTheMonth, data.numberOfEventsOverTheYear, data.totalParticipantsOverTheYear);
+}
+
+export const deleteEventById = async (eventId: string, sessionId: string): Promise<boolean> => {
+    const response = await deleteWithTokenAndBody(`event/details`, {eventId: eventId, sessionId: sessionId});
+
+    if (!response.ok) {
+        throw new Error(`Deleting event failed with status ${response.status}`);
+    }
+
+    return true;
 }

@@ -1,4 +1,6 @@
 export class Event {
+    public eventId: string;
+    public sessionId: string;
     public name: string;
     public description: string;
     public startDate: Date;
@@ -8,7 +10,9 @@ export class Event {
     public maxParticipants: number;
     public numberOfParticipants: number;
 
-    constructor(name: string, description: string, startDate: Date, endDate: Date, referrerId: string, localUnitId: string, maxParticipants: number, numberOfParticipants: number) {
+    constructor(eventId: string, sessionId: string, name: string, description: string, startDate: Date, endDate: Date, referrerId: string, localUnitId: string, maxParticipants: number, numberOfParticipants: number) {
+        this.eventId = eventId;
+        this.sessionId = sessionId;
         this.name = name;
         this.description = description;
         this.startDate = startDate;
