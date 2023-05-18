@@ -1,5 +1,5 @@
 import {Event} from "../model/Event";
-import {deleteWithTokenAndBody, getWithToken} from "./Controller";
+import {deleteWithToken, getWithToken, postWithToken} from "./Controller";
 import {EventsStats} from "../model/EventsStats";
 
 const mapJsonEventToEvent = (data: any): Event[] => {
@@ -60,8 +60,26 @@ export const getEventsStats = async (localUnitId: string): Promise<EventsStats> 
     return new EventsStats(data.numberOfEventsOverTheMonth, data.totalParticipantsOverTheMonth, data.numberOfEventsOverTheYear, data.totalParticipantsOverTheYear);
 }
 
+export const updateEventSession = async (event: Event): Promise<boolean> => {
+    const response = await postWithToken(`event/details/${event.eventId}/${event.sessionId}`, {
+        name: event.name,
+        description: event.description,
+        start: event.startDate.getTime(),
+        end: event.endDate.getTime(),
+        referrerId: event.referrerId,
+        localUnitId: event.localUnitId,
+        maxParticipants: event.maxParticipants,
+    });
+
+    if (!response.ok) {
+        throw new Error(`Updating event session failed with status ${response.status}`);
+    }
+
+    return true;
+}
+
 export const deleteEventById = async (eventId: string, sessionId: string): Promise<boolean> => {
-    const response = await deleteWithTokenAndBody(`event/details`, {eventId: eventId, sessionId: sessionId});
+    const response = await deleteWithToken(`event/details/${eventId}/${sessionId}`);
 
     if (!response.ok) {
         throw new Error(`Deleting event failed with status ${response.status}`);
@@ -71,7 +89,7 @@ export const deleteEventById = async (eventId: string, sessionId: string): Promi
 }
 
 export const deleteEventSessions = async (eventId: string): Promise<boolean> => {
-    const response = await deleteWithTokenAndBody(`event/sessions/${eventId}`, {});
+    const response = await deleteWithToken(`event/sessions/${eventId}`);
 
     if (!response.ok) {
         throw new Error(`Deleting event sessions failed with status ${response.status}`);

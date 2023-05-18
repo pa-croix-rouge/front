@@ -1,25 +1,48 @@
 import Card from "../../components/Card/Card";
 import CardHeader from "../../components/Card/CardHeader";
 import {
+    Box,
     Button,
-    Flex, Icon, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay,
-    Progress, Stat, StatHelpText, StatLabel, StatNumber, Switch,
+    Flex,
+    FormControl,
+    FormLabel,
+    Icon, Input,
+    Modal,
+    ModalBody,
+    ModalCloseButton,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
+    ModalOverlay,
+    Progress, Select,
+    Stat,
+    StatHelpText,
+    StatLabel,
+    StatNumber,
+    Switch,
     Table,
     Tbody,
     Td,
-    Text,
+    Text, Textarea,
     Th,
     Thead,
     Tr,
-    useColorModeValue, useDisclosure
+    useColorModeValue,
+    useDisclosure
 } from "@chakra-ui/react";
 import CardBody from "../../components/Card/CardBody";
-import React, {useContext, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import TokenContext from "../../contexts/TokenContext";
 import VolunteerContext from "../../contexts/VolunteerContext";
 import {useHistory} from "react-router-dom";
 import {getMyProfile, getVolunteerById} from "../../controller/VolunteerController";
-import {deleteEventById, deleteEventSessions, getAllEvents, getEventSessions} from "../../controller/EventController";
+import {
+    deleteEventById,
+    deleteEventSessions,
+    getAllEvents,
+    getEventSessions,
+    updateEventSession
+} from "../../controller/EventController";
 import {FaArrowRight, FaPencilAlt, FaPlus, FaTrashAlt, FaUser} from "react-icons/fa";
 import TimelineRow from "../../components/Tables/TimelineRow";
 import {CalendarIcon, CheckIcon} from "@chakra-ui/icons";
@@ -43,6 +66,7 @@ export default function ManageEvents() {
     const { isOpen: isOpenCreationModal, onOpen: onOpenCreationModal, onClose: onCloseCreationModal } = useDisclosure();
     const { isOpen: isOpenEditionModal, onOpen: onOpenEditionModal, onClose: onCloseEditionModal } = useDisclosure();
     const [modifiedEvent, setModifiedEvent] = useState(undefined);
+    const [callModifyEvent, setCallModifyEvent] = useState(false);
     const { isOpen: isOpenDeletionModal, onOpen: onOpenDeletionModal, onClose: onCloseDeletionModal } = useDisclosure();
     const [callDeleteEvent, setCallDeleteEvent] = useState(false);
     const { isOpen: isOpenDeletionAllModal, onOpen: onOpenDeletionAllModal, onClose: onCloseDeletionAllModal } = useDisclosure();
@@ -50,6 +74,12 @@ export default function ManageEvents() {
     const [callGetEventSessions, setCallGetEventSessions] = useState(false);
     const [callDeleteAllSessions, setCallDeleteAllSessions] = useState(false);
     const [eventSessions, setEventSessions] = useState([]);
+
+    useEffect(() => {
+        if (selectedEvent !== modifiedEvent) {
+            setModifiedEvent(selectedEvent);
+        }
+    }, [selectedEvent]);
 
     const loadVolunteer = () => {
         setLoadedVolunteer(true)
@@ -112,6 +142,23 @@ export default function ManageEvents() {
         }
     }
 
+    const modifyEvent = () => {
+        setCallModifyEvent(false);
+        if (modifiedEvent !== undefined) {
+            updateEventSession(modifiedEvent)
+                .then(() => {
+                    onCloseEditionModal();
+                    setSelectedEvent(modifiedEvent);
+                    setLoadedEvents(false);
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
+        } else {
+            console.error("No event modified");
+        }
+    }
+
     const deleteEvent = () => {
         setCallDeleteEvent(false);
         if (selectedEvent !== undefined) {
@@ -159,8 +206,9 @@ export default function ManageEvents() {
                 {!loadedVolunteer && loadVolunteer()}
                 {!loadedEvents && volunteer && loadEvents()}
                 {!loadedReferrers && referrersId.length > 0 && loadReferrersName()}
-                {selectedEvent !== undefined && callDeleteEvent && deleteEvent()}
                 {selectedEvent !== undefined && callGetEventSessions && getAllSessions()}
+                {modifiedEvent !== undefined && callModifyEvent && modifyEvent()}
+                {selectedEvent !== undefined && callDeleteEvent && deleteEvent()}
                 {selectedEvent !== undefined && callDeleteAllSessions && deleteAllEventSessions()}
                 <Card overflowX={{ sm: "scroll", xl: "hidden" }} pb="0px">
                     <CardHeader p="6px 0px 22px 0px">
@@ -197,10 +245,7 @@ export default function ManageEvents() {
                                 {events.map((event, index, arr) => {
                                     return (
                                         <Tr key={index}>
-                                            <Td
-                                                pl="0px"
-                                                borderColor={borderColor}
-                                                borderBottom={index === arr.length - 1 ? "none" : null}>
+                                            <Td pl="0px" borderColor={borderColor} borderBottom={index === arr.length - 1 ? "none" : null}>
                                                 <Flex align="center" py=".8rem" minWidth="100%" flexWrap="nowrap">
                                                     <Text fontSize="md" color={textColor} fontWeight="bold">
                                                         {event.name}
@@ -242,7 +287,7 @@ export default function ManageEvents() {
                                                 </Flex>
                                             </Td>
                                             <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() => {setModifiedEvent(selectedEvent); selectEventForModal(event, onOpenEditionModal)}}>
+                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() =>selectEventForModal(event, onOpenEditionModal)}>
                                                     <Flex color={textColor} cursor="pointer" align="center" p="12px">
                                                         <Icon as={FaPencilAlt} />
                                                         <Text fontSize="sm" fontWeight="semibold">
@@ -289,16 +334,34 @@ export default function ManageEvents() {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-            <Modal isOpen={isOpenEditionModal} onClose={onCloseEditionModal} size="6xl" isCentered>
+            <Modal isOpen={isOpenEditionModal} onClose={onCloseEditionModal} size="6xl" scrollBehavior="outside">
                 <ModalOverlay />
                 <ModalContent>
                     <ModalHeader>Modification de l'événement</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
                         <Flex direction="column">
-                            <Text>
-                                Etes-vous sûr de vouloir editer cet événement ?
-                            </Text>
+                            <FormControl>
+                                <FormLabel>Nom de l'événement</FormLabel>
+                                <Input type="text" value={modifiedEvent?.name} onChange={(e) => setModifiedEvent({...modifiedEvent, name: e.target.value})} />
+                                <FormLabel>Description de l'événement</FormLabel>
+                                <Textarea value={modifiedEvent?.description} onChange={(e) => setModifiedEvent({...modifiedEvent, description: e.target.value})} />
+                                <FormLabel>Référent</FormLabel>
+                                <Select value={modifiedEvent?.referrerId} onChange={(e) => setModifiedEvent({...modifiedEvent, referrerId: e.target.value})}>
+                                    {referrersId.length === referrersName.length && referrersId.map((referrerId, index) => {
+                                        return (
+                                            <option key={index} value={referrerId}>{referrersName[index]}</option>
+                                        );
+                                    })}
+                                </Select>
+                                <FormLabel>Date de début</FormLabel>
+                                <Input type="datetime-local" value={modifiedEvent?.startDate.toISOString().substring(0, 19)} onChange={(e) => setModifiedEvent({...modifiedEvent, startDate: new Date(e.target.value)})} />
+                                <FormLabel>Date de fin</FormLabel>
+                                <Input type="datetime-local" value={modifiedEvent?.endDate.toISOString().substring(0, 19)} onChange={(e) => setModifiedEvent({...modifiedEvent, endDate: new Date(e.target.value)})} />
+                                <FormLabel>Nombre maximum de participants</FormLabel>
+                                <Input type="number" value={modifiedEvent?.maxParticipants} onChange={(e) => setModifiedEvent({...modifiedEvent, maxParticipants: parseInt(e.target.value)})} />
+                            </FormControl>
+                            <Box h="48px" />
                             {selectedEvent !== undefined && modifiedEvent !== undefined && (
                                 <Flex direction="row" justifyContent="space-between" alignItems="center">
                                     <Stat maxW="45%">
@@ -320,7 +383,7 @@ export default function ManageEvents() {
                         <Button colorScheme="blue" mr={3} onClick={onCloseEditionModal}>
                             Annuler
                         </Button>
-                        <Button variant="outline">
+                        <Button variant="outline" onClick={() => setCallModifyEvent(true)}>
                             Modifier
                         </Button>
                     </ModalFooter>

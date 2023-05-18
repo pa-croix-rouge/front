@@ -17,7 +17,20 @@ export const getWithToken = async (url: string): Promise<Response> => {
     });
 }
 
-export const deleteWithTokenAndBody = async (url: string, body: any): Promise<Response> => {
+export const postWithToken = async (url: string, body: any): Promise<Response> => {
+    const {token}: Token = useContext(TokenContext) as unknown as Token;
+
+    return fetch(`${API_URL}/${url}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token,
+        },
+        body: JSON.stringify(body),
+    });
+}
+
+export const deleteWithToken = async (url: string): Promise<Response> => {
     const {token}: Token = useContext(TokenContext) as unknown as Token;
 
     return fetch(`${API_URL}/${url}`, {
@@ -26,6 +39,5 @@ export const deleteWithTokenAndBody = async (url: string, body: any): Promise<Re
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + token,
         },
-        body: JSON.stringify(body),
     });
 }
