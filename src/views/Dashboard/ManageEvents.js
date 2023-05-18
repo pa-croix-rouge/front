@@ -3,7 +3,7 @@ import CardHeader from "../../components/Card/CardHeader";
 import {
     Button,
     Flex, Icon, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay,
-    Progress, Stat, StatHelpText, StatLabel, StatNumber,
+    Progress, Stat, StatHelpText, StatLabel, StatNumber, Switch,
     Table,
     Tbody,
     Td,
@@ -19,8 +19,10 @@ import TokenContext from "../../contexts/TokenContext";
 import VolunteerContext from "../../contexts/VolunteerContext";
 import {useHistory} from "react-router-dom";
 import {getMyProfile, getVolunteerById} from "../../controller/VolunteerController";
-import {deleteEventById, getAllEvents} from "../../controller/EventController";
+import {deleteEventById, deleteEventSessions, getAllEvents, getEventSessions} from "../../controller/EventController";
 import {FaArrowRight, FaPencilAlt, FaPlus, FaTrashAlt, FaUser} from "react-icons/fa";
+import TimelineRow from "../../components/Tables/TimelineRow";
+import {CalendarIcon, CheckIcon} from "@chakra-ui/icons";
 
 export default function ManageEvents() {
     // Component variables
@@ -43,6 +45,11 @@ export default function ManageEvents() {
     const [modifiedEvent, setModifiedEvent] = useState(undefined);
     const { isOpen: isOpenDeletionModal, onOpen: onOpenDeletionModal, onClose: onCloseDeletionModal } = useDisclosure();
     const [callDeleteEvent, setCallDeleteEvent] = useState(false);
+    const { isOpen: isOpenDeletionAllModal, onOpen: onOpenDeletionAllModal, onClose: onCloseDeletionAllModal } = useDisclosure();
+    const [deleteAllSessions, setDeleteAllSessions] = useState(false);
+    const [callGetEventSessions, setCallGetEventSessions] = useState(false);
+    const [callDeleteAllSessions, setCallDeleteAllSessions] = useState(false);
+    const [eventSessions, setEventSessions] = useState([]);
 
     const loadVolunteer = () => {
         setLoadedVolunteer(true)
@@ -89,6 +96,22 @@ export default function ManageEvents() {
         onOpenModal();
     }
 
+    const getAllSessions = () => {
+        setCallGetEventSessions(false);
+        if (selectedEvent !== undefined) {
+            const eventId = selectedEvent.eventId;
+            getEventSessions(eventId)
+                .then((sessions) => {
+                    setEventSessions(sessions);
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
+        } else {
+            console.error("No event selected");
+        }
+    }
+
     const deleteEvent = () => {
         setCallDeleteEvent(false);
         if (selectedEvent !== undefined) {
@@ -96,6 +119,27 @@ export default function ManageEvents() {
             const sessionId = selectedEvent.sessionId;
             deleteEventById(eventId, sessionId)
                 .then(() => {
+                    onCloseDeletionAllModal();
+                    onCloseDeletionModal();
+                    setSelectedEvent(undefined);
+                    setEvents(events.filter((el) => el.id !== eventId));
+                    setLoadedEvents(false);
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
+        } else {
+            console.error("No event selected");
+        }
+    }
+
+    const deleteAllEventSessions = () => {
+        setCallDeleteAllSessions(false);
+        if (selectedEvent !== undefined) {
+            const eventId = selectedEvent.eventId;
+            deleteEventSessions(eventId)
+                .then(() => {
+                    onCloseDeletionAllModal();
                     onCloseDeletionModal();
                     setSelectedEvent(undefined);
                     setEvents(events.filter((el) => el.id !== eventId));
@@ -115,6 +159,9 @@ export default function ManageEvents() {
                 {!loadedVolunteer && loadVolunteer()}
                 {!loadedEvents && volunteer && loadEvents()}
                 {!loadedReferrers && referrersId.length > 0 && loadReferrersName()}
+                {selectedEvent !== undefined && callDeleteEvent && deleteEvent()}
+                {selectedEvent !== undefined && callGetEventSessions && getAllSessions()}
+                {selectedEvent !== undefined && callDeleteAllSessions && deleteAllEventSessions()}
                 <Card overflowX={{ sm: "scroll", xl: "hidden" }} pb="0px">
                     <CardHeader p="6px 0px 22px 0px">
                         <Flex direction='row' justifyContent="space-between">
@@ -279,29 +326,70 @@ export default function ManageEvents() {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-            <Modal isOpen={isOpenDeletionModal} onClose={onCloseDeletionModal} size="full" isCentered>
+            <Modal isOpen={isOpenDeletionModal} onClose={onCloseDeletionModal} size="xl" isCentered>
                 <ModalOverlay />
                 <ModalContent>
                     <ModalHeader>Confirmer la suppression de l'événement</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
-                        {selectedEvent !== undefined && (
-                            <Stat>
-                                <StatLabel>{selectedEvent.name} le {selectedEvent.startDate.toISOString().substring(0, 19).replaceAll('-', '/').replace('T', ' à ')}</StatLabel>
-                                <StatNumber><Icon as={FaUser}/> {selectedEvent.numberOfParticipants} / {selectedEvent.maxParticipants} participants</StatNumber>
-                                <StatHelpText>{selectedEvent.description}<br />Référent: {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(selectedEvent.referrerId)] : selectedEvent.referrerId}</StatHelpText>
-                            </Stat>
-                        )}
+                        <Flex direction="column">
+                            {selectedEvent !== undefined && (
+                                <Stat>
+                                    <StatLabel>{selectedEvent.name} le {selectedEvent.startDate.toISOString().substring(0, 19).replaceAll('-', '/').replace('T', ' à ')}</StatLabel>
+                                    <StatNumber><Icon as={FaUser}/> {selectedEvent.numberOfParticipants} / {selectedEvent.maxParticipants} participants</StatNumber>
+                                    <StatHelpText>{selectedEvent.description}<br />Référent: {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(selectedEvent.referrerId)] : selectedEvent.referrerId}</StatHelpText>
+                                </Stat>
+                            )}
+                            {selectedEvent !== undefined && selectedEvent.recurring && (
+                                <Flex direction="column" mt="4px" mb="4px">
+                                    <Text>Supprimer la suite d'événements ?</Text>
+                                    <Flex direction="row" mt="4px" mb="4px" align="center">
+                                        <Switch size="md" onChange={() => setDeleteAllSessions(!deleteAllSessions)} mr="8px" />
+                                        <Text>
+                                            {deleteAllSessions ? "Oui supprimer tout les événements récurrent associés" : "Non supprimer cet événement uniquement"}
+                                        </Text>
+                                    </Flex>
+                                </Flex>
+                            )}
+                        </Flex>
                     </ModalBody>
                     <ModalFooter>
                         <Button colorScheme="blue" mr={3} onClick={onCloseDeletionModal}>
                             Annuler
                         </Button>
-                        <Button variant="outline" colorScheme="red" onClick={() => setCallDeleteEvent(true)}>
+                        <Button variant="outline" colorScheme="red" onClick={() => {deleteAllSessions ? onOpenDeletionAllModal() : setCallDeleteEvent(true); deleteAllSessions ? setCallGetEventSessions(true) : setCallGetEventSessions(false)}}>
                             Supprimer
                         </Button>
                     </ModalFooter>
-                    {selectedEvent !== undefined && callDeleteEvent && deleteEvent()}
+                </ModalContent>
+            </Modal>
+            <Modal isOpen={isOpenDeletionAllModal} onClose={onCloseDeletionAllModal} size="xl" scrollBehavior="outside">
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>Confirmer la suppression de {eventSessions.length} événements</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                        {eventSessions.map((event, index, arr) => {
+                            return (
+                                <TimelineRow
+                                    logo={event.endDate.getTime() < Date.now() ? CheckIcon : CalendarIcon}
+                                    title={event.name}
+                                    date={event.startDate.toISOString().substring(0, 19).replaceAll('-', '/').replace('T', ' à ')}
+                                    color={event.endDate.getTime() < Date.now() ? "green.500" : "blue.500"}
+                                    index={index}
+                                    arrLength={arr.length}
+                                />
+                            )
+                        })}
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button colorScheme="blue" mr={3} onClick={onCloseDeletionAllModal}>
+                            Annuler
+                        </Button>
+                        <Button variant="outline" colorScheme="red" onClick={() => setCallDeleteAllSessions(true)}>
+                            Supprimer
+                        </Button>
+                    </ModalFooter>
                 </ModalContent>
             </Modal>
         </>

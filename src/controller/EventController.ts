@@ -2,15 +2,7 @@ import {Event} from "../model/Event";
 import {deleteWithTokenAndBody, getWithToken} from "./Controller";
 import {EventsStats} from "../model/EventsStats";
 
-export const getAllEvents = async (localUnitId: string): Promise<Event[]> => {
-    const response = await getWithToken(`event/all/${localUnitId}`);
-
-    if (!response.ok) {
-        throw new Error(`Fetching events failed with status ${response.status}`);
-    }
-
-    const data = await response.json();
-
+const mapJsonEventToEvent = (data: any): Event[] => {
     return data.map((event: any) => {
         const startDateParts = event.start.split(/[\-\+:\[\]]/);
         const yearStartDate = parseInt(startDateParts[0]);
@@ -28,8 +20,32 @@ export const getAllEvents = async (localUnitId: string): Promise<Event[]> => {
         const minuteEndDate = parseInt(endDateParts[4]);
         const timeZoneOffsetEndDate = parseInt(endDateParts[5]);
         const endDate = new Date(Date.UTC(yearEndDate, monthEndDate, dayEndDate, hourEndDate, minuteEndDate) - timeZoneOffsetEndDate * 60 * 1000);
-        return new Event(event.eventId, event.sessionId, event.name, event.description, startDate, endDate, event.referrerId, event.localUnitId, event.maxParticipants, event.numberOfParticipants);
+        return new Event(event.eventId, event.sessionId, event.name, event.description, startDate, endDate, event.referrerId, event.localUnitId, event.maxParticipants, event.numberOfParticipants, event.recurring);
     });
+}
+
+export const getAllEvents = async (localUnitId: string): Promise<Event[]> => {
+    const response = await getWithToken(`event/all/${localUnitId}`);
+
+    if (!response.ok) {
+        throw new Error(`Fetching events failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    return mapJsonEventToEvent(data);
+}
+
+export const getEventSessions = async (eventId: string): Promise<Event[]> => {
+    const response = await getWithToken(`event/sessions/${eventId}`);
+
+    if (!response.ok) {
+        throw new Error(`Fetching event sessions failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    return mapJsonEventToEvent(data);
 }
 
 export const getEventsStats = async (localUnitId: string): Promise<EventsStats> => {
@@ -49,6 +65,16 @@ export const deleteEventById = async (eventId: string, sessionId: string): Promi
 
     if (!response.ok) {
         throw new Error(`Deleting event failed with status ${response.status}`);
+    }
+
+    return true;
+}
+
+export const deleteEventSessions = async (eventId: string): Promise<boolean> => {
+    const response = await deleteWithTokenAndBody(`event/sessions/${eventId}`, {});
+
+    if (!response.ok) {
+        throw new Error(`Deleting event sessions failed with status ${response.status}`);
     }
 
     return true;
