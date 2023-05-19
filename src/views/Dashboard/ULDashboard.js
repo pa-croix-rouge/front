@@ -53,14 +53,14 @@ export default function ULDashboard() {
 
   const loadVolunteer = () => {
     setLoadedVolunteer(true)
-    if (token === undefined) {
+    if (token === undefined || token === '') {
       history.push("/auth/signin");
     } else {
       getMyProfile()
           .then((volunteer) => {
             setVolunteer(volunteer);
           })
-          .catch((error) => {
+          .catch((_) => {
             setLoadedVolunteer(false);
           });
     }
@@ -72,7 +72,7 @@ export default function ULDashboard() {
         .then((localUnit) => {
           console.log(localUnit);
         })
-        .catch((error) => {
+        .catch((_) => {
           setLoadedLocalUnit(false);
         });
   }

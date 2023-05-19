@@ -100,7 +100,7 @@ export default function ManageEvents() {
 
     const loadVolunteer = () => {
         setLoadedVolunteer(true)
-        if (token === undefined) {
+        if (token === undefined || token === '') {
             history.push("/auth/signin");
         } else if (volunteer === '') {
             getMyProfile()

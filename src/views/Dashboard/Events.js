@@ -1,6 +1,6 @@
 import {
     Box,
-    Button, Center,
+    Button,
     Flex, SimpleGrid, Stat, StatLabel, StatNumber,
     Table,
     Tbody,
@@ -12,7 +12,7 @@ import {
     useColorModeValue,
 } from "@chakra-ui/react";
 import Card from "./../../components/Card/Card.js";
-import React, {useContext, useState} from "react";
+import React, {useContext, useEffect, useRef, useState} from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import VolunteerContext from "../../contexts/VolunteerContext";
@@ -22,6 +22,7 @@ import {getAllEvents, getEventsStats} from "../../controller/EventController";
 import IconBox from "../../components/Icons/IconBox";
 import {CartIcon, DocumentIcon, GlobeIcon, WalletIcon} from "../../components/Icons/Icons";
 import {EventsStats} from "../../model/event/EventsStats";
+import {useHistory} from "react-router-dom";
 
 export default function Events() {
     const textColor = useColorModeValue("gray.700", "white");
@@ -30,6 +31,10 @@ export default function Events() {
     const textTableColor = useColorModeValue("gray.500", "white");
     const iconBlue = useColorModeValue("blue.500", "blue.500");
     const iconBoxInside = useColorModeValue("white", "white");
+    const history = useHistory();
+    const [tableMaxHeight, setTableMaxHeight] = useState('320px');
+    const calendarContainerRef = useRef(null);
+    const [isInitialRender, setIsInitialRender] = useState(true);
     const [loadedVolunteer, setLoadedVolunteer] = useState(false);
     const [loadedEvents, setLoadedEvents] = useState(false);
     const [loadedReferrers, setLoadedReferrers] = useState(false);
@@ -41,9 +46,27 @@ export default function Events() {
     const [referrersName, setReferrersName] = useState([]);
     const [stats, setStats] = useState(new EventsStats(0, 0, 0, 0));
 
+    const updateTableMaxHeight = () => {
+        const calendarContainerHeight = calendarContainerRef.current.offsetHeight;
+        const newTableMaxHeight = `${calendarContainerHeight}px`;
+        setTableMaxHeight(newTableMaxHeight);
+    };
+
+    useEffect(() => {
+        if (isInitialRender) {
+            setIsInitialRender(false);
+            updateTableMaxHeight();
+        } else {
+            window.addEventListener('resize', updateTableMaxHeight);
+            return () => {
+                window.removeEventListener('resize', updateTableMaxHeight);
+            };
+        }
+    }, [isInitialRender]);
+
     const loadVolunteer = () => {
         setLoadedVolunteer(true)
-        if (token === undefined) {
+        if (token === undefined || token === '') {
             history.push("/auth/signin");
         } else if (volunteer === '') {
             getMyProfile()
@@ -98,7 +121,7 @@ export default function Events() {
             {!loadedEvents && volunteer && loadEvents()}
             {!loadedReferrers && referrersId.length > 0 && loadReferrersName()}
             {!loadedStats && volunteer && loadStats()}
-            <SimpleGrid columns={{ sm: 1, md: 2, xl: 5 }} spacing='24px' mb='8px'>
+            <SimpleGrid columns={{ sm: 1, md: 2, xl: 4 }} spacing='24px' mb='8px'>
                 <Card minH='100px'>
                     <Flex direction='column'>
                         <Flex
@@ -231,22 +254,6 @@ export default function Events() {
                         </Flex>
                     </Flex>
                 </Card>
-                <Card minH='100px'>
-                    <Flex direction='column'>
-                        <Stat me='auto' minW='100%'>
-                            <StatLabel
-                                fontSize='xs'
-                                color='gray.400'
-                                fontWeight='bold'
-                                textTransform='uppercase'>
-                                Ajouter un événement
-                            </StatLabel>
-                            <Center>
-                                <Button variant="outline" colorScheme="green" size="md">Ajouter</Button>
-                            </Center>
-                        </Stat>
-                    </Flex>
-                </Card>
             </SimpleGrid>
             <Flex
                 flexDirection='row' overflow="scroll">
@@ -254,7 +261,7 @@ export default function Events() {
                     p='8px'
                     maxW={{ sm: "320px", md: "100%" }}
                     m='24px'>
-                    <Box minH='320px' margin='8px'>
+                    <Box minH='320px' margin='8px' ref={calendarContainerRef}>
                         <FullCalendar
                             plugins={[ dayGridPlugin ]}
                             initialView="dayGridMonth"
@@ -280,7 +287,7 @@ export default function Events() {
                                 GERER LES EVENEMENTS
                             </Button>
                         </Flex>
-                        <Box>
+                        <Box  maxH={tableMaxHeight} overflow="auto">
                             <Table>
                                 <Thead>
                                     <Tr bg={tableRowColor}>
@@ -315,7 +322,7 @@ export default function Events() {
                                                     fontSize='sm'
                                                     border={index === arr.length - 1 ? "none" : null}
                                                     borderColor={borderColor}>
-                                                    {`${el.startDate.getDate().toString().padStart(2, '0')}/${(el.startDate.getMonth() + 1).toString().padStart(2, '0')}/${el.startDate.getFullYear()} - ${el.startDate.getHours().toString().padStart(2, '0')}:${el.startDate.getMinutes().toString().padStart(2, '0')}`}
+                                                    {`${el.startDate.getDate().toString().padStart(2, '0')}/${(el.startDate.getMonth() + 1).toString().padStart(2, '0')}/${el.startDate.getFullYear()} - ${el.startDate.getHours().toString().padStart(2, '0')}h${el.startDate.getMinutes().toString().padStart(2, '0')}`}
                                                 </Td>
                                                 <Td
                                                     color={textTableColor}
