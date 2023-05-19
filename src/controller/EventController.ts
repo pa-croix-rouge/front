@@ -73,7 +73,7 @@ export const createSingleEvent = async (event: SingleEventCreation): Promise<boo
 }
 
 export const createRecurrentEvent = async (event: RecurrentEventCreation): Promise<boolean> => {
-    const response = await postWithToken(`event/recurrent`, event);
+    const response = await postWithToken(`event/sessions`, event);
 
     if (!response.ok) {
         throw new Error(`Creating recurrent event failed with status ${response.status}`);

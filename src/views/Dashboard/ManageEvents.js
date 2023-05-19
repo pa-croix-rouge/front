@@ -37,6 +37,7 @@ import VolunteerContext from "../../contexts/VolunteerContext";
 import {useHistory} from "react-router-dom";
 import {getMyProfile, getVolunteerById} from "../../controller/VolunteerController";
 import {
+    createRecurrentEvent,
     createSingleEvent,
     deleteEventById,
     deleteEventSessions,
@@ -48,6 +49,7 @@ import {FaArrowRight, FaPencilAlt, FaPlus, FaTrashAlt, FaUser} from "react-icons
 import TimelineRow from "../../components/Tables/TimelineRow";
 import {CalendarIcon, CheckIcon} from "@chakra-ui/icons";
 import {SingleEventCreation} from "../../model/event/SingleEventCreation";
+import {RecurrentEventCreation} from "../../model/event/RecurrentEventCreation";
 
 export default function ManageEvents() {
     // Component variables
@@ -169,7 +171,14 @@ export default function ManageEvents() {
                     console.error(error);
                 });
         } else {
-
+            createRecurrentEvent(new RecurrentEventCreation(eventName, eventDescription, eventReferrer, volunteer.localUnitId, eventStartDate, eventEndDate, eventDuration, eventRecurrence, eventMaxParticipants))
+                .then(() => {
+                    onCloseCreationModal();
+                    setLoadedEvents(false);
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
         }
     }
 
