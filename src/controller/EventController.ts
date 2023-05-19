@@ -1,6 +1,8 @@
-import {Event} from "../model/Event";
+import {Event} from "../model/event/Event";
 import {deleteWithToken, getWithToken, postWithToken} from "./Controller";
-import {EventsStats} from "../model/EventsStats";
+import {EventsStats} from "../model/event/EventsStats";
+import {RecurrentEventCreation} from "../model/event/RecurrentEventCreation";
+import {SingleEventCreation} from "../model/event/SingleEventCreation";
 
 const mapJsonEventToEvent = (data: any): Event[] => {
     return data.map((event: any) => {
@@ -58,6 +60,26 @@ export const getEventsStats = async (localUnitId: string): Promise<EventsStats> 
     const data = await response.json();
 
     return new EventsStats(data.numberOfEventsOverTheMonth, data.totalParticipantsOverTheMonth, data.numberOfEventsOverTheYear, data.totalParticipantsOverTheYear);
+}
+
+export const createSingleEvent = async (event: SingleEventCreation): Promise<boolean> => {
+    const response = await postWithToken(`event/details`, event);
+
+    if (!response.ok) {
+        throw new Error(`Creating single event failed with status ${response.status}`);
+    }
+
+    return true;
+}
+
+export const createRecurrentEvent = async (event: RecurrentEventCreation): Promise<boolean> => {
+    const response = await postWithToken(`event/recurrent`, event);
+
+    if (!response.ok) {
+        throw new Error(`Creating recurrent event failed with status ${response.status}`);
+    }
+
+    return true;
 }
 
 export const updateEventSession = async (event: Event): Promise<boolean> => {

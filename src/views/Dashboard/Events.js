@@ -21,7 +21,7 @@ import TokenContext from "../../contexts/TokenContext";
 import {getAllEvents, getEventsStats} from "../../controller/EventController";
 import IconBox from "../../components/Icons/IconBox";
 import {CartIcon, DocumentIcon, GlobeIcon, WalletIcon} from "../../components/Icons/Icons";
-import {EventsStats} from "../../model/EventsStats";
+import {EventsStats} from "../../model/event/EventsStats";
 
 export default function Events() {
     const textColor = useColorModeValue("gray.700", "white");
@@ -50,7 +50,7 @@ export default function Events() {
                 .then((volunteer) => {
                     setVolunteer(volunteer);
                 })
-                .catch((error) => {
+                .catch((_) => {
                     setLoadedVolunteer(false);
                 });
         }
@@ -64,7 +64,7 @@ export default function Events() {
                 const allReferrersId = events.map((el) => el.referrerId);
                 setReferrersId(Array.from(new Set(allReferrersId)));
             })
-            .catch((error) => {
+            .catch((_) => {
                 setLoadedEvents(false);
             });
     }
@@ -76,7 +76,7 @@ export default function Events() {
                 .then((volunteer) => {
                     setReferrersName([...referrersName, volunteer.firstName + ' ' + volunteer.lastName]);
                 })
-                .catch((error) => {
+                .catch((_) => {
                 });
         });
     }
@@ -87,7 +87,7 @@ export default function Events() {
             .then((stats) => {
                 setStats(stats);
             })
-            .catch((error) => {
+            .catch((_) => {
                 setLoadedStats(false);
             });
     }

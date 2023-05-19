@@ -13,8 +13,8 @@ import {
     ModalContent,
     ModalFooter,
     ModalHeader,
-    ModalOverlay,
-    Progress, Select,
+    ModalOverlay, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper,
+    Progress, Radio, RadioGroup, Select,
     Stat,
     StatHelpText,
     StatLabel,
@@ -37,6 +37,7 @@ import VolunteerContext from "../../contexts/VolunteerContext";
 import {useHistory} from "react-router-dom";
 import {getMyProfile, getVolunteerById} from "../../controller/VolunteerController";
 import {
+    createSingleEvent,
     deleteEventById,
     deleteEventSessions,
     getAllEvents,
@@ -46,6 +47,7 @@ import {
 import {FaArrowRight, FaPencilAlt, FaPlus, FaTrashAlt, FaUser} from "react-icons/fa";
 import TimelineRow from "../../components/Tables/TimelineRow";
 import {CalendarIcon, CheckIcon} from "@chakra-ui/icons";
+import {SingleEventCreation} from "../../model/event/SingleEventCreation";
 
 export default function ManageEvents() {
     // Component variables
@@ -66,6 +68,16 @@ export default function ManageEvents() {
     const [callGetEventSessions, setCallGetEventSessions] = useState(false);
     const [eventSessions, setEventSessions] = useState([]);
     const { isOpen: isOpenCreationModal, onOpen: onOpenCreationModal, onClose: onCloseCreationModal } = useDisclosure();
+    const [eventType, setEventType] = useState("unique");
+    const [eventName, setEventName] = useState("");
+    const [eventDescription, setEventDescription] = useState("");
+    const [eventReferrer, setEventReferrer] = useState("");
+    const [eventMaxParticipants, setEventMaxParticipants] = useState(20);
+    const [eventStartDate, setEventStartDate] = useState(new Date());
+    const [eventEndDate, setEventEndDate] = useState(new Date());
+    const [eventDuration, setEventDuration] = useState(60);
+    const [eventRecurrence, setEventRecurrence] = useState(7);
+    const [callCreateEvent, setCallCreateEvent] = useState(false);
     const { isOpen: isOpenEditionModal, onOpen: onOpenEditionModal, onClose: onCloseEditionModal } = useDisclosure();
     const [modifiedEvent, setModifiedEvent] = useState(undefined);
     const [callModifyEvent, setCallModifyEvent] = useState(false);
@@ -145,6 +157,22 @@ export default function ManageEvents() {
         }
     }
 
+    const createEvent = () => {
+        setCallCreateEvent(false);
+        if (eventType === "unique") {
+            createSingleEvent(new SingleEventCreation(eventName, eventDescription, eventStartDate, eventEndDate, eventReferrer, volunteer.localUnitId, eventMaxParticipants))
+                .then(() => {
+                    onCloseCreationModal();
+                    setLoadedEvents(false);
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
+        } else {
+
+        }
+    }
+
     const modifyEvent = () => {
         setCallModifyEvent(false);
         console.log(modifyAllSessions);
@@ -175,6 +203,7 @@ export default function ManageEvents() {
                     onCloseEditionModal();
                     setSelectedEvent(modifiedEvent);
                     setLoadedEvents(false);
+                    setModifyAllSessions(false);
                 })
                 .catch((error) => {
                     console.error(error);
@@ -216,6 +245,7 @@ export default function ManageEvents() {
                     setSelectedEvent(undefined);
                     setEvents(events.filter((el) => el.id !== eventId));
                     setLoadedEvents(false);
+                    setDeleteAllSessions(false);
                 })
                 .catch((error) => {
                     console.error(error);
@@ -232,6 +262,7 @@ export default function ManageEvents() {
                 {!loadedEvents && volunteer && loadEvents()}
                 {!loadedReferrers && referrersId.length > 0 && loadReferrersName()}
                 {selectedEvent !== undefined && callGetEventSessions && getAllSessions()}
+                {callCreateEvent && eventName !== "" && eventDescription !== "" && eventReferrer !== "" && createEvent()}
                 {modifiedEvent !== undefined && callModifyEvent && modifyEvent()}
                 {modifiedEvent !== undefined && callModifyAllSessions && modifyAllEventSessions()}
                 {selectedEvent !== undefined && callDeleteEvent && deleteEvent()}
@@ -244,7 +275,7 @@ export default function ManageEvents() {
                             </Text>
                             <Button p="0px" variant="outline" colorScheme="green" mr="10%" onClick={onOpenCreationModal}>
                                 <Flex cursor="pointer" align="center" p="12px">
-                                    <Icon as={FaPlus} />
+                                    <Icon as={FaPlus} mr="8px"/>
                                     <Text fontSize="sm" fontWeight="semibold">
                                         Ajouter un événement
                                     </Text>
@@ -340,22 +371,89 @@ export default function ManageEvents() {
                     </CardBody>
                 </Card>
             </Flex>
-            <Modal isOpen={isOpenCreationModal} onClose={onCloseCreationModal} isCentered>
+            <Modal isOpen={isOpenCreationModal} onClose={onCloseCreationModal} size="6xl" scrollBehavior="outside">
                 <ModalOverlay />
                 <ModalContent>
-                    <ModalHeader>Modal Title</ModalHeader>
+                    <ModalHeader>Ajouter un événement</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
-                        <Text>
-                            Etes-vous sûr de vouloir creer un événement ?
-                        </Text>
+                        <Flex direction="column">
+                            <Flex direction="row" align="center">
+                                <Text size="md" fontWeight="semibold" w="40%">
+                                    Type d'événement
+                                </Text>
+                                <RadioGroup value={eventType} onChange={(e) => setEventType(e)}>
+                                    <Radio value="unique" margin="8px 64px">Unique</Radio>
+                                    <Radio value="recurring" margin="8px 64px">Récurrent</Radio>
+                                </RadioGroup>
+                            </Flex>
+                            <FormControl>
+                                <FormLabel>Nom de l'événement</FormLabel>
+                                <Input type="text" value={eventName} onChange={(e) => setEventName(e.target.value)}/>
+                                <FormLabel>Description de l'événement</FormLabel>
+                                <Textarea value={eventDescription} onChange={(e) => setEventDescription(e.target.value)}/>
+                                <FormLabel>Référent</FormLabel>
+                                <Select placeholder="Sélectionnez un référent" value={eventReferrer} onChange={(e) => setEventReferrer(e.target.value)}>
+                                    {referrersId.map((referrerId, index) => {
+                                        return (
+                                            <option key={index} value={referrerId}>{referrersName[index]}</option>
+                                        );
+                                    })}
+                                </Select>
+                                <FormLabel>Nombre maximum de participants</FormLabel>
+                                <NumberInput defaultValue={20} min={1} value={eventMaxParticipants} onChange={(e) => setEventMaxParticipants(parseInt(e))}>
+                                    <NumberInputField />
+                                    <NumberInputStepper>
+                                        <NumberIncrementStepper />
+                                        <NumberDecrementStepper />
+                                    </NumberInputStepper>
+                                </NumberInput>
+                                {eventType === "unique" && (
+                                    <Box>
+                                        <FormLabel>Date de début de l'événement</FormLabel>
+                                        <Input type="datetime-local" value={eventStartDate.getTime()} onChange={(e) => setEventStartDate(new Date(e.target.value))}/>
+                                        <FormLabel>Date de fin de l'événement</FormLabel>
+                                        <Input type="datetime-local" value={eventEndDate.getTime()} onChange={(e) => setEventEndDate(new Date(e.target.value))}/>
+                                    </Box>
+                                )}
+                                {eventType === "recurring" && (
+                                    <Box>
+                                        <FormLabel>Premier jour de l'événement</FormLabel>
+                                        <Input type="datetime-local" value={eventStartDate.getTime()} onChange={(e) => setEventStartDate(new Date(e.target.value))}/>
+                                        <FormLabel>Dernier jour de l'événement</FormLabel>
+                                        <Input type="datetime-local" value={eventEndDate.getTime()} onChange={(e) => setEventEndDate(new Date(e.target.value))}/>
+                                        <FormLabel>Durée de l'événement</FormLabel>
+                                        <NumberInput defaultValue={60} min={1} max={1440} value={eventDuration} onChange={(e) => setEventDuration(parseInt(e))}>
+                                            <NumberInputField />
+                                            <NumberInputStepper>
+                                                <NumberIncrementStepper />
+                                                <NumberDecrementStepper />
+                                            </NumberInputStepper>
+                                        </NumberInput>
+                                        <FormLabel>Récurrence en jours</FormLabel>
+                                        <NumberInput defaultValue={7} min={1} max={365} value={eventRecurrence} onChange={(e) => setEventRecurrence(parseInt(e))}>
+                                            <NumberInputField />
+                                            <NumberInputStepper>
+                                                <NumberIncrementStepper />
+                                                <NumberDecrementStepper />
+                                            </NumberInputStepper>
+                                        </NumberInput>
+                                    </Box>
+                                )}
+                            </FormControl>
+                        </Flex>
                     </ModalBody>
                     <ModalFooter>
                         <Button colorScheme="blue" mr={3} onClick={onCloseCreationModal}>
                             Annuler
                         </Button>
-                        <Button variant="ghost">
-                            Ajouter
+                        <Button p="0px" variant="outline" colorScheme="green" mr="10%" onClick={() => setCallCreateEvent(true)}>
+                            <Flex cursor="pointer" align="center" p="12px">
+                                <Icon as={FaPlus} mr="8px"/>
+                                <Text fontSize="sm" fontWeight="semibold">
+                                    Ajouter
+                                </Text>
+                            </Flex>
                         </Button>
                     </ModalFooter>
                 </ModalContent>
@@ -385,7 +483,13 @@ export default function ManageEvents() {
                                 <FormLabel>Date de fin</FormLabel>
                                 <Input type="datetime-local" value={modifiedEvent?.endDate.toISOString().substring(0, 16)} onChange={(e) => setModifiedEvent({...modifiedEvent, endDate: new Date(e.target.value)})} />
                                 <FormLabel>Nombre maximum de participants</FormLabel>
-                                <Input type="number" value={modifiedEvent?.maxParticipants} onChange={(e) => setModifiedEvent({...modifiedEvent, maxParticipants: parseInt(e.target.value)})} />
+                                <NumberInput type="number" min={1} value={modifiedEvent?.maxParticipants} onChange={(e) => setModifiedEvent({...modifiedEvent, maxParticipants: parseInt(e)})}>
+                                    <NumberInputField />
+                                    <NumberInputStepper>
+                                        <NumberIncrementStepper />
+                                        <NumberDecrementStepper />
+                                    </NumberInputStepper>
+                                </NumberInput>
                                 {modifiedEvent?.recurring && (
                                     <Flex direction="column">
                                         <Text fontSize="sm" color="red.500" fontWeight="semibold">
