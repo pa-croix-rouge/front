@@ -40,7 +40,7 @@ import {
     deleteEventById,
     deleteEventSessions,
     getAllEvents,
-    getEventSessions,
+    getEventSessions, updateAllEventSessions,
     updateEventSession
 } from "../../controller/EventController";
 import {FaArrowRight, FaPencilAlt, FaPlus, FaTrashAlt, FaUser} from "react-icons/fa";
@@ -63,17 +63,20 @@ export default function ManageEvents() {
     const {volunteer, setVolunteer} = useContext(VolunteerContext);
     // Modal variables
     const [selectedEvent, setSelectedEvent] = useState(undefined);
+    const [callGetEventSessions, setCallGetEventSessions] = useState(false);
+    const [eventSessions, setEventSessions] = useState([]);
     const { isOpen: isOpenCreationModal, onOpen: onOpenCreationModal, onClose: onCloseCreationModal } = useDisclosure();
     const { isOpen: isOpenEditionModal, onOpen: onOpenEditionModal, onClose: onCloseEditionModal } = useDisclosure();
     const [modifiedEvent, setModifiedEvent] = useState(undefined);
     const [callModifyEvent, setCallModifyEvent] = useState(false);
+    const { isOpen: isOpenModifyAllModal, onOpen: onOpenModifyAllModal, onClose: onCloseModifyAllModal } = useDisclosure();
+    const [modifyAllSessions, setModifyAllSessions] = useState(false);
+    const [callModifyAllSessions, setCallModifyAllSessions] = useState(false);
     const { isOpen: isOpenDeletionModal, onOpen: onOpenDeletionModal, onClose: onCloseDeletionModal } = useDisclosure();
     const [callDeleteEvent, setCallDeleteEvent] = useState(false);
     const { isOpen: isOpenDeletionAllModal, onOpen: onOpenDeletionAllModal, onClose: onCloseDeletionAllModal } = useDisclosure();
     const [deleteAllSessions, setDeleteAllSessions] = useState(false);
-    const [callGetEventSessions, setCallGetEventSessions] = useState(false);
     const [callDeleteAllSessions, setCallDeleteAllSessions] = useState(false);
-    const [eventSessions, setEventSessions] = useState([]);
 
     useEffect(() => {
         if (selectedEvent !== modifiedEvent) {
@@ -144,9 +147,31 @@ export default function ManageEvents() {
 
     const modifyEvent = () => {
         setCallModifyEvent(false);
-        if (modifiedEvent !== undefined) {
+        console.log(modifyAllSessions);
+        if (modifiedEvent !== undefined && !modifyAllSessions && selectedEvent.name === modifiedEvent.name && selectedEvent.referrerId === modifiedEvent.referrerId && selectedEvent.description === modifiedEvent.description) {
             updateEventSession(modifiedEvent)
                 .then(() => {
+                    onCloseEditionModal();
+                    setSelectedEvent(modifiedEvent);
+                    setLoadedEvents(false);
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
+        }else if (modifiedEvent !== undefined) {
+            setCallGetEventSessions(true);
+            onOpenModifyAllModal();
+        } else {
+            console.error("No event modified");
+        }
+    }
+
+    const modifyAllEventSessions = () => {
+        setCallModifyAllSessions(false);
+        if (modifiedEvent !== undefined) {
+            updateAllEventSessions(modifiedEvent)
+                .then(() => {
+                    onCloseModifyAllModal();
                     onCloseEditionModal();
                     setSelectedEvent(modifiedEvent);
                     setLoadedEvents(false);
@@ -208,6 +233,7 @@ export default function ManageEvents() {
                 {!loadedReferrers && referrersId.length > 0 && loadReferrersName()}
                 {selectedEvent !== undefined && callGetEventSessions && getAllSessions()}
                 {modifiedEvent !== undefined && callModifyEvent && modifyEvent()}
+                {modifiedEvent !== undefined && callModifyAllSessions && modifyAllEventSessions()}
                 {selectedEvent !== undefined && callDeleteEvent && deleteEvent()}
                 {selectedEvent !== undefined && callDeleteAllSessions && deleteAllEventSessions()}
                 <Card overflowX={{ sm: "scroll", xl: "hidden" }} pb="0px">
@@ -264,7 +290,7 @@ export default function ManageEvents() {
                                             </Td>
                                             <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
                                                 <Text>
-                                                    {event.startDate.toISOString().substring(0, 19).replaceAll('-', '/').replace('T', ' à ')}
+                                                    {event.startDate.toISOString().substring(0, 16).replaceAll('-', '/').replace('T', ' à ').replaceAll(':', 'h')}
                                                 </Text>
                                             </Td>
                                             <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
@@ -355,23 +381,43 @@ export default function ManageEvents() {
                                     })}
                                 </Select>
                                 <FormLabel>Date de début</FormLabel>
-                                <Input type="datetime-local" value={modifiedEvent?.startDate.toISOString().substring(0, 19)} onChange={(e) => setModifiedEvent({...modifiedEvent, startDate: new Date(e.target.value)})} />
+                                <Input type="datetime-local" value={modifiedEvent?.startDate.toISOString().substring(0, 16)} onChange={(e) => setModifiedEvent({...modifiedEvent, startDate: new Date(e.target.value)})} />
                                 <FormLabel>Date de fin</FormLabel>
-                                <Input type="datetime-local" value={modifiedEvent?.endDate.toISOString().substring(0, 19)} onChange={(e) => setModifiedEvent({...modifiedEvent, endDate: new Date(e.target.value)})} />
+                                <Input type="datetime-local" value={modifiedEvent?.endDate.toISOString().substring(0, 16)} onChange={(e) => setModifiedEvent({...modifiedEvent, endDate: new Date(e.target.value)})} />
                                 <FormLabel>Nombre maximum de participants</FormLabel>
                                 <Input type="number" value={modifiedEvent?.maxParticipants} onChange={(e) => setModifiedEvent({...modifiedEvent, maxParticipants: parseInt(e.target.value)})} />
+                                {modifiedEvent?.recurring && (
+                                    <Flex direction="column">
+                                        <Text fontSize="sm" color="red.500" fontWeight="semibold">
+                                            Attention, cet événement est récurrent. Si vous le nom, la description ou le référent, tous les événements associés seront modifiés.
+                                        </Text>
+                                        {modifiedEvent?.maxParticipants !== selectedEvent?.maxParticipants && (
+                                            <Flex direction="column">
+                                                <Text fontSize="sm" color="red.500" fontWeight="semibold">
+                                                    Si vous modifiez le nombre maximum de participants, les événements associés ne seront pas modifiés par défaut. Vous pouvez cependant demander à les modifier en cochant la case ci-dessous.
+                                                </Text>
+                                                <Flex direction="row" mt="4px" mb="4px" align="center">
+                                                    <Switch size="md" onChange={() => setModifyAllSessions(!modifyAllSessions)} isChecked={modifyAllSessions} mr="8px" />
+                                                    <Text>
+                                                        {modifyAllSessions ? "Modifier le nombre max de participants pour tout les événements associés" : "Ne pas modifier le nombre max de participants pour les événements associés"}
+                                                    </Text>
+                                                </Flex>
+                                            </Flex>
+                                        )}
+                                    </Flex>
+                                )}
                             </FormControl>
                             <Box h="48px" />
                             {selectedEvent !== undefined && modifiedEvent !== undefined && (
                                 <Flex direction="row" justifyContent="space-between" alignItems="center">
                                     <Stat maxW="45%">
-                                        <StatLabel>{selectedEvent.name} le {selectedEvent.startDate.toISOString().substring(0, 19).replaceAll('-', '/').replace('T', ' à ')}</StatLabel>
+                                        <StatLabel>{selectedEvent.name} le {selectedEvent.startDate.toISOString().substring(0, 16).replaceAll('-', '/').replace('T', ' à ').replace(':', 'h')}</StatLabel>
                                         <StatNumber><Icon as={FaUser}/> {selectedEvent.numberOfParticipants} / {selectedEvent.maxParticipants} participants</StatNumber>
                                         <StatHelpText>{selectedEvent.description}<br />Référent: {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(selectedEvent.referrerId)] : selectedEvent.referrerId}</StatHelpText>
                                     </Stat>
                                     <Icon as={FaArrowRight} h="8" w="8" mr="12px" />
                                     <Stat maxW="45%">
-                                        <StatLabel>{modifiedEvent.name} le {modifiedEvent.startDate.toISOString().substring(0, 19).replaceAll('-', '/').replace('T', ' à ')}</StatLabel>
+                                        <StatLabel>{modifiedEvent.name} le {modifiedEvent.startDate.toISOString().substring(0, 16).replaceAll('-', '/').replace('T', ' à ').replace(':', 'h')}</StatLabel>
                                         <StatNumber><Icon as={FaUser}/> {modifiedEvent.numberOfParticipants} / {modifiedEvent.maxParticipants} participants</StatNumber>
                                         <StatHelpText>{modifiedEvent.description}<br />Référent: {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(modifiedEvent.referrerId)] : modifiedEvent.referrerId}</StatHelpText>
                                     </Stat>
@@ -383,8 +429,54 @@ export default function ManageEvents() {
                         <Button colorScheme="blue" mr={3} onClick={onCloseEditionModal}>
                             Annuler
                         </Button>
-                        <Button variant="outline" onClick={() => setCallModifyEvent(true)}>
+                        <Button variant="outline" onClick={() => setCallModifyEvent(true)} isDisabled={modifiedEvent === selectedEvent}>
                             Modifier
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+            <Modal isOpen={isOpenModifyAllModal} onClose={onCloseModifyAllModal} size="xl" scrollBehavior="outside">
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>Confirmer la modification de {eventSessions.length} événements</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                        <Flex direction="column">
+                            <Text fontSize="sm" color="red.500" fontWeight="semibold">
+                                Attention, vous êtes sur le point de modifier {eventSessions.length} événements pour la raison suivante:
+                            </Text>
+                            {modifiedEvent?.name !== selectedEvent?.name && (
+                                <Text fontSize="sm" color="red.500" >Mise à jour du nom de l'événement</Text>
+                            )}
+                            {modifiedEvent?.description !== selectedEvent?.description && (
+                                <Text fontSize="sm" color="red.500" >Mise à jour de la description de l'événement</Text>
+                            )}
+                            {modifiedEvent?.referrerId !== selectedEvent?.referrerId && (
+                                <Text fontSize="sm" color="red.500" >Mise à jour du référent de l'événement</Text>
+                            )}
+                            {modifyAllSessions && modifiedEvent?.maxParticipants !== selectedEvent?.maxParticipants && (
+                                <Text fontSize="sm" color="red.500" >Mise à jour demandé du nombre maximum de participants pour tout les événements associés</Text>
+                            )}
+                            {eventSessions.map((event, index, arr) => {
+                                return (
+                                    <TimelineRow
+                                        logo={event.endDate.getTime() < Date.now() ? CheckIcon : CalendarIcon}
+                                        title={event.name}
+                                        date={event.startDate.toISOString().substring(0, 16).replaceAll('-', '/').replace('T', ' à ').replace(':', 'h')}
+                                        color={event.endDate.getTime() < Date.now() ? "green.500" : "blue.500"}
+                                        index={index}
+                                        arrLength={arr.length}
+                                    />
+                                )
+                            })}
+                        </Flex>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button colorScheme="blue" mr={3} onClick={onCloseModifyAllModal}>
+                            Annuler
+                        </Button>
+                        <Button variant="outline" onClick={() => setCallModifyAllSessions(true)}>
+                            Modifier tout les événements
                         </Button>
                     </ModalFooter>
                 </ModalContent>
@@ -398,7 +490,7 @@ export default function ManageEvents() {
                         <Flex direction="column">
                             {selectedEvent !== undefined && (
                                 <Stat>
-                                    <StatLabel>{selectedEvent.name} le {selectedEvent.startDate.toISOString().substring(0, 19).replaceAll('-', '/').replace('T', ' à ')}</StatLabel>
+                                    <StatLabel>{selectedEvent.name} le {selectedEvent.startDate.toISOString().substring(0, 16).replaceAll('-', '/').replace('T', ' à ').replace(':', 'h')}</StatLabel>
                                     <StatNumber><Icon as={FaUser}/> {selectedEvent.numberOfParticipants} / {selectedEvent.maxParticipants} participants</StatNumber>
                                     <StatHelpText>{selectedEvent.description}<br />Référent: {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(selectedEvent.referrerId)] : selectedEvent.referrerId}</StatHelpText>
                                 </Stat>
@@ -407,7 +499,7 @@ export default function ManageEvents() {
                                 <Flex direction="column" mt="4px" mb="4px">
                                     <Text>Supprimer la suite d'événements ?</Text>
                                     <Flex direction="row" mt="4px" mb="4px" align="center">
-                                        <Switch size="md" onChange={() => setDeleteAllSessions(!deleteAllSessions)} mr="8px" />
+                                        <Switch size="md" onChange={() => setDeleteAllSessions(!deleteAllSessions)} mr="8px" isChecked={deleteAllSessions}/>
                                         <Text>
                                             {deleteAllSessions ? "Oui supprimer tout les événements récurrent associés" : "Non supprimer cet événement uniquement"}
                                         </Text>
@@ -437,7 +529,7 @@ export default function ManageEvents() {
                                 <TimelineRow
                                     logo={event.endDate.getTime() < Date.now() ? CheckIcon : CalendarIcon}
                                     title={event.name}
-                                    date={event.startDate.toISOString().substring(0, 19).replaceAll('-', '/').replace('T', ' à ')}
+                                    date={event.startDate.toISOString().substring(0, 16).replaceAll('-', '/').replace('T', ' à ').replace(':', 'h')}
                                     color={event.endDate.getTime() < Date.now() ? "green.500" : "blue.500"}
                                     index={index}
                                     arrLength={arr.length}
@@ -450,7 +542,7 @@ export default function ManageEvents() {
                             Annuler
                         </Button>
                         <Button variant="outline" colorScheme="red" onClick={() => setCallDeleteAllSessions(true)}>
-                            Supprimer
+                            Supprimer tout les événements
                         </Button>
                     </ModalFooter>
                 </ModalContent>

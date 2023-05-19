@@ -78,6 +78,24 @@ export const updateEventSession = async (event: Event): Promise<boolean> => {
     return true;
 }
 
+export const updateAllEventSessions = async (event: Event): Promise<boolean> => {
+    const response = await postWithToken(`event/sessions/${event.eventId}/${event.sessionId}`, {
+        name: event.name,
+        description: event.description,
+        start: event.startDate.getTime(),
+        end: event.endDate.getTime(),
+        referrerId: event.referrerId,
+        localUnitId: event.localUnitId,
+        maxParticipants: event.maxParticipants,
+    });
+
+    if (!response.ok) {
+        throw new Error(`Updating event session failed with status ${response.status}`);
+    }
+
+    return true;
+}
+
 export const deleteEventById = async (eventId: string, sessionId: string): Promise<boolean> => {
     const response = await deleteWithToken(`event/details/${eventId}/${sessionId}`);
 
