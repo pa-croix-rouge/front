@@ -18,7 +18,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import VolunteerContext from "../../contexts/VolunteerContext";
 import {getMyProfile, getVolunteerById} from "../../controller/VolunteerController";
 import TokenContext from "../../contexts/TokenContext";
-import {getAllEvents, getEventsStats} from "../../controller/EventController";
+import {getEventForSpecificMonth, getEventsStats} from "../../controller/EventController";
 import IconBox from "../../components/Icons/IconBox";
 import {CartIcon, DocumentIcon, GlobeIcon, WalletIcon} from "../../components/Icons/Icons";
 import {EventsStats} from "../../model/event/EventsStats";
@@ -81,13 +81,15 @@ export default function Events() {
 
     const loadEvents = () => {
         setLoadedEvents(true);
-        getAllEvents(volunteer.localUnitId)
+        console.log("yeeet");
+        getEventForSpecificMonth(volunteer.localUnitId, new Date().getMonth(), new Date().getFullYear())
             .then((events) => {
                 setEvents(events);
                 const allReferrersId = events.map((el) => el.referrerId);
                 setReferrersId(Array.from(new Set(allReferrersId)));
             })
-            .catch((_) => {
+            .catch((error) => {
+                console.log(error);
                 setLoadedEvents(false);
             });
     }
@@ -281,10 +283,10 @@ export default function Events() {
                     <Flex direction='column'>
                         <Flex align='center' justify='space-between' p='22px'>
                             <Text fontSize='lg' color={textColor} fontWeight='bold'>
-                                Liste des évènements
+                                Liste des évènements du mois de {new Date().toLocaleString('fr-FR', { month: 'long' })} {new Date().getFullYear()}
                             </Text>
                             <Button variant='primary' maxH='30px'>
-                                GERER LES EVENEMENTS
+                                GERER TOUT LES EVENEMENTS
                             </Button>
                         </Flex>
                         <Box  maxH={tableMaxHeight} overflow="auto">
@@ -305,7 +307,16 @@ export default function Events() {
                                         </Th>
                                     </Tr>
                                 </Thead>
-                                <Tbody maxH="100%">
+                                <Tbody w="100%">
+                                    {events.length === 0 && (
+                                        <Tr>
+                                            <Td colSpan={4} textAlign="center">
+                                                <Text color={textTableColor} fontSize="md">
+                                                    Aucun évènement ce mois
+                                                </Text>
+                                            </Td>
+                                        </Tr>
+                                    )}
                                     {events.map((el, index, arr) => {
                                         return (
                                             <Tr key={index}>

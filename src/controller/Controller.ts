@@ -20,18 +20,6 @@ export const getWithToken = async (url: string): Promise<Response> => {
     });
 }
 
-export const getWithTokenAndBody = async (url: string, body: any): Promise<Response> => {
-    return fetch(`${API_URL}/${url}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + readToken(),
-        },
-        body: JSON.stringify(body),
-        redirect: 'follow',
-    });
-}
-
 export const postWithToken = async (url: string, body: any): Promise<Response> => {
     return fetch(`${API_URL}/${url}`, {
         method: 'POST',
