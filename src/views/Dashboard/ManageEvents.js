@@ -14,7 +14,7 @@ import {
     ModalFooter,
     ModalHeader,
     ModalOverlay, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper,
-    Progress, Radio, RadioGroup, Select,
+    Progress, Radio, RadioGroup, Select, SimpleGrid,
     Stat,
     StatHelpText,
     StatLabel,
@@ -423,6 +423,66 @@ export default function ManageEvents() {
                                         <Input type="datetime-local" value={eventStartDate.getTime()} onChange={(e) => setEventStartDate(new Date(e.target.value))}/>
                                         <FormLabel>Date de fin de l'événement</FormLabel>
                                         <Input type="datetime-local" value={eventEndDate.getTime()} onChange={(e) => setEventEndDate(new Date(e.target.value))}/>
+                                        <SimpleGrid columns={{ md: 2, xl: 4 }} spacing='8px'>
+                                            <FormLabel>Date de début</FormLabel>
+                                            <Input type="date" value={eventStartDate.toISOString().substring(0, 10)}
+                                                   onChange={(e) => {
+                                                       const newDate = new Date(e.target.value);
+                                                       const updatedStartDate = new Date(
+                                                           eventStartDate.getFullYear(),
+                                                           eventStartDate.getMonth(),
+                                                           eventStartDate.getDate(),
+                                                           newDate.getHours(),
+                                                           newDate.getMinutes(),
+                                                           newDate.getSeconds()
+                                                       );
+                                                       setEventStartDate(updatedStartDate);
+                                                   }}/>
+                                            <FormLabel>Heure de début</FormLabel>
+                                            <Input type="time" value={eventStartDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                   onChange={(e) => {
+                                                       const [hours, minutes] = e.target.value.split(':');
+                                                       const updatedStartDate = new Date(
+                                                           eventStartDate.getFullYear(),
+                                                           eventStartDate.getMonth(),
+                                                           eventStartDate.getDate(),
+                                                           Number(hours),
+                                                           Number(minutes),
+                                                           eventStartDate.getSeconds()
+                                                       );
+                                                       setEventStartDate(updatedStartDate);
+                                                   }}/>
+                                        </SimpleGrid>
+                                        <SimpleGrid columns={{ md: 2, xl: 4 }} spacing='8px'>
+                                            <FormLabel>Date de fin</FormLabel>
+                                            <Input type="date" value={eventEndDate.toISOString().substring(0, 10)}
+                                                   onChange={(e) => {
+                                                       const newDate = new Date(e.target.value);
+                                                       const updatedEndDate = new Date(
+                                                           eventEndDate.getFullYear(),
+                                                           eventEndDate.getMonth(),
+                                                           eventEndDate.getDate(),
+                                                           newDate.getHours(),
+                                                           newDate.getMinutes(),
+                                                           newDate.getSeconds()
+                                                       );
+                                                       setEventEndDate(updatedEndDate);
+                                                   }}/>
+                                            <FormLabel>Heure de fin</FormLabel>
+                                            <Input type="time" value={eventEndDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                   onChange={(e) => {
+                                                       const [hours, minutes] = e.target.value.split(':');
+                                                       const updatedEndDate = new Date(
+                                                           eventEndDate.getFullYear(),
+                                                           eventEndDate.getMonth(),
+                                                           eventEndDate.getDate(),
+                                                           Number(hours),
+                                                           Number(minutes),
+                                                           eventEndDate.getSeconds()
+                                                       );
+                                                       setEventEndDate(updatedEndDate);
+                                                   }}/>
+                                        </SimpleGrid>
                                     </Box>
                                 )}
                                 {eventType === "recurring" && (
@@ -487,10 +547,66 @@ export default function ManageEvents() {
                                         );
                                     })}
                                 </Select>
-                                <FormLabel>Date de début</FormLabel>
-                                <Input type="datetime-local" value={modifiedEvent?.startDate.toISOString().substring(0, 16)} onChange={(e) => setModifiedEvent({...modifiedEvent, startDate: new Date(e.target.value)})} />
-                                <FormLabel>Date de fin</FormLabel>
-                                <Input type="datetime-local" value={modifiedEvent?.endDate.toISOString().substring(0, 16)} onChange={(e) => setModifiedEvent({...modifiedEvent, endDate: new Date(e.target.value)})} />
+                                <SimpleGrid columns={{ md: 2, xl: 4 }} spacing='8px'>
+                                    <FormLabel>Date de début</FormLabel>
+                                    <Input type="date" value={modifiedEvent?.startDate.toISOString().substring(0, 10)}
+                                           onChange={(e) => {
+                                               const newDate = new Date(e.target.value);
+                                               const updatedStartDate = new Date(
+                                                   modifiedEvent.startDate.getFullYear(),
+                                                   modifiedEvent.startDate.getMonth(),
+                                                   modifiedEvent.startDate.getDate(),
+                                                   newDate.getHours(),
+                                                   newDate.getMinutes(),
+                                                   newDate.getSeconds()
+                                               );
+                                               setModifiedEvent({ ...modifiedEvent, startDate: updatedStartDate });
+                                           }}/>
+                                    <FormLabel>Heure de début</FormLabel>
+                                    <Input type="time" value={modifiedEvent?.startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                           onChange={(e) => {
+                                               const [hours, minutes] = e.target.value.split(':');
+                                               const updatedStartDate = new Date(
+                                                   modifiedEvent.startDate.getFullYear(),
+                                                   modifiedEvent.startDate.getMonth(),
+                                                   modifiedEvent.startDate.getDate(),
+                                                   Number(hours),
+                                                   Number(minutes),
+                                                   modifiedEvent.startDate.getSeconds()
+                                               );
+                                               setModifiedEvent({ ...modifiedEvent, startDate: updatedStartDate });
+                                           }}/>
+                                </SimpleGrid>
+                                <SimpleGrid columns={{ md: 2, xl: 4 }} spacing='8px'>
+                                    <FormLabel>Date de fin</FormLabel>
+                                    <Input type="date" value={modifiedEvent?.endDate.toISOString().substring(0, 10)}
+                                           onChange={(e) => {
+                                               const newDate = new Date(e.target.value);
+                                               const updatedEndDate = new Date(
+                                                   modifiedEvent.endDate.getFullYear(),
+                                                   modifiedEvent.endDate.getMonth(),
+                                                   modifiedEvent.endDate.getDate(),
+                                                   newDate.getHours(),
+                                                   newDate.getMinutes(),
+                                                   newDate.getSeconds()
+                                               );
+                                               setModifiedEvent({ ...modifiedEvent, endDate: updatedEndDate });
+                                           }}/>
+                                    <FormLabel>Heure de fin</FormLabel>
+                                    <Input type="time" value={modifiedEvent?.startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                           onChange={(e) => {
+                                               const [hours, minutes] = e.target.value.split(':');
+                                               const updatedEndDate = new Date(
+                                                   modifiedEvent.endDate.getFullYear(),
+                                                   modifiedEvent.endDate.getMonth(),
+                                                   modifiedEvent.endDate.getDate(),
+                                                   Number(hours),
+                                                   Number(minutes),
+                                                   modifiedEvent.startDate.getSeconds()
+                                               );
+                                               setModifiedEvent({ ...modifiedEvent, endDate: updatedEndDate });
+                                           }}/>
+                                </SimpleGrid>
                                 <FormLabel>Nombre maximum de participants</FormLabel>
                                 <NumberInput type="number" min={1} value={modifiedEvent?.maxParticipants} onChange={(e) => setModifiedEvent({...modifiedEvent, maxParticipants: parseInt(e)})}>
                                     <NumberInputField />
