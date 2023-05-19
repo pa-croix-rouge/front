@@ -10,7 +10,7 @@ import SignUp from "./views/Pages/SignUp.js";
 
 import {CreditIcon, DocumentIcon, HomeIcon, PersonIcon, RocketIcon, StatsIcon,} from "components/Icons/Icons";
 import LocalUnit from "./views/Dashboard/LocalUnit";
-import {InfoIcon} from "@chakra-ui/icons";
+import {CalendarIcon, TimeIcon} from "@chakra-ui/icons";
 import ULDashboard from "./views/Dashboard/ULDashboard";
 import ManageEvents from "./views/Dashboard/ManageEvents";
 
@@ -25,21 +25,21 @@ var dashRoutes = [
   {
     path: "/ul-dashboard",
     name: "UL Dashboard",
-    icon: <InfoIcon color='inherit' />,
+    icon: <HomeIcon color='inherit' />,
     component: ULDashboard,
     layout: "/admin",
   },
   {
     path: "/events",
     name: "Events",
-    icon: <HomeIcon color='inherit' />,
+    icon: <TimeIcon color='inherit' />,
     component: Events,
     layout: "/admin",
   },
   {
     path: "/manage-events",
     name: "Manage Events",
-    icon: <HomeIcon color='inherit' />,
+    icon: <CalendarIcon color='inherit' />,
     component: ManageEvents,
     layout: "/admin",
   },
