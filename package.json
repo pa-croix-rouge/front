@@ -2,7 +2,7 @@
 	"name": "argon-dashboard-chakra",
 	"version": "1.0.3",
 	"private": true,
-	"homepage": "https://demos.creative-tim.com/argon-dashboard-chakra/#/",
+	"homepage": "./",
 	"dependencies": {
 		"@chakra-ui/icons": "^1.1.5",
 		"@chakra-ui/react": "1.8.8",
@@ -47,7 +47,7 @@
 	},
 	"scripts": {
 		"start": "react-scripts start",
-		"build": "react-scripts build && gulp licenses",
+		"build": "react-scripts build",
 		"test": "react-scripts test --env=jsdom",
 		"eject": "react-scripts eject",
 		"deploy": "npm run build",
