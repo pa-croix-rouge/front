@@ -45,6 +45,8 @@ export default function Events() {
     const [referrersId, setReferrersId] = useState([]);
     const [referrersName, setReferrersName] = useState([]);
     const [stats, setStats] = useState(new EventsStats(0, 0, 0, 0));
+    const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+    const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
 
     const updateTableMaxHeight = () => {
         const calendarContainerHeight = calendarContainerRef.current.offsetHeight;
@@ -64,6 +66,16 @@ export default function Events() {
         }
     }, [isInitialRender]);
 
+    useEffect(() => {
+        setLoadedEvents(false);
+    }, [currentMonth, currentYear]);
+
+    const handleDateChange = (arg) => {
+        const newDate = arg.view.currentStart;
+        setCurrentYear(newDate.getFullYear());
+        setCurrentMonth(newDate.getMonth() + 1);
+    };
+
     const loadVolunteer = () => {
         setLoadedVolunteer(true)
         if (token === undefined || token === '') {
@@ -81,15 +93,13 @@ export default function Events() {
 
     const loadEvents = () => {
         setLoadedEvents(true);
-        console.log("yeeet");
-        getEventForSpecificMonth(volunteer.localUnitId, new Date().getMonth(), new Date().getFullYear())
+        getEventForSpecificMonth(volunteer.localUnitId, currentMonth, currentYear)
             .then((events) => {
                 setEvents(events);
                 const allReferrersId = events.map((el) => el.referrerId);
                 setReferrersId(Array.from(new Set(allReferrersId)));
             })
-            .catch((error) => {
-                console.log(error);
+            .catch((_) => {
                 setLoadedEvents(false);
             });
     }
@@ -266,6 +276,7 @@ export default function Events() {
                     <Box minH='320px' margin='8px' ref={calendarContainerRef}>
                         <FullCalendar
                             plugins={[ dayGridPlugin ]}
+                            datesSet={handleDateChange}
                             initialView="dayGridMonth"
                             locale='fr'
                             footerToolbar={
@@ -283,7 +294,7 @@ export default function Events() {
                     <Flex direction='column'>
                         <Flex align='center' justify='space-between' p='22px'>
                             <Text fontSize='lg' color={textColor} fontWeight='bold'>
-                                Liste des évènements du mois de {new Date().toLocaleString('fr-FR', { month: 'long' })} {new Date().getFullYear()}
+                                Liste des évènements du mois de {new Date(Date.UTC(2000, currentMonth - 1)).toLocaleString('fr-FR', { month: 'long' })} {currentYear}
                             </Text>
                             <Button variant='primary' maxH='30px'>
                                 GERER TOUT LES EVENEMENTS
@@ -358,8 +369,7 @@ export default function Events() {
                     </Flex>
                 </Card>
             </Flex>
-            <Box
-                h="20px"/>
+            <Box h="20px"/>
         </Flex>
     );
 }

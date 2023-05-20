@@ -167,11 +167,8 @@ export default function ManageEvents() {
                 .then((sessions) => {
                     setEventSessions(sessions);
                 })
-                .catch((error) => {
-                    console.error(error);
+                .catch((_) => {
                 });
-        } else {
-            console.error("No event selected");
         }
     }
 
@@ -232,8 +229,7 @@ export default function ManageEvents() {
                     onCloseCreationModal();
                     setLoadedEvents(false);
                 })
-                .catch((error) => {
-                    console.error(error);
+                .catch((_) => {
                 });
         } else {
             const eventDuration = ((parseInt(eventEndTime.split(":")[0]) * 60 + parseInt(eventEndTime.split(":")[1])) - (parseInt(eventStartTime.split(":")[0]) * 60 + parseInt(eventStartTime.split(":")[1])));
@@ -242,8 +238,7 @@ export default function ManageEvents() {
                     onCloseCreationModal();
                     setLoadedEvents(false);
                 })
-                .catch((error) => {
-                    console.error(error);
+                .catch((_) => {
                 });
         }
     }
@@ -311,8 +306,7 @@ export default function ManageEvents() {
                     setSelectedEvent(modifiedEvent);
                     setLoadedEvents(false);
                 })
-                .catch((error) => {
-                    console.error(error);
+                .catch((_) => {
                 });
         }else {
             setCallGetEventSessions(true);
@@ -351,11 +345,8 @@ export default function ManageEvents() {
                     setLoadedEvents(false);
                     setModifyAllSessions(false);
                 })
-                .catch((error) => {
-                    console.error(error);
+                .catch((_) => {
                 });
-        } else {
-            console.error("No event modified");
         }
     }
 
@@ -372,11 +363,8 @@ export default function ManageEvents() {
                     setEvents(events.filter((el) => el.id !== eventId));
                     setLoadedEvents(false);
                 })
-                .catch((error) => {
-                    console.error(error);
+                .catch((_) => {
                 });
-        } else {
-            console.error("No event selected");
         }
     }
 
@@ -393,11 +381,8 @@ export default function ManageEvents() {
                     setLoadedEvents(false);
                     setDeleteAllSessions(false);
                 })
-                .catch((error) => {
-                    console.error(error);
+                .catch((_) => {
                 });
-        } else {
-            console.error("No event selected");
         }
     }
 
