@@ -13,6 +13,9 @@ import LocalUnit from "./views/Dashboard/LocalUnit";
 import {CalendarIcon, TimeIcon} from "@chakra-ui/icons";
 import ULDashboard from "./views/Dashboard/ULDashboard";
 import ManageEvents from "./views/Dashboard/ManageEvents";
+import Stocks from "./views/Dashboard/Stocks";
+import FoodStocks from "./views/Dashboard/FoodStocks";
+import ClothStocks from "./views/Dashboard/ClothStocks";
 
 var dashRoutes = [
   {
@@ -62,6 +65,27 @@ var dashRoutes = [
     name: "Local Unit",
     icon: <HomeIcon color='inherit' />,
     component: LocalUnit,
+    layout: "/admin",
+  },
+  {
+    path: "/stocks",
+    name: "Stocks",
+    icon: <HomeIcon color='inherit' />,
+    component: Stocks,
+    layout: "/admin",
+  },
+  {
+    path: "/food-stocks",
+    name: "Food Stocks",
+    icon: <HomeIcon color='inherit' />,
+    component: FoodStocks,
+    layout: "/admin",
+  },
+  {
+    path: "/cloth-stocks",
+    name: "Cloth Stocks",
+    icon: <HomeIcon color='inherit' />,
+    component: ClothStocks,
     layout: "/admin",
   },
   {
