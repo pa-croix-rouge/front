@@ -29,7 +29,7 @@ export default function Events() {
     const tableRowColor = useColorModeValue("#F7FAFC", "navy.900");
     const borderColor = useColorModeValue("gray.200", "gray.600");
     const textTableColor = useColorModeValue("gray.500", "white");
-    const iconBlue = useColorModeValue("blue.500", "blue.500");
+    const iconBlue = useColorModeValue("orange.500", "orange.500");
     const iconBoxInside = useColorModeValue("white", "white");
     const history = useHistory();
     const [tableMaxHeight, setTableMaxHeight] = useState('320px');

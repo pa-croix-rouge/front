@@ -30,7 +30,7 @@ import {
   DocumentIcon,
   GlobeIcon,
   WalletIcon,
-} from "./../../components/Icons/Icons.js";
+} from "../../components/Icons/Icons";
 import React from "react";
 // Variables
 import {
@@ -38,12 +38,12 @@ import {
   barChartOptions,
   lineChartData,
   lineChartOptions,
-} from "./../../variables/charts";
-import { pageVisits, socialTraffic } from "./../../variables/general";
+} from "../../variables/charts";
+import { pageVisits, socialTraffic } from "../../variables/general";
 
 export default function Dashboard() {
   // Chakra Color Mode
-  const iconBlue = useColorModeValue("blue.500", "blue.500");
+  const iconBlue = useColorModeValue("orange.500", "orange.500");
   const iconBoxInside = useColorModeValue("white", "white");
   const textColor = useColorModeValue("gray.700", "white");
   const tableRowColor = useColorModeValue("#F7FAFC", "navy.900");

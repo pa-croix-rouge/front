@@ -10,13 +10,10 @@ import {
   Flex, Link,
   Switch,
   Text,
-  useColorMode,
   useColorModeValue
 } from "@chakra-ui/react";
-import { HSeparator } from "./../../components/Separator/Separator";
+import { HSeparator } from "../Separator/Separator";
 import React, { useState } from "react";
-import GitHubButton from "react-github-btn";
-import { FaFacebook, FaTwitter } from "react-icons/fa";
 
 export default function Configurator(props) {
   const {
@@ -29,8 +26,6 @@ export default function Configurator(props) {
     ...rest
   } = props;
   const [switched, setSwitched] = useState(props.isChecked);
-
-  const { colorMode, toggleColorMode } = useColorMode();
 
   let bgButton = useColorModeValue(
     "linear-gradient(81.62deg, #313860 2.25%, #151928 79.87%)",
@@ -87,15 +82,6 @@ export default function Configurator(props) {
                 alignItems="center"
                 mb="24px"
               >
-                <Text fontSize="md" fontWeight="600" mb="4px">
-                  Dark/Light
-                </Text>
-                <Button
-                  onClick={toggleColorMode}
-                  color={colorMode === "light" ? "Dark" : "Light"}
-                >
-                  Toggle {colorMode === "light" ? "Dark" : "Light"}
-                </Button>
               </Flex>
 
               <HSeparator />
@@ -143,42 +129,7 @@ export default function Configurator(props) {
                   w="100%"
                   mb="16px"
                 >
-                  <GitHubButton
-                    href="https://github.com/creativetimofficial/argon-dashboard-chakra"
-                    data-icon="octicon-star"
-                    data-show-count="true"
-                    aria-label="Star creativetimofficial/argon-dashboard-chakra on GitHub"
-                  >
-                    Star
-                  </GitHubButton>
                 </Flex>
-                <Box w="100%">
-                  <Text mb="6px" textAlign="center">
-                    Thank you for sharing!
-                  </Text>
-                  <Flex justifyContent="center" alignContent="center">
-                    <Link
-                      isExternal="true"
-                      href="https://twitter.com/intent/tweet?url=https://www.creative-tim.com/product/argon-dashboard-chakra/&text=Check%20Argon%20Dashboard%20Chakra%20made%20by%20@simmmple_web%20and%20@CreativeTim"
-                    >
-                      <Button
-                        colorScheme="twitter"
-                        leftIcon={<FaTwitter />}
-                        me="10px"
-                      >
-                        <Text>Tweet</Text>
-                      </Button>
-                    </Link>
-                    <Link
-                      isExternal="true"
-                      href="https://www.facebook.com/sharer/sharer.php?u=https://www.creative-tim.com/product/argon-dashboard-chakra/"
-                    >
-                      <Button colorScheme="facebook" leftIcon={<FaFacebook />}>
-                        <Text>Share</Text>
-                      </Button>
-                    </Link>
-                  </Flex>
-                </Box>
               </Box>
             </Flex>
           </DrawerBody>
