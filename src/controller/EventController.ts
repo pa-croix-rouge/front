@@ -94,12 +94,12 @@ export const createRecurrentEvent = async (event: RecurrentEventCreation): Promi
     return true;
 }
 
-export const updateEventSession = async (event: Event): Promise<boolean> => {
+export const updateEventSession = async (event: Event, start: Date, end: Date): Promise<boolean> => {
     const response = await postWithToken(`event/details/${event.eventId}/${event.sessionId}`, {
         name: event.name,
         description: event.description,
-        start: event.startDate.getTime(),
-        end: event.endDate.getTime(),
+        start: start.getTime(),
+        end: end.getTime(),
         referrerId: event.referrerId,
         localUnitId: event.localUnitId,
         maxParticipants: event.maxParticipants,
@@ -112,12 +112,12 @@ export const updateEventSession = async (event: Event): Promise<boolean> => {
     return true;
 }
 
-export const updateAllEventSessions = async (event: Event): Promise<boolean> => {
+export const updateAllEventSessions = async (event: Event, start: Date, end: Date): Promise<boolean> => {
     const response = await postWithToken(`event/sessions/${event.eventId}/${event.sessionId}`, {
         name: event.name,
         description: event.description,
-        start: event.startDate.getTime(),
-        end: event.endDate.getTime(),
+        start: start.getTime(),
+        end: end.getTime(),
         referrerId: event.referrerId,
         localUnitId: event.localUnitId,
         maxParticipants: event.maxParticipants,

@@ -75,14 +75,21 @@ export default function ManageEvents() {
     const [eventDescription, setEventDescription] = useState("");
     const [eventReferrer, setEventReferrer] = useState("");
     const [eventMaxParticipants, setEventMaxParticipants] = useState(20);
-    const [eventStartDate, setEventStartDate] = useState(new Date());
-    const [eventEndDate, setEventEndDate] = useState(new Date());
-    const [eventDuration, setEventDuration] = useState(60);
+    const [eventStartDate, setEventStartDate] = useState(new Date().toISOString().substring(0, 10));
+    const [eventStartTime, setEventStartTime] = useState(new Date(0).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    const [eventEndDate, setEventEndDate] = useState(new Date().toISOString().substring(0, 10));
+    const [eventEndTime, setEventEndTime] = useState(new Date(0).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     const [eventRecurrence, setEventRecurrence] = useState(7);
+    const [eventError, setEventError] = useState("");
     const [callCreateEvent, setCallCreateEvent] = useState(false);
     const { isOpen: isOpenEditionModal, onOpen: onOpenEditionModal, onClose: onCloseEditionModal } = useDisclosure();
     const [modifiedEvent, setModifiedEvent] = useState(undefined);
     const [callModifyEvent, setCallModifyEvent] = useState(false);
+    const [modifiedEventStartDate, setModifiedEventStartDate] = useState(new Date(0).toISOString().substring(0, 10));
+    const [modifiedEventStartTime, setModifiedEventStartTime] = useState(new Date(0).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    const [modifiedEventEndDate, setModifiedEventEndDate] = useState(new Date(0).toISOString().substring(0, 10));
+    const [modifiedEventEndTime, setModifiedEventEndTime] = useState(new Date(0).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    const [modifyEventError, setModifyEventError] = useState("");
     const { isOpen: isOpenModifyAllModal, onOpen: onOpenModifyAllModal, onClose: onCloseModifyAllModal } = useDisclosure();
     const [modifyAllSessions, setModifyAllSessions] = useState(false);
     const [callModifyAllSessions, setCallModifyAllSessions] = useState(false);
@@ -97,6 +104,15 @@ export default function ManageEvents() {
             setModifiedEvent(selectedEvent);
         }
     }, [selectedEvent]);
+
+    useEffect(() => {
+        if (modifiedEvent !== undefined) {
+            setModifiedEventStartDate(modifiedEvent.startDate.toISOString().substring(0, 10));
+            setModifiedEventStartTime(modifiedEvent.startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+            setModifiedEventEndDate(modifiedEvent.endDate.toISOString().substring(0, 10));
+            setModifiedEventEndTime(modifiedEvent.endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+        }
+    }, [modifiedEvent]);
 
     const loadVolunteer = () => {
         setLoadedVolunteer(true)
@@ -161,8 +177,57 @@ export default function ManageEvents() {
 
     const createEvent = () => {
         setCallCreateEvent(false);
+        setEventError("");
+        if (eventName === "") {
+            setEventError("Veuillez entrer un nom pour l'évènement");
+            return;
+        }
+        if (eventReferrer === "") {
+            setEventError("Veuillez sélectionner un référent");
+            return;
+        }
+        let eventStart;
+        let eventEnd;
+        try {
+            const [years, months, days] = eventStartDate.split("-");
+            const [hours, minutes] = eventStartTime.split(":");
+            eventStart = new Date(
+                parseInt(years),
+                parseInt(months) - 1,
+                parseInt(days),
+                parseInt(hours),
+                parseInt(minutes),
+            );
+            if (eventStart < new Date()) {
+                setEventError("La date de début doit être dans le futur");
+                return;
+            }
+        } catch (error) {
+            setEventError("Veuillez entrer une date de début valide");
+            return;
+        }
+
+        try {
+            const [years, months, days] = eventEndDate.split("-");
+            const [hours, minutes] = eventEndTime.split(":");
+            eventEnd = new Date(
+                parseInt(years),
+                parseInt(months) - 1,
+                parseInt(days),
+                parseInt(hours),
+                parseInt(minutes),
+            );
+            if (eventEnd.getTime() <= eventStart.getTime()) {
+                setEventError("La date de fin doit être à minima 1 minute après la date de début");
+                return;
+            }
+        } catch (error) {
+            setEventError("Veuillez entrer une date de fin valide");
+            return;
+        }
+
         if (eventType === "unique") {
-            createSingleEvent(new SingleEventCreation(eventName, eventDescription, eventStartDate, eventEndDate, eventReferrer, volunteer.localUnitId, eventMaxParticipants))
+            createSingleEvent(new SingleEventCreation(eventName, eventDescription, eventStart.getTime(), eventEnd.getTime(), eventReferrer, volunteer.localUnitId, eventMaxParticipants))
                 .then(() => {
                     onCloseCreationModal();
                     setLoadedEvents(false);
@@ -171,7 +236,8 @@ export default function ManageEvents() {
                     console.error(error);
                 });
         } else {
-            createRecurrentEvent(new RecurrentEventCreation(eventName, eventDescription, eventReferrer, volunteer.localUnitId, eventStartDate, eventEndDate, eventDuration, eventRecurrence, eventMaxParticipants))
+            const eventDuration = ((parseInt(eventEndTime.split(":")[0]) * 60 + parseInt(eventEndTime.split(":")[1])) - (parseInt(eventStartTime.split(":")[0]) * 60 + parseInt(eventStartTime.split(":")[1])));
+            createRecurrentEvent(new RecurrentEventCreation(eventName, eventDescription, eventReferrer, volunteer.localUnitId, eventStart.getTime(), eventEnd.getTime(), eventDuration, eventRecurrence, eventMaxParticipants))
                 .then(() => {
                     onCloseCreationModal();
                     setLoadedEvents(false);
@@ -184,9 +250,62 @@ export default function ManageEvents() {
 
     const modifyEvent = () => {
         setCallModifyEvent(false);
-        console.log(modifyAllSessions);
-        if (modifiedEvent !== undefined && !modifyAllSessions && selectedEvent.name === modifiedEvent.name && selectedEvent.referrerId === modifiedEvent.referrerId && selectedEvent.description === modifiedEvent.description) {
-            updateEventSession(modifiedEvent)
+        setModifyEventError("");
+        if (modifiedEvent === undefined) {
+            setModifyEventError("ERREUR: Merci de re-sélectionner l'évènement à modifier");
+            return;
+        }
+        if (modifiedEvent.name === "") {
+            setModifyEventError("Le nom de l'évènement ne peut pas être vide");
+            return;
+        }
+        if (modifiedEvent.referrerId === "") {
+            setModifyEventError("Veuillez sélectionner un référent");
+            return;
+        }
+
+        let eventStart;
+        let eventEnd;
+        try {
+            const [years, months, days] = modifiedEventStartDate.split("-");
+            const [hours, minutes] = modifiedEventStartTime.split(":");
+            eventStart = new Date(
+                parseInt(years),
+                parseInt(months) - 1,
+                parseInt(days),
+                parseInt(hours),
+                parseInt(minutes),
+            );
+            if (eventStart < new Date()) {
+                setModifyEventError("La date de début doit être dans le futur");
+                return;
+            }
+        } catch (error) {
+            setModifyEventError("Veuillez entrer une date de début valide");
+            return;
+        }
+
+        try {
+            const [years, months, days] = modifiedEventEndDate.split("-");
+            const [hours, minutes] = modifiedEventEndTime.split(":");
+            eventEnd = new Date(
+                parseInt(years),
+                parseInt(months) - 1,
+                parseInt(days),
+                parseInt(hours),
+                parseInt(minutes),
+            );
+            if (eventEnd.getTime() <= eventStart.getTime()) {
+                setModifyEventError("La date de fin doit être à minima 1 minute après la date de début");
+                return;
+            }
+        } catch (error) {
+            setModifyEventError("Veuillez entrer une date de fin valide");
+            return;
+        }
+
+        if (!modifyAllSessions) {
+            updateEventSession(modifiedEvent, eventStart, eventEnd)
                 .then(() => {
                     onCloseEditionModal();
                     setSelectedEvent(modifiedEvent);
@@ -195,18 +314,36 @@ export default function ManageEvents() {
                 .catch((error) => {
                     console.error(error);
                 });
-        }else if (modifiedEvent !== undefined) {
+        }else {
             setCallGetEventSessions(true);
             onOpenModifyAllModal();
-        } else {
-            console.error("No event modified");
         }
     }
 
     const modifyAllEventSessions = () => {
         setCallModifyAllSessions(false);
+        const [yearsStart, monthsStart, daysStart] = modifiedEventStartDate.split("-");
+        const [hoursStart, minutesStart] = modifiedEventStartTime.split(":");
+        let eventStart = new Date(
+                parseInt(yearsStart),
+                parseInt(monthsStart) - 1,
+                parseInt(daysStart),
+                parseInt(hoursStart),
+                parseInt(minutesStart),
+            );
+
+        const [yearsEnd, monthsEnd, daysEnd] = modifiedEventEndDate.split("-");
+        const [hoursEnd, minutesEnd] = modifiedEventEndTime.split(":");
+        let eventEnd = new Date(
+                parseInt(yearsEnd),
+                parseInt(monthsEnd) - 1,
+                parseInt(daysEnd),
+                parseInt(hoursEnd),
+                parseInt(minutesEnd),
+            );
+
         if (modifiedEvent !== undefined) {
-            updateAllEventSessions(modifiedEvent)
+            updateAllEventSessions(modifiedEvent, eventStart, eventEnd)
                 .then(() => {
                     onCloseModifyAllModal();
                     onCloseEditionModal();
@@ -271,7 +408,7 @@ export default function ManageEvents() {
                 {!loadedEvents && volunteer && loadEvents()}
                 {!loadedReferrers && referrersId.length > 0 && loadReferrersName()}
                 {selectedEvent !== undefined && callGetEventSessions && getAllSessions()}
-                {callCreateEvent && eventName !== "" && eventDescription !== "" && eventReferrer !== "" && createEvent()}
+                {callCreateEvent && createEvent()}
                 {modifiedEvent !== undefined && callModifyEvent && modifyEvent()}
                 {modifiedEvent !== undefined && callModifyAllSessions && modifyAllEventSessions()}
                 {selectedEvent !== undefined && callDeleteEvent && deleteEvent()}
@@ -419,87 +556,46 @@ export default function ManageEvents() {
                                 </NumberInput>
                                 {eventType === "unique" && (
                                     <Box>
-                                        <FormLabel>Date de début de l'événement</FormLabel>
-                                        <Input type="datetime-local" value={eventStartDate.getTime()} onChange={(e) => setEventStartDate(new Date(e.target.value))}/>
-                                        <FormLabel>Date de fin de l'événement</FormLabel>
-                                        <Input type="datetime-local" value={eventEndDate.getTime()} onChange={(e) => setEventEndDate(new Date(e.target.value))}/>
-                                        <SimpleGrid columns={{ md: 2, xl: 4 }} spacing='8px'>
-                                            <FormLabel>Date de début</FormLabel>
-                                            <Input type="date" value={eventStartDate.toISOString().substring(0, 10)}
-                                                   onChange={(e) => {
-                                                       const newDate = new Date(e.target.value);
-                                                       const updatedStartDate = new Date(
-                                                           eventStartDate.getFullYear(),
-                                                           eventStartDate.getMonth(),
-                                                           eventStartDate.getDate(),
-                                                           newDate.getHours(),
-                                                           newDate.getMinutes(),
-                                                           newDate.getSeconds()
-                                                       );
-                                                       setEventStartDate(updatedStartDate);
-                                                   }}/>
-                                            <FormLabel>Heure de début</FormLabel>
-                                            <Input type="time" value={eventStartDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                   onChange={(e) => {
-                                                       const [hours, minutes] = e.target.value.split(':');
-                                                       const updatedStartDate = new Date(
-                                                           eventStartDate.getFullYear(),
-                                                           eventStartDate.getMonth(),
-                                                           eventStartDate.getDate(),
-                                                           Number(hours),
-                                                           Number(minutes),
-                                                           eventStartDate.getSeconds()
-                                                       );
-                                                       setEventStartDate(updatedStartDate);
-                                                   }}/>
+                                        <SimpleGrid columns={{ sm: 1, md: 2, xl: 4 }} spacing='8px'>
+                                            <FormLabel m="auto">Date de début</FormLabel>
+                                            <Input type="date" value={eventStartDate}
+                                                   onChange={(e) => setEventStartDate(e.target.value)}/>
+                                            <FormLabel m="auto">Heure de début</FormLabel>
+                                            <Input type="time" value={eventStartTime}
+                                                   onChange={(e) => setEventStartTime(e.target.value)}/>
                                         </SimpleGrid>
                                         <SimpleGrid columns={{ md: 2, xl: 4 }} spacing='8px'>
-                                            <FormLabel>Date de fin</FormLabel>
-                                            <Input type="date" value={eventEndDate.toISOString().substring(0, 10)}
-                                                   onChange={(e) => {
-                                                       const newDate = new Date(e.target.value);
-                                                       const updatedEndDate = new Date(
-                                                           eventEndDate.getFullYear(),
-                                                           eventEndDate.getMonth(),
-                                                           eventEndDate.getDate(),
-                                                           newDate.getHours(),
-                                                           newDate.getMinutes(),
-                                                           newDate.getSeconds()
-                                                       );
-                                                       setEventEndDate(updatedEndDate);
-                                                   }}/>
-                                            <FormLabel>Heure de fin</FormLabel>
-                                            <Input type="time" value={eventEndDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                   onChange={(e) => {
-                                                       const [hours, minutes] = e.target.value.split(':');
-                                                       const updatedEndDate = new Date(
-                                                           eventEndDate.getFullYear(),
-                                                           eventEndDate.getMonth(),
-                                                           eventEndDate.getDate(),
-                                                           Number(hours),
-                                                           Number(minutes),
-                                                           eventEndDate.getSeconds()
-                                                       );
-                                                       setEventEndDate(updatedEndDate);
-                                                   }}/>
+                                            <FormLabel m="auto">Date de fin</FormLabel>
+                                            <Input type="date" value={eventEndDate}
+                                                   onChange={(e) => setEventEndDate(e.target.value)}/>
+                                            <FormLabel m="auto">Heure de fin</FormLabel>
+                                            <Input type="time" value={eventEndTime}
+                                                   onChange={(e) => setEventEndTime(e.target.value)}/>
                                         </SimpleGrid>
                                     </Box>
                                 )}
                                 {eventType === "recurring" && (
                                     <Box>
-                                        <FormLabel>Premier jour de l'événement</FormLabel>
-                                        <Input type="datetime-local" value={eventStartDate.getTime()} onChange={(e) => setEventStartDate(new Date(e.target.value))}/>
-                                        <FormLabel>Dernier jour de l'événement</FormLabel>
-                                        <Input type="datetime-local" value={eventEndDate.getTime()} onChange={(e) => setEventEndDate(new Date(e.target.value))}/>
-                                        <FormLabel>Durée de l'événement</FormLabel>
-                                        <NumberInput defaultValue={60} min={1} max={1440} value={eventDuration} onChange={(e) => setEventDuration(parseInt(e))}>
-                                            <NumberInputField />
-                                            <NumberInputStepper>
-                                                <NumberIncrementStepper />
-                                                <NumberDecrementStepper />
-                                            </NumberInputStepper>
-                                        </NumberInput>
-                                        <FormLabel>Récurrence en jours</FormLabel>
+                                        <FormLabel>Période de l'événement récurrent</FormLabel>
+                                        <SimpleGrid columns={{ sm: 1, md: 2, xl: 4 }} spacing='8px'>
+                                            <FormLabel m="auto">Du</FormLabel>
+                                            <Input type="date" value={eventStartDate}
+                                                   onChange={(e) => setEventStartDate(e.target.value)}/>
+                                            <FormLabel m="auto">Au</FormLabel>
+                                            <Input type="date" value={eventEndDate}
+                                                   onChange={(e) => setEventEndDate(e.target.value)}/>
+                                        </SimpleGrid>
+                                        <FormLabel>Horaires de l'événement récurrent</FormLabel>
+                                        <SimpleGrid columns={{ md: 2, xl: 4 }} spacing='8px'>
+                                            <FormLabel m="auto">De</FormLabel>
+                                            <Input type="time" value={eventStartTime}
+                                                   onChange={(e) => setEventStartTime(e.target.value)}/>
+                                            <FormLabel m="auto">A</FormLabel>
+                                            <Input type="time" value={eventEndTime}
+                                                   onChange={(e) => setEventEndTime(e.target.value)}/>
+                                        </SimpleGrid>
+                                        <FormLabel>Durée de l'événement: {((parseInt(eventEndTime.split(":")[0]) * 60 + parseInt(eventEndTime.split(":")[1])) - (parseInt(eventStartTime.split(":")[0]) * 60 + parseInt(eventStartTime.split(":")[1])))} minutes</FormLabel>
+                                        <FormLabel>Récurrence, l'événement se tiendras tout les {eventRecurrence} jours</FormLabel>
                                         <NumberInput defaultValue={7} min={1} max={365} value={eventRecurrence} onChange={(e) => setEventRecurrence(parseInt(e))}>
                                             <NumberInputField />
                                             <NumberInputStepper>
@@ -508,6 +604,11 @@ export default function ManageEvents() {
                                             </NumberInputStepper>
                                         </NumberInput>
                                     </Box>
+                                )}
+                                {eventError !== "" && (
+                                    <Text fontSize="sm" color="red" fontWeight="semibold">
+                                        {eventError}
+                                    </Text>
                                 )}
                             </FormControl>
                         </Flex>
@@ -547,65 +648,21 @@ export default function ManageEvents() {
                                         );
                                     })}
                                 </Select>
-                                <SimpleGrid columns={{ md: 2, xl: 4 }} spacing='8px'>
-                                    <FormLabel>Date de début</FormLabel>
-                                    <Input type="date" value={modifiedEvent?.startDate.toISOString().substring(0, 10)}
-                                           onChange={(e) => {
-                                               const newDate = new Date(e.target.value);
-                                               const updatedStartDate = new Date(
-                                                   modifiedEvent.startDate.getFullYear(),
-                                                   modifiedEvent.startDate.getMonth(),
-                                                   modifiedEvent.startDate.getDate(),
-                                                   newDate.getHours(),
-                                                   newDate.getMinutes(),
-                                                   newDate.getSeconds()
-                                               );
-                                               setModifiedEvent({ ...modifiedEvent, startDate: updatedStartDate });
-                                           }}/>
-                                    <FormLabel>Heure de début</FormLabel>
-                                    <Input type="time" value={modifiedEvent?.startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                           onChange={(e) => {
-                                               const [hours, minutes] = e.target.value.split(':');
-                                               const updatedStartDate = new Date(
-                                                   modifiedEvent.startDate.getFullYear(),
-                                                   modifiedEvent.startDate.getMonth(),
-                                                   modifiedEvent.startDate.getDate(),
-                                                   Number(hours),
-                                                   Number(minutes),
-                                                   modifiedEvent.startDate.getSeconds()
-                                               );
-                                               setModifiedEvent({ ...modifiedEvent, startDate: updatedStartDate });
-                                           }}/>
+                                <SimpleGrid columns={{ sm: 1, md: 2, xl: 4 }} spacing='8px'>
+                                    <FormLabel m="auto">Date de début</FormLabel>
+                                    <Input type="date" value={modifiedEventStartDate}
+                                           onChange={(e) => setModifiedEventStartDate(e.target.value)}/>
+                                    <FormLabel m="auto">Heure de début</FormLabel>
+                                    <Input type="time" value={modifiedEventStartTime}
+                                           onChange={(e) => setModifiedEventStartTime(e.target.value)}/>
                                 </SimpleGrid>
                                 <SimpleGrid columns={{ md: 2, xl: 4 }} spacing='8px'>
-                                    <FormLabel>Date de fin</FormLabel>
-                                    <Input type="date" value={modifiedEvent?.endDate.toISOString().substring(0, 10)}
-                                           onChange={(e) => {
-                                               const newDate = new Date(e.target.value);
-                                               const updatedEndDate = new Date(
-                                                   modifiedEvent.endDate.getFullYear(),
-                                                   modifiedEvent.endDate.getMonth(),
-                                                   modifiedEvent.endDate.getDate(),
-                                                   newDate.getHours(),
-                                                   newDate.getMinutes(),
-                                                   newDate.getSeconds()
-                                               );
-                                               setModifiedEvent({ ...modifiedEvent, endDate: updatedEndDate });
-                                           }}/>
-                                    <FormLabel>Heure de fin</FormLabel>
-                                    <Input type="time" value={modifiedEvent?.startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                           onChange={(e) => {
-                                               const [hours, minutes] = e.target.value.split(':');
-                                               const updatedEndDate = new Date(
-                                                   modifiedEvent.endDate.getFullYear(),
-                                                   modifiedEvent.endDate.getMonth(),
-                                                   modifiedEvent.endDate.getDate(),
-                                                   Number(hours),
-                                                   Number(minutes),
-                                                   modifiedEvent.startDate.getSeconds()
-                                               );
-                                               setModifiedEvent({ ...modifiedEvent, endDate: updatedEndDate });
-                                           }}/>
+                                    <FormLabel m="auto">Date de fin</FormLabel>
+                                    <Input type="date" value={modifiedEventEndDate}
+                                           onChange={(e) => setModifiedEventEndDate(e.target.value)}/>
+                                    <FormLabel m="auto">Heure de fin</FormLabel>
+                                    <Input type="time" value={modifiedEventEndTime}
+                                           onChange={(e) => setModifiedEventEndTime(e.target.value)}/>
                                 </SimpleGrid>
                                 <FormLabel>Nombre maximum de participants</FormLabel>
                                 <NumberInput type="number" min={1} value={modifiedEvent?.maxParticipants} onChange={(e) => setModifiedEvent({...modifiedEvent, maxParticipants: parseInt(e)})}>
@@ -652,13 +709,24 @@ export default function ManageEvents() {
                                     </Stat>
                                 </Flex>
                             )}
+                            {modifyEventError !== "" && (
+                                <Text fontSize="sm" color="red.500" fontWeight="semibold">
+                                    {modifyEventError}
+                                </Text>
+                            )}
                         </Flex>
                     </ModalBody>
                     <ModalFooter>
                         <Button colorScheme="blue" mr={3} onClick={onCloseEditionModal}>
                             Annuler
                         </Button>
-                        <Button variant="outline" onClick={() => setCallModifyEvent(true)} isDisabled={modifiedEvent === selectedEvent}>
+                        <Button variant="outline" onClick={() => setCallModifyEvent(true)} isDisabled={
+                            modifiedEvent === selectedEvent &&
+                            modifiedEvent !== undefined &&
+                            modifiedEventStartDate === modifiedEvent.startDate.toISOString().substring(0, 10) &&
+                            modifiedEventStartTime === modifiedEvent.startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) &&
+                            modifiedEventEndDate === modifiedEvent.endDate.toISOString().substring(0, 10) &&
+                            modifiedEventEndTime === modifiedEvent.endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}>
                             Modifier
                         </Button>
                     </ModalFooter>
