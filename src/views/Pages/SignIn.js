@@ -17,7 +17,6 @@ import signInImage from "./../../assets/img/signInImage.png";
 import {User} from "../../model/User";
 import {login} from "../../controller/LoginController";
 import TokenContext from "../../contexts/TokenContext";
-import {Token} from "../../model/Token";
 import {useHistory} from "react-router-dom";
 
 function SignIn() {
@@ -47,9 +46,9 @@ function SignIn() {
         login(user)
             .then((jwtToken) => {
                 setLoading(false);
-                setToken(new Token(jwtToken.token));
+                setToken(jwtToken.token);
             })
-            .catch((error) => {
+            .catch((_) => {
                 setLoading(false);
                 setIsError(true);
             });
@@ -155,7 +154,7 @@ function SignIn() {
                         {loading && (
                             <Progress size="xs" isIndeterminate/>
                         )}
-                        {isError && (
+                        {isError && !loading && (
                             <Text color='red.500' fontWeight='medium'>
                                 La connexion a échoué, vérifiez vos identifiants.
                             </Text>

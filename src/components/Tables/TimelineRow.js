@@ -25,6 +25,7 @@ function TimelineRow(props) {
           w="2px"
           bg="gray.200"
           h={index === arrLength - 1 ? "15px" : "100%"}
+          minH="30px"
         ></Box>
       </Flex>
       <Flex direction="column" justifyContent="flex-start" h="100%">

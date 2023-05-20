@@ -4,7 +4,6 @@ import { Token } from "../model/Token";
 const { API_URL } = require('env');
 
 export const login = async (user: User): Promise<Token> => {
-    console.log(API_URL);
     const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: {

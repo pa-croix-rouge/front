@@ -25,15 +25,18 @@ import { ChakraProvider } from "@chakra-ui/react";
 // Custom Chakra theme
 import theme from "./theme/theme.js";
 import TokenProvider from "./providers/TokenProviders";
+import VolunteerProvider from "./providers/VolunteerProviders";
 
 ReactDOM.render(
     <ChakraProvider theme={theme} resetCss={false} position="relative">
         <HashRouter>
             <Switch>
                 <TokenProvider>
-                    <Route path={`/auth`} component={AuthLayout} />
-                    <Route path={`/admin`} component={AdminLayout} />
-                    <Redirect from={`/`} to="/admin/dashboard" />
+                    <VolunteerProvider>
+                        <Route path={`/auth`} component={AuthLayout} />
+                        <Route path={`/admin`} component={AdminLayout} />
+                        <Redirect from={`/`} to="/admin/dashboard" />
+                    </VolunteerProvider>
                 </TokenProvider>
             </Switch>
         </HashRouter>

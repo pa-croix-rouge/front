@@ -1,13 +1,21 @@
 // import
 import React from 'react';
 import Dashboard from "./views/Dashboard/Dashboard.js";
+import Events from "./views/Dashboard/Events";
 import Tables from "./views/Dashboard/Tables.js";
 import Billing from "./views/Dashboard/Billing.js";
 import Profile from "./views/Dashboard/Profile.js";
 import SignIn from "./views/Pages/SignIn.js";
 import SignUp from "./views/Pages/SignUp.js";
 
-import {CreditIcon, DocumentIcon, HomeIcon, PersonIcon, RocketIcon, StatsIcon,} from "./components/Icons/Icons";
+import {CreditIcon, DocumentIcon, HomeIcon, PersonIcon, RocketIcon, StatsIcon,} from "components/Icons/Icons";
+import LocalUnit from "./views/Dashboard/LocalUnit";
+import {CalendarIcon, TimeIcon} from "@chakra-ui/icons";
+import ULDashboard from "./views/Dashboard/ULDashboard";
+import ManageEvents from "./views/Dashboard/ManageEvents";
+import Stocks from "./views/Dashboard/Stocks";
+import FoodStocks from "./views/Dashboard/FoodStocks";
+import ClothStocks from "./views/Dashboard/ClothStocks";
 
 var dashRoutes = [
   {
@@ -15,6 +23,27 @@ var dashRoutes = [
     name: "Dashboard",
     icon: <HomeIcon color='inherit' />,
     component: Dashboard,
+    layout: "/admin",
+  },
+  {
+    path: "/ul-dashboard",
+    name: "UL Dashboard",
+    icon: <HomeIcon color='inherit' />,
+    component: ULDashboard,
+    layout: "/admin",
+  },
+  {
+    path: "/events",
+    name: "Events",
+    icon: <TimeIcon color='inherit' />,
+    component: Events,
+    layout: "/admin",
+  },
+  {
+    path: "/manage-events",
+    name: "Manage Events",
+    icon: <CalendarIcon color='inherit' />,
+    component: ManageEvents,
     layout: "/admin",
   },
   {
@@ -29,6 +58,34 @@ var dashRoutes = [
     name: "Billing",
     icon: <CreditIcon color='inherit' />,
     component: Billing,
+    layout: "/admin",
+  },
+  {
+    path: "/local-unit",
+    name: "Local Unit",
+    icon: <HomeIcon color='inherit' />,
+    component: LocalUnit,
+    layout: "/admin",
+  },
+  {
+    path: "/stocks",
+    name: "Stocks",
+    icon: <HomeIcon color='inherit' />,
+    component: Stocks,
+    layout: "/admin",
+  },
+  {
+    path: "/food-stocks",
+    name: "Food Stocks",
+    icon: <HomeIcon color='inherit' />,
+    component: FoodStocks,
+    layout: "/admin",
+  },
+  {
+    path: "/cloth-stocks",
+    name: "Cloth Stocks",
+    icon: <HomeIcon color='inherit' />,
+    component: ClothStocks,
     layout: "/admin",
   },
   {
