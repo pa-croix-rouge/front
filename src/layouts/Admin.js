@@ -13,20 +13,17 @@ import {
   ArgonLogoLight,
   ChakraLogoDark,
   ChakraLogoLight,
-} from "./../components/Icons/Icons";
-// Layout components
+} from "../components/Icons/Icons";
 import AdminNavbar from "./../components/Navbars/AdminNavbar.js";
 import Sidebar from "./../components/Sidebar/Sidebar.js";
 import React, { useState } from "react";
 import { Redirect, Route, Switch } from "react-router-dom";
 import routes from "./../routes.js";
-// Custom Chakra theme
 import FixedPlugin from "./../components/FixedPlugin/FixedPlugin";
-// Custom components
 import MainPanel from "./../components/Layout/MainPanel";
 import PanelContainer from "./../components/Layout/PanelContainer";
 import PanelContent from "./../components/Layout/PanelContent";
-import bgAdmin from "./../assets/img/admin-background.png";
+import bgAdmin from "./../assets/img/admin-background.jpg";
 
 export default function Dashboard(props) {
   const { ...rest } = props;
@@ -108,11 +105,11 @@ export default function Dashboard(props) {
   return (
     <Box>
       <Box
-        minH='40vh'
+        minH='45vh'
         w='100%'
         position='absolute'
-        bgImage={colorMode === "light" ? bgAdmin : "none"}
-        bg={colorMode === "light" ? bgAdmin : "navy.900"}
+        bgImage={bgAdmin}
+        bg={bgAdmin}
         bgSize='cover'
         top='0'
       />

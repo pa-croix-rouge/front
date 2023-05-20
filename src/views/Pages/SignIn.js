@@ -1,5 +1,4 @@
 import React, {useContext, useEffect, useState} from "react";
-// Chakra imports
 import {
     Box,
     Button,
@@ -12,17 +11,15 @@ import {
     Text,
     useColorModeValue,
 } from "@chakra-ui/react";
-// Assets
-import signInImage from "./../../assets/img/signInImage.png";
+import signInImage from "./../../assets/img/signInImage.jpg";
 import {User} from "../../model/User";
 import {login} from "../../controller/LoginController";
 import TokenContext from "../../contexts/TokenContext";
 import {useHistory} from "react-router-dom";
 
 function SignIn() {
-    // Chakra color mode
     const textColor = useColorModeValue("gray.700", "white");
-    const bgForm = useColorModeValue("white", "navy.800");
+    const bgForm = useColorModeValue("white", "red.800");
     const titleColor = useColorModeValue("gray.700", "blue.500");
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -172,7 +169,7 @@ function SignIn() {
                         w='100%'
                         h='100%'
                         bgSize='cover'
-                        bg='blue.500'
+                        bg='gray.700'
                         opacity='0.8'>
                     </Box>
                 </Box>

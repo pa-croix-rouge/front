@@ -39,7 +39,7 @@ import VolunteerContext from "../../contexts/VolunteerContext"; // a plugin!
 
 export default function ULDashboard() {
   // Chakra Color Mode
-  const iconBlue = useColorModeValue("blue.500", "blue.500");
+  const iconBlue = useColorModeValue("orange.500", "orange.500");
   const iconBoxInside = useColorModeValue("white", "white");
   const textColor = useColorModeValue("gray.700", "white");
   const tableRowColor = useColorModeValue("#F7FAFC", "navy.900");

@@ -13,7 +13,7 @@ import {
     useColorModeValue,
 } from "@chakra-ui/react";
 // Assets
-import BgSignUp from "./../../assets/img/BgSignUp.png";
+import BgSignUp from "./../../assets/img/BgSignUp.jpg";
 import React, {useState} from "react";
 
 function SignUp() {
@@ -48,7 +48,7 @@ function SignUp() {
                 mx={{md: "auto"}}
                 mt={{md: "14px"}}
                 borderRadius={{base: "0px", md: "20px"}}>
-                <Box w='100vw' h='100vh' bg='blue.500' opacity='0.8'></Box>
+                <Box w='100vw' h='100vh' bg='gray.700' opacity='0.8'></Box>
             </Box>
             <Flex
                 direction='column'
