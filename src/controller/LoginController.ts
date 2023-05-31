@@ -1,16 +1,9 @@
 import { User } from "../model/User";
 import { Token } from "../model/Token";
-
-const { API_URL } = require('env');
+import {postWithoutToken} from "./Controller";
 
 export const login = async (user: User): Promise<Token> => {
-    const response = await fetch(`${API_URL}/login`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(user),
-    });
+    const response = await postWithoutToken(`login`, user);
 
     if (!response.ok) {
         throw new Error(`Login failed with status ${response.status}`);
