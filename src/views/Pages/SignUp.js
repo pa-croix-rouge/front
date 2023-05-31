@@ -15,6 +15,8 @@ import {
 // Assets
 import BgSignUp from "./../../assets/img/BgSignUp.jpg";
 import React, {useState} from "react";
+import {VolunteerRegistration} from "../../model/volunteer/VolunteerRegistration";
+import {register} from "../../controller/VolunteerController";
 
 function SignUp() {
     const bgForm = useColorModeValue("white", "navy.800");
@@ -24,6 +26,60 @@ function SignUp() {
     const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
     const handleShowPasswordClick = () => setShowPassword(!showPassword);
     const handleShowPasswordConfirmationClick = () => setShowPasswordConfirmation(!showPasswordConfirmation);
+
+    const [lastName, setLastName] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [email, setEmail] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [password, setPassword] = useState('');
+    const [passwordConfirmation, setPasswordConfirmation] = useState('');
+    const [localUnitCode, setLocalUnitCode] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [isError, setIsError] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [isSuccess, setIsSuccess] = useState(false);
+
+    const checkPasswordValidity = () => {
+        if (password !== passwordConfirmation) {
+            setIsError(true);
+            setErrorMessage('Les mots de passe ne correspondent pas');
+            return false;
+        }
+
+        return true;
+    }
+
+    const handleRegisterClick = () => {
+        setLoading(true);
+        setIsError(false);
+        setIsSuccess(false);
+
+        const passwordValidity = checkPasswordValidity();
+
+        if (!passwordValidity) {
+            setLoading(false);
+            return;
+        }
+
+        const volunteerRegistration = new VolunteerRegistration(email, password, firstName, lastName, phoneNumber, localUnitCode);
+
+        register(volunteerRegistration)
+            .then(() => {
+                setLoading(false);
+                setLastName('');
+                setFirstName('');
+                setEmail('');
+                setPhoneNumber('');
+                setPassword('');
+                setPasswordConfirmation('');
+                setLocalUnitCode('');
+                setIsSuccess(true);
+            })
+            .catch((_) => {
+                setLoading(false);
+                setIsError(true);
+            });
+    }
 
     return (
         <Flex
@@ -101,6 +157,8 @@ function SignUp() {
                                     placeholder='Votre nom'
                                     mb='24px'
                                     size='lg'
+                                    value={lastName}
+                                    onChange={(e) => setLastName(e.target.value)}
                                 />
                             </Flex>
                             <Spacer/>
@@ -117,6 +175,8 @@ function SignUp() {
                                     placeholder='Votre prénom'
                                     mb='24px'
                                     size='lg'
+                                    value={firstName}
+                                    onChange={(e) => setFirstName(e.target.value)}
                                 />
                             </Flex>
                         </Flex>
@@ -135,6 +195,8 @@ function SignUp() {
                                     placeholder='example@croix-rouge.fr'
                                     mb='24px'
                                     size='lg'
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                 />
                             </Flex>
                             <Spacer/>
@@ -151,6 +213,8 @@ function SignUp() {
                                     placeholder='06 01 02 03 04'
                                     mb='24px'
                                     size='lg'
+                                    value={phoneNumber}
+                                    onChange={(e) => setPhoneNumber(e.target.value)}
                                 />
                             </Flex>
                         </Flex>
@@ -166,6 +230,8 @@ function SignUp() {
                                 placeholder='Votre mot de passe'
                                 mb='24px'
                                 size='lg'
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                             />
                             <InputRightElement width="4.5rem">
                                 <Button h="1.75rem" size="sm" onClick={handleShowPasswordClick}>
@@ -185,6 +251,8 @@ function SignUp() {
                                 placeholder='Votre mot de passe'
                                 mb='24px'
                                 size='lg'
+                                value={passwordConfirmation}
+                                onChange={(e) => setPasswordConfirmation(e.target.value)}
                             />
                             <InputRightElement width="4.5rem">
                                 <Button h="1.75rem" size="sm" onClick={handleShowPasswordConfirmationClick}>
@@ -192,7 +260,18 @@ function SignUp() {
                                 </Button>
                             </InputRightElement>
                         </InputGroup>
-                        <Progress colorScheme="green" size="sm" value={100}/>
+                        {password !== passwordConfirmation && (
+                            <>
+                                <Progress colorScheme="red" size="sm" value={100}/>
+                                <Text color='red.500' fontSize='sm' fontWeight='normal'>
+                                    Les mots de passe ne correspondent pas
+                                </Text>
+                            </>
+                        )}
+                        {password === passwordConfirmation && (
+                            <Progress colorScheme="green" size="sm" value={100}/>
+                        )}
+                        <Flex mb='24px' />
                         <FormLabel ms='4px' fontSize='sm' fontWeight='normal'>
                             Code de l'unité locale
                         </FormLabel>
@@ -204,6 +283,8 @@ function SignUp() {
                             placeholder='01000-000'
                             mb='24px'
                             size='lg'
+                            value={localUnitCode}
+                            onChange={(e) => setLocalUnitCode(e.target.value)}
                         />
                         <Button
                             fontSize='10px'
@@ -211,10 +292,25 @@ function SignUp() {
                             fontWeight='bold'
                             w='100%'
                             h='45'
-                            mb='24px'>
+                            mb='24px'
+                            disabled={loading}
+                            onClick={handleRegisterClick}>
                             S'ENREGISTRER
                         </Button>
                     </FormControl>
+                    {loading && (
+                        <Progress size="xs" isIndeterminate mb='12px'/>
+                    )}
+                    {isError && (
+                        <Text color='red.500' fontSize='sm' fontWeight='normal' mb='12px'>
+                            {errorMessage}
+                        </Text>
+                    )}
+                    {isSuccess && (
+                        <Text color='green.500' fontSize='sm' fontWeight='normal' mb='12px'>
+                            Inscription réussie ! Veuillez vous rapprocher du responsable de votre unité locale pour valider votre compte.
+                        </Text>
+                    )}
                     <Flex
                         flexDirection='column'
                         justifyContent='center'
