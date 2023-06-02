@@ -1,4 +1,12 @@
-import {Avatar, Flex, HStack, Text, useColorModeValue} from "@chakra-ui/react";
+import {
+    Avatar,
+    Flex,
+    HStack,
+    Icon,
+    SimpleGrid,
+    Text,
+    useColorModeValue
+} from "@chakra-ui/react";
 
 import crLogo from "assets/img/croix-rouge/logo-croix-rouge-cercle.png";
 
@@ -9,8 +17,9 @@ import CardBody from "../../components/Card/CardBody";
 import TokenContext from "../../contexts/TokenContext";
 import VolunteerContext from "../../contexts/VolunteerContext";
 import {useHistory} from "react-router-dom";
-import {getMyProfile} from "../../controller/VolunteerController";
+import {getMyProfile, getVolunteers} from "../../controller/VolunteerController";
 import {getLocalUnit} from "../../controller/LocalUnitController";
+import {PersonIcon} from "../../components/Icons/Icons";
 
 function LocalUnit() {
     const borderProfileColor = useColorModeValue("white", "transparent");
@@ -20,20 +29,22 @@ function LocalUnit() {
     const [luManager, setLuManager] = useState("");
     const [loadedVolunteer, setLoadedVolunteer] = useState(false);
     const [loadedLocalUnit, setLoadedLocalUnit] = useState(false);
+    const [loadedVolunteers, setLoadedVolunteers] = useState(false);
+    const [volunteers, setVolunteers] = useState([]);
     const {token} = useContext(TokenContext);
     const {volunteer, setVolunteer} = useContext(VolunteerContext);
     const history = useHistory();
 
     const loadVolunteer = () => {
         setLoadedVolunteer(true)
-        if (token === undefined) {
+        if (token === undefined || token === '') {
             history.push("/auth/signin");
-        } else {
+        } else if (volunteer === '') {
             getMyProfile()
                 .then((volunteer) => {
                     setVolunteer(volunteer);
                 })
-                .catch((error) => {
+                .catch((_) => {
                     setLoadedVolunteer(false);
                 });
         }
@@ -47,8 +58,19 @@ function LocalUnit() {
                 setLuAddress(localUnit.address.streetNumberAndName + ", " + localUnit.address.postalCode + " " + localUnit.address.city);
                 setLuManager(localUnit.managerName);
             })
-            .catch((error) => {
+            .catch((_) => {
                 setLoadedLocalUnit(false);
+            });
+    }
+
+    const loadVolunteers = () => {
+        setLoadedVolunteers(true);
+        getVolunteers()
+            .then((volunteers) => {
+                setVolunteers(volunteers);
+            })
+            .catch((_) => {
+                setLoadedVolunteers(false);
             });
     }
 
@@ -58,6 +80,7 @@ function LocalUnit() {
             pt={{ base: "120px", md: "75px", lg: "100px" }}>
             {!loadedVolunteer && loadVolunteer()}
             {volunteer && !loadedLocalUnit && loadLocalUnit()}
+            {!loadedVolunteers && loadVolunteers()}
             <Flex
                 direction={{ sm: "column", md: "row" }}
                 mb='24px'
@@ -97,6 +120,21 @@ function LocalUnit() {
                     <Text>
                         Gérant: {luManager}
                     </Text>
+                    <Text>
+                        Bénévoles: {volunteers.length}
+                    </Text>
+                    <SimpleGrid columns={{ sm: 1, md: 3, xl: 6 }} spacing='24px' mb='8px'>
+                        {volunteers.map((volunteer) => (
+                            <Card minH='72px'>
+                                <Flex direction='row'>
+                                    <Icon as={PersonIcon} mr="8px"/>
+                                    <Text fontWeight="bold">
+                                        {volunteer.firstName} {volunteer.lastName}
+                                    </Text>
+                                </Flex>
+                            </Card>
+                        ))}
+                    </SimpleGrid>
                 </CardBody>
             </Card>
         </Flex>
