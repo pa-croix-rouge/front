@@ -45,7 +45,7 @@ import {
     getEventSessions, updateAllEventSessions,
     updateEventSession
 } from "../../controller/EventController";
-import {FaArrowRight, FaPencilAlt, FaPlus, FaTrashAlt, FaUser} from "react-icons/fa";
+import {FaArrowRight, FaPencilAlt, FaPlus, FaTrashAlt, FaUser, FaEye} from "react-icons/fa";
 import TimelineRow from "../../components/Tables/TimelineRow";
 import {CalendarIcon, CheckIcon} from "@chakra-ui/icons";
 import {SingleEventCreation} from "../../model/event/SingleEventCreation";
@@ -427,6 +427,7 @@ export default function ManageEvents() {
                                     <Th borderColor={borderColor} color="gray.400" >Inscriptions</Th>
                                     <Th borderColor={borderColor}></Th>
                                     <Th borderColor={borderColor}></Th>
+                                    <Th borderColor={borderColor}></Th>
                                 </Tr>
                             </Thead>
                             <Tbody>
@@ -473,6 +474,16 @@ export default function ManageEvents() {
                                                         borderRadius="15px"
                                                     />
                                                 </Flex>
+                                            </Td>
+                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
+                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() => console.log("Consulter")}>
+                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
+                                                        <Icon as={FaEye} />
+                                                        <Text fontSize="sm" fontWeight="semibold">
+                                                            Consulter
+                                                        </Text>
+                                                    </Flex>
+                                                </Button>
                                             </Td>
                                             <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
                                                 <Button p="0px" bg="transparent" variant="no-effects" onClick={() =>selectEventForModal(event, onOpenEditionModal)}>
@@ -682,13 +693,13 @@ export default function ManageEvents() {
                             {selectedEvent !== undefined && modifiedEvent !== undefined && (
                                 <Flex direction="row" justifyContent="space-between" alignItems="center">
                                     <Stat maxW="45%">
-                                        <StatLabel>{selectedEvent.name} le {selectedEvent.startDate.toISOString().substring(0, 16).replaceAll('-', '/').replace('T', ' à ').replace(':', 'h')}</StatLabel>
+                                        <StatLabel>{selectedEvent.name} du {selectedEvent.startDate.toISOString().substring(0, 16).replaceAll('-', '/').replace('T', ' à ').replace(':', 'h')} au {selectedEvent.endDate.toISOString().substring(0, 16).replaceAll('-', '/').replace('T', ' à ').replace(':', 'h')}</StatLabel>
                                         <StatNumber><Icon as={FaUser}/> {selectedEvent.numberOfParticipants} / {selectedEvent.maxParticipants} participants</StatNumber>
                                         <StatHelpText>{selectedEvent.description}<br />Référent: {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(selectedEvent.referrerId)] : selectedEvent.referrerId}</StatHelpText>
                                     </Stat>
                                     <Icon as={FaArrowRight} h="8" w="8" mr="12px" />
                                     <Stat maxW="45%">
-                                        <StatLabel>{modifiedEvent.name} le {modifiedEvent.startDate.toISOString().substring(0, 16).replaceAll('-', '/').replace('T', ' à ').replace(':', 'h')}</StatLabel>
+                                        <StatLabel>{modifiedEvent.name} le {modifiedEvent.startDate.toISOString().substring(0, 16).replaceAll('-', '/').replace('T', ' à ').replace(':', 'h')} au {selectedEvent.endDate.toISOString().substring(0, 16).replaceAll('-', '/').replace('T', ' à ').replace(':', 'h')}</StatLabel>
                                         <StatNumber><Icon as={FaUser}/> {modifiedEvent.numberOfParticipants} / {modifiedEvent.maxParticipants} participants</StatNumber>
                                         <StatHelpText>{modifiedEvent.description}<br />Référent: {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(modifiedEvent.referrerId)] : modifiedEvent.referrerId}</StatHelpText>
                                     </Stat>
