@@ -70,6 +70,10 @@ export default function Events() {
         setLoadedEvents(false);
     }, [currentMonth, currentYear]);
 
+    const goToManageEvent = () => {
+        history.push("/admin/manage-events");
+    }
+
     const handleDateChange = (arg) => {
         const newDate = arg.view.currentStart;
         setCurrentYear(newDate.getFullYear());
@@ -296,7 +300,7 @@ export default function Events() {
                             <Text fontSize='lg' color={textColor} fontWeight='bold'>
                                 Liste des évènements du mois de {new Date(Date.UTC(2000, currentMonth - 1)).toLocaleString('fr-FR', { month: 'long' })} {currentYear}
                             </Text>
-                            <Button variant='primary' maxH='30px'>
+                            <Button variant='primary' maxH='30px' onClick={goToManageEvent}>
                                 GERER TOUT LES EVENEMENTS
                             </Button>
                         </Flex>
