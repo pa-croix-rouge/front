@@ -80,6 +80,7 @@ export default function ManageEvents() {
     const [eventNumberOfTimeWindow, setEventNumberOfTimeWindow] = useState(3);
     const [eventStartDate, setEventStartDate] = useState(new Date().toISOString().substring(0, 10));
     const [eventStartTime, setEventStartTime] = useState(new Date(0).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    const [eventLastDate, setEventLastDate] = useState(new Date().toISOString().substring(0, 10));
     const [eventRecurrence, setEventRecurrence] = useState(7);
     const [eventError, setEventError] = useState("");
     const [callCreateEvent, setCallCreateEvent] = useState(false);
@@ -229,8 +230,28 @@ export default function ManageEvents() {
                 .catch((_) => {
                 });
         } else {
-            const eventDuration = ((parseInt(eventEndTime.split(":")[0]) * 60 + parseInt(eventEndTime.split(":")[1])) - (parseInt(eventStartTime.split(":")[0]) * 60 + parseInt(eventStartTime.split(":")[1])));
-            createRecurrentEvent(new RecurrentEventCreation(eventName, eventDescription, eventReferrer, volunteer.localUnitId, eventStart.getTime(), eventEnd.getTime(), eventDuration, eventRecurrence, eventMaxParticipants))
+            try {
+                const [years, months, days] = eventLastDate.split("-");
+                eventEnd = new Date(
+                    parseInt(years),
+                    parseInt(months) - 1,
+                    parseInt(days),
+                    23,
+                    59,
+                );
+                if (eventStart < new Date()) {
+                    setEventError("La date de début doit être dans le futur");
+                    return;
+                }
+            } catch (error) {
+                setEventError("Veuillez entrer une date de fin valide");
+                return;
+            }
+            if (eventEnd.getTime() < eventStart.getTime()) {
+                setEventError("La date de fin doit être après la date de début");
+                return;
+            }
+            createRecurrentEvent(new RecurrentEventCreation(eventName, eventDescription, eventReferrer, volunteer.localUnitId, eventStart.getTime(), eventEnd.getTime(), eventRecurrence, eventTimeWindowDuration, eventNumberOfTimeWindow, eventMaxParticipants))
                 .then(() => {
                     onCloseCreationModal();
                     setLoadedEvents(false);
@@ -579,7 +600,7 @@ export default function ManageEvents() {
                                 </SimpleGrid>
                                 {eventType === "unique" && (
                                     <Box>
-                                        <SimpleGrid columns={{ sm: 1, md: 2, xl: 4 }} spacing='8px' mt="8px">
+                                        <SimpleGrid columns={{ sm: 1, md: 2, xl: 4 }} spacing='8px' mt="8px" ml="16px" mr="16px">
                                             <FormLabel m="auto">Date de début</FormLabel>
                                             <Input type="date" value={eventStartDate}
                                                    onChange={(e) => setEventStartDate(e.target.value)}/>
@@ -594,54 +615,35 @@ export default function ManageEvents() {
                                             parseInt(eventStartTime.split(":")[0]),
                                             parseInt(eventStartTime.split(":")[1])
                                         ).getTime() + (eventTimeWindowDuration * eventNumberOfTimeWindow) * 60 * 1000).toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}</Text>
-                                        <Text mt="16px" fontWeight="semibold" fontSize="md">Visualisation des plages horaires:</Text>
-                                        <SimpleGrid columns={{ sm: 1, md: 2, xl: 3 }} spacing='24px'>
-                                            {[...Array(eventNumberOfTimeWindow)].map((e, i) => (
-                                                <Card key={i}>
-                                                    <Flex direction="column">
-                                                        <Flex direction="row">
-                                                            <Text fontSize="sm" fontWeight="semibold">De {new Date(new Date(
-                                                                parseInt(eventStartDate.split("-")[0]),
-                                                                parseInt(eventStartDate.split("-")[1]) - 1,
-                                                                parseInt(eventStartDate.split("-")[2]),
-                                                                parseInt(eventStartTime.split(":")[0]),
-                                                                parseInt(eventStartTime.split(":")[1])
-                                                            ).getTime() + (eventTimeWindowDuration * i) * 60 * 1000).toLocaleTimeString().substring(0, 5).replaceAll(':', 'h')} à {new Date(new Date(
-                                                                parseInt(eventStartDate.split("-")[0]),
-                                                                parseInt(eventStartDate.split("-")[1]) - 1,
-                                                                parseInt(eventStartDate.split("-")[2]),
-                                                                parseInt(eventStartTime.split(":")[0]),
-                                                                parseInt(eventStartTime.split(":")[1])
-                                                            ).getTime() + (eventTimeWindowDuration * (i + 1)) * 60 * 1000).toLocaleTimeString().substring(0, 5).replaceAll(':', 'h')}</Text>
-                                                        </Flex>
-                                                        <Text>Participants: {eventMaxParticipants}</Text>
-                                                    </Flex>
-                                                </Card>
-                                            ))}
-                                        </SimpleGrid>
                                     </Box>
                                 )}
                                 {eventType === "recurring" && (
                                     <Box>
                                         <FormLabel>Période de l'événement récurrent</FormLabel>
-                                        <SimpleGrid columns={{ sm: 1, md: 2, xl: 4 }} spacing='8px'>
-                                            <FormLabel m="auto">Du</FormLabel>
-                                            <Input type="date" value={eventStartDate}
-                                                   onChange={(e) => setEventStartDate(e.target.value)}/>
-                                            <FormLabel m="auto">Au</FormLabel>
-                                            <Input type="date" value={eventEndDate}
-                                                   onChange={(e) => setEventEndDate(e.target.value)}/>
+                                        <SimpleGrid columns={{ sm: 1, md: 1, xl: 2 }} spacing='8px'>
+                                            <Flex direction="row" ml="16px" mr="16px">
+                                                <FormLabel m="auto" maxW="50%" >Premier jour</FormLabel>
+                                                <Input type="date" maxW="50%" value={eventStartDate}
+                                                       onChange={(e) => setEventStartDate(e.target.value)}/>
+                                            </Flex>
+                                            <Flex direction="row" ml="16px" mr="16px">
+                                                <FormLabel m="auto" maxW="50%">Dernier jour</FormLabel>
+                                                <Input type="date" maxW="50%" value={eventLastDate}
+                                                       onChange={(e) => setEventLastDate(e.target.value)}/>
+                                            </Flex>
+                                            <Flex direction="row" ml="16px" mr="16px">
+                                                <FormLabel maxW="50%" m="auto">Heure de début de l'événement</FormLabel>
+                                                <Input type="time" maxW="50%" value={eventStartTime}
+                                                       onChange={(e) => setEventStartTime(e.target.value)}/>
+                                            </Flex>
+                                            <Text m="auto">Date de fin calculée: {new Date(new Date(
+                                                parseInt(eventStartDate.split("-")[0]),
+                                                parseInt(eventStartDate.split("-")[1]) - 1,
+                                                parseInt(eventStartDate.split("-")[2]),
+                                                parseInt(eventStartTime.split(":")[0]),
+                                                parseInt(eventStartTime.split(":")[1])
+                                            ).getTime() + (eventTimeWindowDuration * eventNumberOfTimeWindow) * 60 * 1000).toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}</Text>
                                         </SimpleGrid>
-                                        <FormLabel>Horaires de l'événement récurrent</FormLabel>
-                                        <SimpleGrid columns={{ md: 2, xl: 4 }} spacing='8px'>
-                                            <FormLabel m="auto">De</FormLabel>
-                                            <Input type="time" value={eventStartTime}
-                                                   onChange={(e) => setEventStartTime(e.target.value)}/>
-                                            <FormLabel m="auto">A</FormLabel>
-                                            <Input type="time" value={eventEndTime}
-                                                   onChange={(e) => setEventEndTime(e.target.value)}/>
-                                        </SimpleGrid>
-                                        <FormLabel>Durée de l'événement: {((parseInt(eventEndTime.split(":")[0]) * 60 + parseInt(eventEndTime.split(":")[1])) - (parseInt(eventStartTime.split(":")[0]) * 60 + parseInt(eventStartTime.split(":")[1])))} minutes</FormLabel>
                                         <FormLabel>Récurrence, l'événement se tiendras tout les {eventRecurrence} jours</FormLabel>
                                         <NumberInput defaultValue={7} min={1} max={365} value={eventRecurrence} onChange={(e) => setEventRecurrence(parseInt(e))}>
                                             <NumberInputField />
@@ -652,6 +654,31 @@ export default function ManageEvents() {
                                         </NumberInput>
                                     </Box>
                                 )}
+                                <Text mt="16px" fontWeight="semibold" fontSize="md">Visualisation des plages horaires:</Text>
+                                <SimpleGrid columns={{ sm: 1, md: 2, xl: 3 }} spacing='24px'>
+                                    {[...Array(eventNumberOfTimeWindow)].map((e, i) => (
+                                        <Card key={i}>
+                                            <Flex direction="column">
+                                                <Flex direction="row">
+                                                    <Text fontSize="sm" fontWeight="semibold">De {new Date(new Date(
+                                                        parseInt(eventStartDate.split("-")[0]),
+                                                        parseInt(eventStartDate.split("-")[1]) - 1,
+                                                        parseInt(eventStartDate.split("-")[2]),
+                                                        parseInt(eventStartTime.split(":")[0]),
+                                                        parseInt(eventStartTime.split(":")[1])
+                                                    ).getTime() + (eventTimeWindowDuration * i) * 60 * 1000).toLocaleTimeString().substring(0, 5).replaceAll(':', 'h')} à {new Date(new Date(
+                                                        parseInt(eventStartDate.split("-")[0]),
+                                                        parseInt(eventStartDate.split("-")[1]) - 1,
+                                                        parseInt(eventStartDate.split("-")[2]),
+                                                        parseInt(eventStartTime.split(":")[0]),
+                                                        parseInt(eventStartTime.split(":")[1])
+                                                    ).getTime() + (eventTimeWindowDuration * (i + 1)) * 60 * 1000).toLocaleTimeString().substring(0, 5).replaceAll(':', 'h')}</Text>
+                                                </Flex>
+                                                <Text>Participants: {eventMaxParticipants}</Text>
+                                            </Flex>
+                                        </Card>
+                                    ))}
+                                </SimpleGrid>
                                 {eventError !== "" && (
                                     <Text fontSize="sm" color="red" fontWeight="semibold">
                                         {eventError}

@@ -3,21 +3,23 @@ export class RecurrentEventCreation {
     public description: string;
     public referrerId: string;
     public localUnitId: string;
-    public firstStart: Date;
-    public firstEnd: Date;
-    public duration: number;
+    public firstStart: number;
+    public firstEnd: number;
     public frequency: number;
-    public maxParticipants: number;
+    public eventTimeWindowDuration;
+    public eventTimeWindowOccurrence;
+    public eventTimeWindowMaxParticipants;
 
-    constructor(name: string, description: string, referrerId: string, localUnitId: string, firstStart: Date, firstEnd: Date, duration: number, frequency: number, maxParticipants: number) {
+    constructor(name: string, description: string, referrerId: string, localUnitId: string, firstStart: number, firstEnd: number, frequency: number, eventTimeWindowDuration, eventTimeWindowOccurrence, eventTimeWindowMaxParticipants) {
         this.name = name;
         this.description = description;
         this.referrerId = referrerId;
         this.localUnitId = localUnitId;
         this.firstStart = firstStart;
         this.firstEnd = firstEnd;
-        this.duration = duration;
         this.frequency = frequency;
-        this.maxParticipants = maxParticipants;
+        this.eventTimeWindowDuration = eventTimeWindowDuration;
+        this.eventTimeWindowOccurrence = eventTimeWindowOccurrence;
+        this.eventTimeWindowMaxParticipants = eventTimeWindowMaxParticipants;
     }
 }
