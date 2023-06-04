@@ -75,11 +75,11 @@ export default function ManageEvents() {
     const [eventName, setEventName] = useState("");
     const [eventDescription, setEventDescription] = useState("");
     const [eventReferrer, setEventReferrer] = useState("");
-    const [eventMaxParticipants, setEventMaxParticipants] = useState(20);
+    const [eventMaxParticipants, setEventMaxParticipants] = useState(10);
+    const [eventTimeWindowDuration, setEventTimeWindowDuration] = useState(20);
+    const [eventNumberOfTimeWindow, setEventNumberOfTimeWindow] = useState(3);
     const [eventStartDate, setEventStartDate] = useState(new Date().toISOString().substring(0, 10));
     const [eventStartTime, setEventStartTime] = useState(new Date(0).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-    const [eventEndDate, setEventEndDate] = useState(new Date().toISOString().substring(0, 10));
-    const [eventEndTime, setEventEndTime] = useState(new Date(0).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     const [eventRecurrence, setEventRecurrence] = useState(7);
     const [eventError, setEventError] = useState("");
     const [callCreateEvent, setCallCreateEvent] = useState(false);
@@ -205,27 +205,23 @@ export default function ManageEvents() {
             return;
         }
 
-        try {
-            const [years, months, days] = eventEndDate.split("-");
-            const [hours, minutes] = eventEndTime.split(":");
-            eventEnd = new Date(
-                parseInt(years),
-                parseInt(months) - 1,
-                parseInt(days),
-                parseInt(hours),
-                parseInt(minutes),
-            );
-            if (eventEnd.getTime() <= eventStart.getTime()) {
-                setEventError("La date de fin doit être à minima 1 minute après la date de début");
-                return;
-            }
-        } catch (error) {
-            setEventError("Veuillez entrer une date de fin valide");
+        if (eventNumberOfTimeWindow < 1) {
+            setEventError("Veuillez entrer au moins une session");
+            return;
+        }
+
+        if (eventTimeWindowDuration < 1) {
+            setEventError("Une session ne peut pas durer moins d'une minute");
+            return;
+        }
+
+        if (eventMaxParticipants < 1) {
+            setEventError("Une session doit avoir au moins un participant");
             return;
         }
 
         if (eventType === "unique") {
-            createSingleEvent(new SingleEventCreation(eventName, eventDescription, eventStart.getTime(), eventEnd.getTime(), eventReferrer, volunteer.localUnitId, eventMaxParticipants))
+            createSingleEvent(new SingleEventCreation(eventName, eventDescription, eventStart.getTime(),eventReferrer, volunteer.localUnitId, eventTimeWindowDuration, eventNumberOfTimeWindow, eventMaxParticipants))
                 .then(() => {
                     onCloseCreationModal();
                     setLoadedEvents(false);
@@ -454,7 +450,7 @@ export default function ManageEvents() {
                                             </Td>
                                             <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
                                                 <Text>
-                                                    {event.startDate.toISOString().substring(0, 16).replaceAll('-', '/').replace('T', ' à ').replaceAll(':', 'h')}
+                                                    {event.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}
                                                 </Text>
                                             </Td>
                                             <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
@@ -543,17 +539,47 @@ export default function ManageEvents() {
                                         );
                                     })}
                                 </Select>
-                                <FormLabel>Nombre maximum de participants</FormLabel>
-                                <NumberInput defaultValue={20} min={1} value={eventMaxParticipants} onChange={(e) => setEventMaxParticipants(parseInt(e))}>
-                                    <NumberInputField />
-                                    <NumberInputStepper>
-                                        <NumberIncrementStepper />
-                                        <NumberDecrementStepper />
-                                    </NumberInputStepper>
-                                </NumberInput>
+                                <Text mt="16px" fontWeight="semibold" fontSize="md">Configuration des plages horaires</Text>
+                                <SimpleGrid columns={{ sm: 1, md: 2 }} spacing='24px' mt="8px">
+                                    <Flex direction="column" ml="16px" mr="16px">
+                                        <FormLabel>Nombre de participants par plage horaire</FormLabel>
+                                        <NumberInput defaultValue={10} min={1} value={eventMaxParticipants} onChange={(e) => setEventMaxParticipants(parseInt(e))}>
+                                            <NumberInputField />
+                                            <NumberInputStepper>
+                                                <NumberIncrementStepper />
+                                                <NumberDecrementStepper />
+                                            </NumberInputStepper>
+                                        </NumberInput>
+                                    </Flex>
+                                    <Flex direction="column" ml="16px" mr="16px">
+                                        <Text m="auto">Nombre maximum de participants calculé: {eventMaxParticipants * eventNumberOfTimeWindow}</Text>
+                                    </Flex>
+                                </SimpleGrid>
+                                <SimpleGrid columns={{ sm: 1, md: 2 }} spacing='8px' mt="8px">
+                                    <Flex direction="column" ml="16px" mr="16px">
+                                        <FormLabel>Durée d'une session en minutes</FormLabel>
+                                        <NumberInput defaultValue={20} min={1} value={eventTimeWindowDuration} onChange={(e) => setEventTimeWindowDuration(parseInt(e))}>
+                                            <NumberInputField />
+                                            <NumberInputStepper>
+                                                <NumberIncrementStepper />
+                                                <NumberDecrementStepper />
+                                            </NumberInputStepper>
+                                        </NumberInput>
+                                    </Flex>
+                                    <Flex direction="column" ml="16px" mr="16px">
+                                        <FormLabel>Nombre de session</FormLabel>
+                                        <NumberInput defaultValue={3} min={1} value={eventNumberOfTimeWindow} onChange={(e) => setEventNumberOfTimeWindow(parseInt(e))}>
+                                            <NumberInputField />
+                                            <NumberInputStepper>
+                                                <NumberIncrementStepper />
+                                                <NumberDecrementStepper />
+                                            </NumberInputStepper>
+                                        </NumberInput>
+                                    </Flex>
+                                </SimpleGrid>
                                 {eventType === "unique" && (
                                     <Box>
-                                        <SimpleGrid columns={{ sm: 1, md: 2, xl: 4 }} spacing='8px'>
+                                        <SimpleGrid columns={{ sm: 1, md: 2, xl: 4 }} spacing='8px' mt="8px">
                                             <FormLabel m="auto">Date de début</FormLabel>
                                             <Input type="date" value={eventStartDate}
                                                    onChange={(e) => setEventStartDate(e.target.value)}/>
@@ -561,13 +587,37 @@ export default function ManageEvents() {
                                             <Input type="time" value={eventStartTime}
                                                    onChange={(e) => setEventStartTime(e.target.value)}/>
                                         </SimpleGrid>
-                                        <SimpleGrid columns={{ md: 2, xl: 4 }} spacing='8px'>
-                                            <FormLabel m="auto">Date de fin</FormLabel>
-                                            <Input type="date" value={eventEndDate}
-                                                   onChange={(e) => setEventEndDate(e.target.value)}/>
-                                            <FormLabel m="auto">Heure de fin</FormLabel>
-                                            <Input type="time" value={eventEndTime}
-                                                   onChange={(e) => setEventEndTime(e.target.value)}/>
+                                        <Text m="auto">Date de fin calculée: {new Date(new Date(
+                                            parseInt(eventStartDate.split("-")[0]),
+                                            parseInt(eventStartDate.split("-")[1]) - 1,
+                                            parseInt(eventStartDate.split("-")[2]),
+                                            parseInt(eventStartTime.split(":")[0]),
+                                            parseInt(eventStartTime.split(":")[1])
+                                        ).getTime() + (eventTimeWindowDuration * eventNumberOfTimeWindow) * 60 * 1000).toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}</Text>
+                                        <Text mt="16px" fontWeight="semibold" fontSize="md">Visualisation des plages horaires:</Text>
+                                        <SimpleGrid columns={{ sm: 1, md: 2, xl: 3 }} spacing='24px'>
+                                            {[...Array(eventNumberOfTimeWindow)].map((e, i) => (
+                                                <Card key={i}>
+                                                    <Flex direction="column">
+                                                        <Flex direction="row">
+                                                            <Text fontSize="sm" fontWeight="semibold">De {new Date(new Date(
+                                                                parseInt(eventStartDate.split("-")[0]),
+                                                                parseInt(eventStartDate.split("-")[1]) - 1,
+                                                                parseInt(eventStartDate.split("-")[2]),
+                                                                parseInt(eventStartTime.split(":")[0]),
+                                                                parseInt(eventStartTime.split(":")[1])
+                                                            ).getTime() + (eventTimeWindowDuration * i) * 60 * 1000).toLocaleTimeString().substring(0, 5).replaceAll(':', 'h')} à {new Date(new Date(
+                                                                parseInt(eventStartDate.split("-")[0]),
+                                                                parseInt(eventStartDate.split("-")[1]) - 1,
+                                                                parseInt(eventStartDate.split("-")[2]),
+                                                                parseInt(eventStartTime.split(":")[0]),
+                                                                parseInt(eventStartTime.split(":")[1])
+                                                            ).getTime() + (eventTimeWindowDuration * (i + 1)) * 60 * 1000).toLocaleTimeString().substring(0, 5).replaceAll(':', 'h')}</Text>
+                                                        </Flex>
+                                                        <Text>Participants: {eventMaxParticipants}</Text>
+                                                    </Flex>
+                                                </Card>
+                                            ))}
                                         </SimpleGrid>
                                     </Box>
                                 )}
@@ -636,7 +686,7 @@ export default function ManageEvents() {
                                 <Flex direction="column">
                                     <Text fontSize="2xl" fontWeight="bold">{selectedEvent.name}</Text>
                                     <Text><i>{selectedEvent.description}</i></Text>
-                                    <Text>Du {selectedEvent.startDate.toISOString().substring(0, 16).replaceAll('-', '/').replace('T', ' à ').replaceAll(':', 'h')} au {selectedEvent.endDate.toISOString().substring(0, 16).replaceAll('-', '/').replace('T', ' à ').replaceAll(':', 'h')}</Text>
+                                    <Text>Du {selectedEvent.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")} au {selectedEvent.endDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}</Text>
                                     <Text>Référent: {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(selectedEvent.referrerId)] : selectedEvent.referrerId}</Text>
                                     <Text>Participants: {selectedEvent.numberOfParticipants} / {selectedEvent.maxParticipants}</Text>
                                     <Text>Plage{selectedEvent.timeWindows.length > 1 ? "s" : ""} horaire{selectedEvent.timeWindows.length > 1 ? "s" : ""}</Text>
@@ -645,7 +695,7 @@ export default function ManageEvents() {
                                             <Card key={index}>
                                                 <Flex direction="column">
                                                     <Flex direction="row">
-                                                        <Text fontSize="sm" fontWeight="semibold">De {timeWindow.startTime.toISOString().substring(11, 16).replaceAll(':', 'h')} à {timeWindow.endTime.toISOString().substring(11, 16).replaceAll(':', 'h')}</Text>
+                                                        <Text fontSize="sm" fontWeight="semibold">De {timeWindow.startTime.toLocaleTimeString().substring(0, 5).replaceAll(':', 'h')} à {timeWindow.endTime.toLocaleTimeString().substring(0, 5).replaceAll(':', 'h')}</Text>
                                                     </Flex>
                                                     <Text>Participants: {timeWindow.participants.length} / {timeWindow.maxParticipants}</Text>
                                                     <Progress
@@ -741,13 +791,13 @@ export default function ManageEvents() {
                             {selectedEvent !== undefined && modifiedEvent !== undefined && (
                                 <Flex direction="row" justifyContent="space-between" alignItems="center">
                                     <Stat maxW="45%">
-                                        <StatLabel>{selectedEvent.name} du {selectedEvent.startDate.toISOString().substring(0, 16).replaceAll('-', '/').replace('T', ' à ').replace(':', 'h')} au {selectedEvent.endDate.toISOString().substring(0, 16).replaceAll('-', '/').replace('T', ' à ').replace(':', 'h')}</StatLabel>
+                                        <StatLabel>{selectedEvent.name} du {selectedEvent.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")} au {selectedEvent.endDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}</StatLabel>
                                         <StatNumber><Icon as={FaUser}/> {selectedEvent.numberOfParticipants} / {selectedEvent.maxParticipants} participants</StatNumber>
                                         <StatHelpText>{selectedEvent.description}<br />Référent: {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(selectedEvent.referrerId)] : selectedEvent.referrerId}</StatHelpText>
                                     </Stat>
                                     <Icon as={FaArrowRight} h="8" w="8" mr="12px" />
                                     <Stat maxW="45%">
-                                        <StatLabel>{modifiedEvent.name} le {modifiedEvent.startDate.toISOString().substring(0, 16).replaceAll('-', '/').replace('T', ' à ').replace(':', 'h')} au {selectedEvent.endDate.toISOString().substring(0, 16).replaceAll('-', '/').replace('T', ' à ').replace(':', 'h')}</StatLabel>
+                                        <StatLabel>{modifiedEvent.name} le {modifiedEvent.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")} au {selectedEvent.endDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}</StatLabel>
                                         <StatNumber><Icon as={FaUser}/> {modifiedEvent.numberOfParticipants} / {modifiedEvent.maxParticipants} participants</StatNumber>
                                         <StatHelpText>{modifiedEvent.description}<br />Référent: {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(modifiedEvent.referrerId)] : modifiedEvent.referrerId}</StatHelpText>
                                     </Stat>
@@ -803,7 +853,7 @@ export default function ManageEvents() {
                                     <TimelineRow
                                         logo={event.endDate.getTime() < Date.now() ? CheckIcon : CalendarIcon}
                                         title={event.name}
-                                        date={event.startDate.toISOString().substring(0, 16).replaceAll('-', '/').replace('T', ' à ').replace(':', 'h')}
+                                        date={event.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}
                                         color={event.endDate.getTime() < Date.now() ? "green.500" : "blue.500"}
                                         index={index}
                                         arrLength={arr.length}
@@ -831,7 +881,7 @@ export default function ManageEvents() {
                         <Flex direction="column">
                             {selectedEvent !== undefined && (
                                 <Stat>
-                                    <StatLabel>{selectedEvent.name} le {selectedEvent.startDate.toISOString().substring(0, 16).replaceAll('-', '/').replace('T', ' à ').replace(':', 'h')}</StatLabel>
+                                    <StatLabel>{selectedEvent.name} le {selectedEvent.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}</StatLabel>
                                     <StatNumber><Icon as={FaUser}/> {selectedEvent.numberOfParticipants} / {selectedEvent.maxParticipants} participants</StatNumber>
                                     <StatHelpText>{selectedEvent.description}<br />Référent: {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(selectedEvent.referrerId)] : selectedEvent.referrerId}</StatHelpText>
                                 </Stat>
@@ -870,7 +920,7 @@ export default function ManageEvents() {
                                 <TimelineRow
                                     logo={event.endDate.getTime() < Date.now() ? CheckIcon : CalendarIcon}
                                     title={event.name}
-                                    date={event.startDate.toISOString().substring(0, 16).replaceAll('-', '/').replace('T', ' à ').replace(':', 'h')}
+                                    date={event.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}
                                     color={event.endDate.getTime() < Date.now() ? "green.500" : "blue.500"}
                                     index={index}
                                     arrLength={arr.length}
