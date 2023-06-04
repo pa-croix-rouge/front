@@ -1,3 +1,5 @@
+import {TimeWindow} from "./TimeWindow";
+
 export class Event {
     public eventId: string;
     public sessionId: string;
@@ -9,9 +11,10 @@ export class Event {
     public localUnitId: string;
     public maxParticipants: number;
     public numberOfParticipants: number;
+    public timeWindows: TimeWindow[];
     public recurring: boolean;
 
-    constructor(eventId: string, sessionId: string, name: string, description: string, startDate: Date, endDate: Date, referrerId: string, localUnitId: string, maxParticipants: number, numberOfParticipants: number, recurring: boolean) {
+    constructor(eventId: string, sessionId: string, name: string, description: string, startDate: Date, endDate: Date, referrerId: string, localUnitId: string, maxParticipants: number, numberOfParticipants: number, timeWindows: TimeWindow[], recurring: boolean) {
         this.eventId = eventId;
         this.sessionId = sessionId;
         this.name = name;
@@ -22,6 +25,7 @@ export class Event {
         this.localUnitId = localUnitId;
         this.maxParticipants = maxParticipants;
         this.numberOfParticipants = numberOfParticipants;
+        this.timeWindows = timeWindows;
         this.recurring = recurring;
     }
 }

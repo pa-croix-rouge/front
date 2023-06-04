@@ -69,6 +69,7 @@ export default function ManageEvents() {
     const [selectedEvent, setSelectedEvent] = useState(undefined);
     const [callGetEventSessions, setCallGetEventSessions] = useState(false);
     const [eventSessions, setEventSessions] = useState([]);
+    const { isOpen: isOpenVisualizationModal, onOpen: onOpenVisualizationModal, onClose: onCloseVisualizationModal } = useDisclosure();
     const { isOpen: isOpenCreationModal, onOpen: onOpenCreationModal, onClose: onCloseCreationModal } = useDisclosure();
     const [eventType, setEventType] = useState("unique");
     const [eventName, setEventName] = useState("");
@@ -476,7 +477,7 @@ export default function ManageEvents() {
                                                 </Flex>
                                             </Td>
                                             <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() => console.log("Consulter")}>
+                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() => selectEventForModal(event, onOpenVisualizationModal)}>
                                                     <Flex color={textColor} cursor="pointer" align="center" p="12px">
                                                         <Icon as={FaEye} />
                                                         <Text fontSize="sm" fontWeight="semibold">
@@ -620,6 +621,50 @@ export default function ManageEvents() {
                                     Ajouter
                                 </Text>
                             </Flex>
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+            <Modal isOpen={isOpenVisualizationModal} onClose={onCloseVisualizationModal} size="6xl" scrollBehavior="outside">
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>Détails de l'événement</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                        <Flex direction="column">
+                            {selectedEvent !== undefined && (
+                                <Flex direction="column">
+                                    <Text fontSize="2xl" fontWeight="bold">{selectedEvent.name}</Text>
+                                    <Text><i>{selectedEvent.description}</i></Text>
+                                    <Text>Du {selectedEvent.startDate.toISOString().substring(0, 16).replaceAll('-', '/').replace('T', ' à ').replaceAll(':', 'h')} au {selectedEvent.endDate.toISOString().substring(0, 16).replaceAll('-', '/').replace('T', ' à ').replaceAll(':', 'h')}</Text>
+                                    <Text>Référent: {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(selectedEvent.referrerId)] : selectedEvent.referrerId}</Text>
+                                    <Text>Participants: {selectedEvent.numberOfParticipants} / {selectedEvent.maxParticipants}</Text>
+                                    <Text>Plage{selectedEvent.timeWindows.length > 1 ? "s" : ""} horaire{selectedEvent.timeWindows.length > 1 ? "s" : ""}</Text>
+                                    <SimpleGrid columns={{ sm: 1, md: 2, xl: 3 }} spacing='24px'>
+                                        {selectedEvent.timeWindows.map((timeWindow, index) => (
+                                            <Card key={index}>
+                                                <Flex direction="column">
+                                                    <Flex direction="row">
+                                                        <Text fontSize="sm" fontWeight="semibold">De</Text>
+                                                        <Text fontSize="sm" fontWeight="semibold">{timeWindow.startTime.toString()}</Text>
+                                                        <Text fontSize="sm" fontWeight="semibold">à</Text>
+                                                        <Text fontSize="sm" fontWeight="semibold">{timeWindow.endTime.toString()}</Text>
+                                                    </Flex>
+                                                    <Text>Participants: {timeWindow.participants.length} / {timeWindow.maxParticipants}</Text>
+                                                    {timeWindow.participants.map((participant, index) => (
+                                                        <Text key={index}>{participant}</Text>
+                                                    ))}
+                                                </Flex>
+                                            </Card>
+                                        ))}
+                                    </SimpleGrid>
+                                </Flex>
+                            )}
+                        </Flex>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button colorScheme="blue" mr={3} onClick={onCloseVisualizationModal}>
+                            Fermer
                         </Button>
                     </ModalFooter>
                 </ModalContent>

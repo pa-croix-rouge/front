@@ -3,26 +3,46 @@ import {deleteWithToken, getWithToken, postWithToken} from "./Controller";
 import {EventsStats} from "../model/event/EventsStats";
 import {RecurrentEventCreation} from "../model/event/RecurrentEventCreation";
 import {SingleEventCreation} from "../model/event/SingleEventCreation";
+import {TimeWindow} from "../model/event/TimeWindow";
 
 const mapJsonEventToEvent = (data: any): Event[] => {
     return data.map((event: any) => {
         const startDateParts = event.start.split(/[\-\+:\[\]]/);
         const yearStartDate = parseInt(startDateParts[0]);
         const monthStartDate = parseInt(startDateParts[1]) - 1;
-        const dayStartDate = parseInt(startDateParts[2]);
-        const hourStartDate = parseInt(startDateParts[3]);
-        const minuteStartDate = parseInt(startDateParts[4]);
-        const timeZoneOffsetStartDate = parseInt(startDateParts[5]);
-        const startDate = new Date(Date.UTC(yearStartDate, monthStartDate, dayStartDate, hourStartDate, minuteStartDate) - timeZoneOffsetStartDate * 60 * 1000);
+        const dayStartDate = parseInt(startDateParts[2].split("T")[0]);
+        const hourStartDate = parseInt(startDateParts[2].split("T")[1]);
+        const minuteStartDate = parseInt(startDateParts[3]);
+        const timeZoneOffsetStartDate = parseInt(startDateParts[4]);
+        const startDate = new Date(Date.UTC(yearStartDate, monthStartDate, dayStartDate, hourStartDate, minuteStartDate) - timeZoneOffsetStartDate * 60 * 60 * 1000);
         const endDateParts = event.end.split(/[\-\+:\[\]]/);
         const yearEndDate = parseInt(endDateParts[0]);
         const monthEndDate = parseInt(endDateParts[1]) - 1;
-        const dayEndDate = parseInt(endDateParts[2]);
-        const hourEndDate = parseInt(endDateParts[3]);
-        const minuteEndDate = parseInt(endDateParts[4]);
-        const timeZoneOffsetEndDate = parseInt(endDateParts[5]);
-        const endDate = new Date(Date.UTC(yearEndDate, monthEndDate, dayEndDate, hourEndDate, minuteEndDate) - timeZoneOffsetEndDate * 60 * 1000);
-        return new Event(event.eventId, event.sessionId, event.name, event.description, startDate, endDate, event.referrerId, event.localUnitId, event.maxParticipants, event.numberOfParticipants, event.recurring);
+        const dayEndDate = parseInt(endDateParts[2].split("T")[0]);
+        const hourEndDate = parseInt(endDateParts[2].split("T")[1]);
+        const minuteEndDate = parseInt(endDateParts[3]);
+        const timeZoneOffsetEndDate = parseInt(endDateParts[4]);
+        const endDate = new Date(Date.UTC(yearEndDate, monthEndDate, dayEndDate, hourEndDate, minuteEndDate) - timeZoneOffsetEndDate * 60 * 60 * 1000);
+        const timeWindows = event.timeWindows.map((timeWindow: any) => {
+            const startTimeWindowParts = event.start.split(/[\-\+:\[\]]/);
+            const yearStartDate = parseInt(startTimeWindowParts[0]);
+            const monthStartDate = parseInt(startTimeWindowParts[1]) - 1;
+            const dayStartDate = parseInt(startTimeWindowParts[2].split("T")[0]);
+            const hourStartDate = parseInt(startTimeWindowParts[2].split("T")[1]);
+            const minuteStartDate = parseInt(startTimeWindowParts[3]);
+            const timeZoneOffsetStartDate = parseInt(startTimeWindowParts[4]);
+            const startTimeWindow = new Date(Date.UTC(yearStartDate, monthStartDate, dayStartDate, hourStartDate, minuteStartDate) - timeZoneOffsetStartDate * 60 * 60 * 1000);
+            const endTimeWindowParts = event.end.split(/[\-\+:\[\]]/);
+            const yearEndDate = parseInt(endTimeWindowParts[0]);
+            const monthEndDate = parseInt(endTimeWindowParts[1]) - 1;
+            const dayEndDate = parseInt(endTimeWindowParts[2].split("T")[0]);
+            const hourEndDate = parseInt(endTimeWindowParts[2].split("T")[1]);
+            const minuteEndDate = parseInt(endTimeWindowParts[3]);
+            const timeZoneOffsetEndDate = parseInt(endTimeWindowParts[4]);
+            const endTimeWindow = new Date(Date.UTC(yearEndDate, monthEndDate, dayEndDate, hourEndDate, minuteEndDate) - timeZoneOffsetEndDate * 60 * 60 * 1000);
+            return new TimeWindow(timeWindow.timeWindowId, startTimeWindow, endTimeWindow, timeWindow.maxParticipants, timeWindow.participants);
+        });
+        return new Event(event.eventId, event.sessionId, event.name, event.description, startDate, endDate, event.referrerId, event.localUnitId, event.maxParticipants, event.numberOfParticipants, timeWindows, event.recurring);
     });
 }
 
