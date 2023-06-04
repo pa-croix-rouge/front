@@ -645,12 +645,15 @@ export default function ManageEvents() {
                                             <Card key={index}>
                                                 <Flex direction="column">
                                                     <Flex direction="row">
-                                                        <Text fontSize="sm" fontWeight="semibold">De</Text>
-                                                        <Text fontSize="sm" fontWeight="semibold">{timeWindow.startTime.toString()}</Text>
-                                                        <Text fontSize="sm" fontWeight="semibold">à</Text>
-                                                        <Text fontSize="sm" fontWeight="semibold">{timeWindow.endTime.toString()}</Text>
+                                                        <Text fontSize="sm" fontWeight="semibold">De {timeWindow.startTime.toISOString().substring(11, 16).replaceAll(':', 'h')} à {timeWindow.endTime.toISOString().substring(11, 16).replaceAll(':', 'h')}</Text>
                                                     </Flex>
                                                     <Text>Participants: {timeWindow.participants.length} / {timeWindow.maxParticipants}</Text>
+                                                    <Progress
+                                                        colorScheme={(timeWindow.participants.length / timeWindow.maxParticipants) * 100 > 50 ? "green" : (timeWindow.participants.length / timeWindow.maxParticipants) * 100 > 85 ? "orange" : "red"}
+                                                        size="xs"
+                                                        value={timeWindow.participants.length / timeWindow.maxParticipants * 100}
+                                                        borderRadius="15px"
+                                                    />
                                                     {timeWindow.participants.map((participant, index) => (
                                                         <Text key={index}>{participant}</Text>
                                                     ))}
