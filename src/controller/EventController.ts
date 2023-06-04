@@ -114,15 +114,16 @@ export const createRecurrentEvent = async (event: RecurrentEventCreation): Promi
     return true;
 }
 
-export const updateEventSession = async (event: Event, start: Date, end: Date): Promise<boolean> => {
+export const updateEventSession = async (event: Event, start: Date, end: Date, eventTimeWindowDuration: number, eventTimeWindowOccurrence: number, eventTimeWindowMaxParticipants: number): Promise<boolean> => {
     const response = await postWithToken(`event/details/${event.eventId}/${event.sessionId}`, {
         name: event.name,
         description: event.description,
         start: start.getTime(),
-        end: end.getTime(),
         referrerId: event.referrerId,
         localUnitId: event.localUnitId,
-        maxParticipants: event.maxParticipants,
+        eventTimeWindowDuration: eventTimeWindowDuration,
+        eventTimeWindowOccurrence: eventTimeWindowOccurrence,
+        eventTimeWindowMaxParticipants: eventTimeWindowMaxParticipants,
     });
 
     if (!response.ok) {
@@ -132,7 +133,8 @@ export const updateEventSession = async (event: Event, start: Date, end: Date): 
     return true;
 }
 
-export const updateAllEventSessions = async (event: Event, start: Date, end: Date): Promise<boolean> => {
+export const updateAllEventSessions = async (event: Event, start: Date, end: Date, eventTimeWindowDuration: number, eventTimeWindowOccurrence: number, eventTimeWindowMaxParticipants: number): Promise<boolean> => {
+    console.log("updateAllEventSessions params: ", event, start, end, eventTimeWindowDuration, eventTimeWindowOccurrence, eventTimeWindowMaxParticipants);
     const response = await postWithToken(`event/sessions/${event.eventId}/${event.sessionId}`, {
         name: event.name,
         description: event.description,
@@ -140,7 +142,9 @@ export const updateAllEventSessions = async (event: Event, start: Date, end: Dat
         end: end.getTime(),
         referrerId: event.referrerId,
         localUnitId: event.localUnitId,
-        maxParticipants: event.maxParticipants,
+        eventTimeWindowDuration: eventTimeWindowDuration,
+        eventTimeWindowOccurrence: eventTimeWindowOccurrence,
+        eventTimeWindowMaxParticipants: eventTimeWindowMaxParticipants,
     });
 
     if (!response.ok) {

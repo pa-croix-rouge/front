@@ -91,6 +91,9 @@ export default function ManageEvents() {
     const [modifiedEventStartTime, setModifiedEventStartTime] = useState(new Date(0).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     const [modifiedEventEndDate, setModifiedEventEndDate] = useState(new Date(0).toISOString().substring(0, 10));
     const [modifiedEventEndTime, setModifiedEventEndTime] = useState(new Date(0).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    const [modifiedEventMaxParticipants, setModifiedEventMaxParticipants] = useState(10);
+    const [modifiedEventTimeWindowDuration, setModifiedEventTimeWindowDuration] = useState(20);
+    const [modifiedEventNumberOfTimeWindow, setModifiedEventNumberOfTimeWindow] = useState(3);
     const [modifyEventError, setModifyEventError] = useState("");
     const { isOpen: isOpenModifyAllModal, onOpen: onOpenModifyAllModal, onClose: onCloseModifyAllModal } = useDisclosure();
     const [modifyAllSessions, setModifyAllSessions] = useState(false);
@@ -113,6 +116,9 @@ export default function ManageEvents() {
             setModifiedEventStartTime(modifiedEvent.startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
             setModifiedEventEndDate(modifiedEvent.endDate.toISOString().substring(0, 10));
             setModifiedEventEndTime(modifiedEvent.endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+            setModifiedEventMaxParticipants(modifiedEvent.timeWindows.length > 0 ? modifiedEvent.timeWindows[0].maxParticipants : 10);
+            setModifiedEventTimeWindowDuration(modifiedEvent.timeWindows.length > 0 ? (modifiedEvent.timeWindows[0].endTime.getTime() - modifiedEvent.timeWindows[0].startTime.getTime()) / (60 * 1000) : 20);
+            setModifiedEventNumberOfTimeWindow(modifiedEvent.timeWindows.length > 0 ? modifiedEvent.timeWindows.length : 3);
         }
     }, [modifiedEvent]);
 
@@ -276,6 +282,10 @@ export default function ManageEvents() {
             setModifyEventError("Veuillez sélectionner un référent");
             return;
         }
+        if (modifiedEventMaxParticipants < modifiedEvent.timeWindows.reduce((acc, el) => acc + el.participants.length, 0)) {
+            setModifyEventError("Le nombre maximum de participants ne peut pas être inférieur au nombre de participants déjà inscrits");
+            return;
+        }
 
         let eventStart;
         let eventEnd;
@@ -318,7 +328,7 @@ export default function ManageEvents() {
         }
 
         if (!modifyAllSessions) {
-            updateEventSession(modifiedEvent, eventStart, eventEnd)
+            updateEventSession(modifiedEvent, eventStart, eventEnd, modifiedEventTimeWindowDuration, modifiedEventNumberOfTimeWindow, modifiedEventMaxParticipants)
                 .then(() => {
                     onCloseEditionModal();
                     setSelectedEvent(modifiedEvent);
@@ -355,7 +365,7 @@ export default function ManageEvents() {
             );
 
         if (modifiedEvent !== undefined) {
-            updateAllEventSessions(modifiedEvent, eventStart, eventEnd)
+            updateAllEventSessions(modifiedEvent, eventStart, eventEnd, modifiedEventTimeWindowDuration, modifiedEventNumberOfTimeWindow, modifiedEventMaxParticipants)
                 .then(() => {
                     onCloseModifyAllModal();
                     onCloseEditionModal();
@@ -769,7 +779,7 @@ export default function ManageEvents() {
                                         );
                                     })}
                                 </Select>
-                                <SimpleGrid columns={{ sm: 1, md: 2, xl: 4 }} spacing='8px'>
+                                <SimpleGrid columns={{ sm: 1, md: 2, xl: 4 }} spacing='8px' mt="8px" ml="16px" mr="16px">
                                     <FormLabel m="auto">Date de début</FormLabel>
                                     <Input type="date" value={modifiedEventStartDate}
                                            onChange={(e) => setModifiedEventStartDate(e.target.value)}/>
@@ -777,36 +787,59 @@ export default function ManageEvents() {
                                     <Input type="time" value={modifiedEventStartTime}
                                            onChange={(e) => setModifiedEventStartTime(e.target.value)}/>
                                 </SimpleGrid>
-                                <SimpleGrid columns={{ md: 2, xl: 4 }} spacing='8px'>
-                                    <FormLabel m="auto">Date de fin</FormLabel>
-                                    <Input type="date" value={modifiedEventEndDate}
-                                           onChange={(e) => setModifiedEventEndDate(e.target.value)}/>
-                                    <FormLabel m="auto">Heure de fin</FormLabel>
-                                    <Input type="time" value={modifiedEventEndTime}
-                                           onChange={(e) => setModifiedEventEndTime(e.target.value)}/>
+                                <SimpleGrid columns={{ sm: 1, md: 2 }} spacing='24px' mt="8px">
+                                    <Flex direction="column" ml="16px" mr="16px">
+                                        <FormLabel>Nombre de participants par plage horaire</FormLabel>
+                                        <NumberInput defaultValue={10} min={1} value={modifiedEventMaxParticipants} onChange={(e) => setModifiedEventMaxParticipants(parseInt(e))}>
+                                            <NumberInputField />
+                                            <NumberInputStepper>
+                                                <NumberIncrementStepper />
+                                                <NumberDecrementStepper />
+                                            </NumberInputStepper>
+                                        </NumberInput>
+                                    </Flex>
+                                    <Flex direction="column" ml="16px" mr="16px">
+                                        <Text m="auto">Nombre maximum de participants calculé: {eventMaxParticipants * eventNumberOfTimeWindow}</Text>
+                                    </Flex>
                                 </SimpleGrid>
-                                <FormLabel>Nombre maximum de participants</FormLabel>
-                                <NumberInput type="number" min={1} value={modifiedEvent?.maxParticipants} onChange={(e) => setModifiedEvent({...modifiedEvent, maxParticipants: parseInt(e)})}>
-                                    <NumberInputField />
-                                    <NumberInputStepper>
-                                        <NumberIncrementStepper />
-                                        <NumberDecrementStepper />
-                                    </NumberInputStepper>
-                                </NumberInput>
+                                <SimpleGrid columns={{ sm: 1, md: 2 }} spacing='8px' mt="8px">
+                                    <Flex direction="column" ml="16px" mr="16px">
+                                        <FormLabel>Durée d'une session en minutes</FormLabel>
+                                        <NumberInput defaultValue={20} min={1} value={modifiedEventTimeWindowDuration} onChange={(e) => setModifiedEventTimeWindowDuration(parseInt(e))}>
+                                            <NumberInputField />
+                                            <NumberInputStepper>
+                                                <NumberIncrementStepper />
+                                                <NumberDecrementStepper />
+                                            </NumberInputStepper>
+                                        </NumberInput>
+                                    </Flex>
+                                    <Flex direction="column" ml="16px" mr="16px">
+                                        <FormLabel>Nombre de session</FormLabel>
+                                        <NumberInput defaultValue={3} min={1} value={modifiedEventNumberOfTimeWindow} onChange={(e) => setModifiedEventNumberOfTimeWindow(parseInt(e))}>
+                                            <NumberInputField />
+                                            <NumberInputStepper>
+                                                <NumberIncrementStepper />
+                                                <NumberDecrementStepper />
+                                            </NumberInputStepper>
+                                        </NumberInput>
+                                    </Flex>
+                                </SimpleGrid>
                                 {modifiedEvent?.recurring && (
                                     <Flex direction="column">
                                         <Text fontSize="sm" color="red.500" fontWeight="semibold">
                                             Attention, cet événement est récurrent. Si vous le nom, la description ou le référent, tous les événements associés seront modifiés.
                                         </Text>
-                                        {modifiedEvent?.maxParticipants !== selectedEvent?.maxParticipants && (
+                                        {(modifiedEventMaxParticipants !== modifiedEvent.timeWindows[0].maxParticipants ||
+                                            modifiedEventTimeWindowDuration !== (modifiedEvent.timeWindows[0].endTime.getTime() - modifiedEvent.timeWindows[0].startTime.getTime()) / (60 * 1000) ||
+                                            modifiedEventNumberOfTimeWindow !== modifiedEvent.timeWindows.length) && (
                                             <Flex direction="column">
                                                 <Text fontSize="sm" color="red.500" fontWeight="semibold">
-                                                    Si vous modifiez le nombre maximum de participants, les événements associés ne seront pas modifiés par défaut. Vous pouvez cependant demander à les modifier en cochant la case ci-dessous.
+                                                    Si vous modifiez le nombre maximum de participants, la durée des sessions ou le nombre de session, les événements associés ne seront pas modifiés par défaut. Vous pouvez cependant demander à les modifier en cochant la case ci-dessous.
                                                 </Text>
                                                 <Flex direction="row" mt="4px" mb="4px" align="center">
                                                     <Switch size="md" onChange={() => setModifyAllSessions(!modifyAllSessions)} isChecked={modifyAllSessions} mr="8px" />
                                                     <Text>
-                                                        {modifyAllSessions ? "Modifier le nombre max de participants pour tout les événements associés" : "Ne pas modifier le nombre max de participants pour les événements associés"}
+                                                        {modifyAllSessions ? "Modifier le nombre max de participants, la durée des sessions ou le nombre de session pour tout les événements associés" : "Ne pas modifier le nombre max de participants, la durée des sessions ou le nombre de session pour les événements associés"}
                                                     </Text>
                                                 </Flex>
                                             </Flex>
@@ -814,6 +847,53 @@ export default function ManageEvents() {
                                     </Flex>
                                 )}
                             </FormControl>
+                            <Text>Plage{modifiedEvent !== undefined && modifiedEvent.timeWindows.length > 1 ? "s" : ""} horaire{modifiedEvent !== undefined && modifiedEvent.timeWindows.length > 1 ? "s" : ""} avant modification</Text>
+                            <SimpleGrid columns={{ sm: 1, md: 2, xl: 3 }} spacing='24px'>
+                                {modifiedEvent !== undefined && modifiedEvent.timeWindows.map((timeWindow, index) => (
+                                    <Card key={index}>
+                                        <Flex direction="column">
+                                            <Flex direction="row">
+                                                <Text fontSize="sm" fontWeight="semibold">De {timeWindow.startTime.toLocaleTimeString().substring(0, 5).replaceAll(':', 'h')} à {timeWindow.endTime.toLocaleTimeString().substring(0, 5).replaceAll(':', 'h')}</Text>
+                                            </Flex>
+                                            <Text>Participants: {timeWindow.participants.length} / {timeWindow.maxParticipants}</Text>
+                                            <Progress
+                                                colorScheme={(timeWindow.participants.length / timeWindow.maxParticipants) * 100 > 50 ? "green" : (timeWindow.participants.length / timeWindow.maxParticipants) * 100 > 85 ? "orange" : "red"}
+                                                size="xs"
+                                                value={timeWindow.participants.length / timeWindow.maxParticipants * 100}
+                                                borderRadius="15px"
+                                            />
+                                            {timeWindow.participants.map((participant, index) => (
+                                                <Text key={index}>{participant}</Text>
+                                            ))}
+                                        </Flex>
+                                    </Card>
+                                ))}
+                            </SimpleGrid>
+                            <Text>Plage{modifiedEvent !== undefined && modifiedEvent.timeWindows.length > 1 ? "s" : ""} horaire{modifiedEvent !== undefined && modifiedEvent.timeWindows.length > 1 ? "s" : ""} après modification</Text>
+                            <SimpleGrid columns={{ sm: 1, md: 2, xl: 3 }} spacing='24px'>
+                                {[...Array(modifiedEventNumberOfTimeWindow)].map((e, i) => (
+                                    <Card key={i}>
+                                        <Flex direction="column">
+                                            <Flex direction="row">
+                                                <Text fontSize="sm" fontWeight="semibold">De {new Date(new Date(
+                                                    parseInt(modifiedEventStartDate.split("-")[0]),
+                                                    parseInt(modifiedEventStartDate.split("-")[1]) - 1,
+                                                    parseInt(modifiedEventStartDate.split("-")[2]),
+                                                    parseInt(modifiedEventStartTime.split(":")[0]),
+                                                    parseInt(modifiedEventStartTime.split(":")[1])
+                                                ).getTime() + (modifiedEventTimeWindowDuration * i) * 60 * 1000).toLocaleTimeString().substring(0, 5).replaceAll(':', 'h')} à {new Date(new Date(
+                                                    parseInt(modifiedEventStartDate.split("-")[0]),
+                                                    parseInt(modifiedEventStartDate.split("-")[1]) - 1,
+                                                    parseInt(modifiedEventStartDate.split("-")[2]),
+                                                    parseInt(modifiedEventStartTime.split(":")[0]),
+                                                    parseInt(modifiedEventStartTime.split(":")[1])
+                                                ).getTime() + (modifiedEventTimeWindowDuration * (i + 1)) * 60 * 1000).toLocaleTimeString().substring(0, 5).replaceAll(':', 'h')}</Text>
+                                            </Flex>
+                                            <Text>Participants: {modifiedEventMaxParticipants}</Text>
+                                        </Flex>
+                                    </Card>
+                                ))}
+                            </SimpleGrid>
                             <Box h="48px" />
                             {selectedEvent !== undefined && modifiedEvent !== undefined && (
                                 <Flex direction="row" justifyContent="space-between" alignItems="center">
@@ -825,7 +905,7 @@ export default function ManageEvents() {
                                     <Icon as={FaArrowRight} h="8" w="8" mr="12px" />
                                     <Stat maxW="45%">
                                         <StatLabel>{modifiedEvent.name} le {modifiedEvent.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")} au {selectedEvent.endDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}</StatLabel>
-                                        <StatNumber><Icon as={FaUser}/> {modifiedEvent.numberOfParticipants} / {modifiedEvent.maxParticipants} participants</StatNumber>
+                                        <StatNumber><Icon as={FaUser}/> {modifiedEvent.numberOfParticipants} / {modifiedEventMaxParticipants * modifiedEventNumberOfTimeWindow} participants</StatNumber>
                                         <StatHelpText>{modifiedEvent.description}<br />Référent: {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(modifiedEvent.referrerId)] : modifiedEvent.referrerId}</StatHelpText>
                                     </Stat>
                                 </Flex>
@@ -847,7 +927,10 @@ export default function ManageEvents() {
                             modifiedEventStartDate === modifiedEvent.startDate.toISOString().substring(0, 10) &&
                             modifiedEventStartTime === modifiedEvent.startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) &&
                             modifiedEventEndDate === modifiedEvent.endDate.toISOString().substring(0, 10) &&
-                            modifiedEventEndTime === modifiedEvent.endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}>
+                            modifiedEventEndTime === modifiedEvent.endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) &&
+                            modifiedEventMaxParticipants === modifiedEvent.timeWindows[0].maxParticipants &&
+                            modifiedEventTimeWindowDuration === (modifiedEvent.timeWindows[0].endTime.getTime() - modifiedEvent.timeWindows[0].startTime.getTime()) / (60 * 1000) &&
+                            modifiedEventNumberOfTimeWindow === modifiedEvent.timeWindows.length}>
                             Modifier
                         </Button>
                     </ModalFooter>
