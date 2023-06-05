@@ -41,11 +41,11 @@ import {
     createSingleEvent,
     deleteEventById,
     deleteEventSessions,
-    getAllEvents,
+    getEventForTrimester,
     getEventSessions, updateAllEventSessions,
     updateEventSession
 } from "../../controller/EventController";
-import {FaArrowRight, FaPencilAlt, FaPlus, FaTrashAlt, FaUser, FaEye} from "react-icons/fa";
+import {FaArrowRight, FaPencilAlt, FaPlus, FaTrashAlt, FaUser, FaEye, FaArrowLeft} from "react-icons/fa";
 import TimelineRow from "../../components/Tables/TimelineRow";
 import {CalendarIcon, CheckIcon} from "@chakra-ui/icons";
 import {SingleEventCreation} from "../../model/event/SingleEventCreation";
@@ -65,6 +65,8 @@ export default function ManageEvents() {
     const [events, setEvents] = useState([]);
     const {token} = useContext(TokenContext);
     const {volunteer, setVolunteer} = useContext(VolunteerContext);
+    const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+    const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
     // Modal variables
     const [selectedEvent, setSelectedEvent] = useState(undefined);
     const [callGetEventSessions, setCallGetEventSessions] = useState(false);
@@ -122,6 +124,63 @@ export default function ManageEvents() {
         }
     }, [modifiedEvent]);
 
+    useEffect(() => {
+        setLoadedEvents(false);
+    }, [currentMonth, currentYear]);
+
+    const resetToCurrentMonth = () => {
+        setCurrentYear(new Date().getFullYear());
+        setCurrentMonth(new Date().getMonth() + 1);
+    }
+
+    const setToPreviousMonth = () => {
+        if (currentMonth === 1) {
+            setCurrentYear(currentYear - 1);
+            setCurrentMonth(12);
+        } else {
+            setCurrentMonth(currentMonth - 1);
+        }
+    }
+
+    const setToPrevious3Months = () => {
+        if (currentMonth === 1) {
+            setCurrentYear(currentYear - 1);
+            setCurrentMonth(10);
+        } else if (currentMonth === 2) {
+            setCurrentYear(currentYear - 1);
+            setCurrentMonth(11);
+        } else if (currentMonth === 3) {
+            setCurrentYear(currentYear - 1);
+            setCurrentMonth(12);
+        } else {
+            setCurrentMonth(currentMonth - 3);
+        }
+    }
+
+    const setToNextMonth = () => {
+        if (currentMonth === 12) {
+            setCurrentYear(currentYear + 1);
+            setCurrentMonth(1);
+        } else {
+            setCurrentMonth(currentMonth + 1);
+        }
+    }
+
+    const setToNext3Months = () => {
+        if (currentMonth === 10) {
+            setCurrentYear(currentYear + 1);
+            setCurrentMonth(1);
+        } else if (currentMonth === 11) {
+            setCurrentYear(currentYear + 1);
+            setCurrentMonth(2);
+        } else if (currentMonth === 12) {
+            setCurrentYear(currentYear + 1);
+            setCurrentMonth(3);
+        } else {
+            setCurrentMonth(currentMonth + 3);
+        }
+    }
+
     const loadVolunteer = () => {
         setLoadedVolunteer(true)
         if (token === undefined || token === '') {
@@ -139,10 +198,11 @@ export default function ManageEvents() {
 
     const loadEvents = () => {
         setLoadedEvents(true);
-        getAllEvents(volunteer.localUnitId)
-            .then((events) => {
-                setEvents(events);
-                const allReferrersId = events.map((el) => el.referrerId);
+
+        getEventForTrimester(volunteer.localUnitId, currentMonth, currentYear)
+            .then((eventList) => {
+                setEvents(eventList);
+                const allReferrersId = eventList.map((el) => el.referrerId);
                 setReferrersId(Array.from(new Set(allReferrersId)));
             })
             .catch((_) => {
@@ -440,6 +500,45 @@ export default function ManageEvents() {
                                     </Text>
                                 </Flex>
                             </Button>
+                            <Button onClick={setToPrevious3Months}>
+                                <Flex cursor="pointer" align="center">
+                                    <Icon as={FaArrowLeft} mr="8px"/>
+                                    <Text fontSize="sm" fontWeight="semibold">
+                                        3 mois précédents
+                                    </Text>
+                                </Flex>
+                            </Button>
+                            <Button onClick={setToPreviousMonth}>
+                                <Flex cursor="pointer" align="center">
+                                    <Icon as={FaArrowLeft} mr="8px"/>
+                                    <Text fontSize="sm" fontWeight="semibold">
+                                        Mois précédent
+                                    </Text>
+                                </Flex>
+                            </Button>
+                            <Button onClick={resetToCurrentMonth}>
+                                <Flex cursor="pointer" align="center">
+                                    <Text fontSize="sm" fontWeight="semibold">
+                                        Mois actuel
+                                    </Text>
+                                </Flex>
+                            </Button>
+                            <Button onClick={setToNextMonth}>
+                                <Flex cursor="pointer" align="center">
+                                    <Text fontSize="sm" fontWeight="semibold">
+                                        Mois suivant
+                                    </Text>
+                                    <Icon as={FaArrowRight} ml="8px"/>
+                                </Flex>
+                            </Button>
+                            <Button onClick={setToNext3Months}>
+                                <Flex cursor="pointer" align="center">
+                                    <Text fontSize="sm" fontWeight="semibold">
+                                        3 mois suivants
+                                    </Text>
+                                    <Icon as={FaArrowRight} ml="8px"/>
+                                </Flex>
+                            </Button>
                         </Flex>
                     </CardHeader>
                     <CardBody>
@@ -459,7 +558,12 @@ export default function ManageEvents() {
                                 </Tr>
                             </Thead>
                             <Tbody>
-                                {events.map((event, index, arr) => {
+                                <Tr>
+                                    <Td colSpan="8" textAlign="left" fontSize="2xl" fontWeight="bold" ml="24px">
+                                        {currentYear} - {(new Date(currentYear, (currentMonth - 1) % 12)).toLocaleString('fr-FR', { month: 'long' })}
+                                    </Td>
+                                </Tr>
+                                {events.filter(e => e.startDate.getMonth() === (currentMonth - 1)).map((event, index, arr) => {
                                     return (
                                         <Tr key={index}>
                                             <Td pl="0px" borderColor={borderColor} borderBottom={index === arr.length - 1 ? "none" : null}>
@@ -536,6 +640,191 @@ export default function ManageEvents() {
                                         </Tr>
                                     );
                                 })}
+                                {events.filter(e => e.startDate.getMonth() === (currentMonth - 1)).length === 0 && (
+                                    <Tr>
+                                        <Td colSpan="8" textAlign="center">
+                                            Aucun événement ce mois-ci
+                                        </Td>
+                                    </Tr>
+                                )}
+                                <Tr>
+                                    <Td colSpan="8" textAlign="left" fontSize="2xl" fontWeight="bold" ml="24px">
+                                        {currentYear} - {(new Date(currentYear, currentMonth % 12)).toLocaleString('fr-FR', { month: 'long' })}
+                                    </Td>
+                                </Tr>
+                                {events.filter(e => e.startDate.getMonth() === (currentMonth % 12) ).map((event, index, arr) => {
+                                    return (
+                                        <Tr key={index}>
+                                            <Td pl="0px" borderColor={borderColor} borderBottom={index === arr.length - 1 ? "none" : null}>
+                                                <Flex align="center" py=".8rem" minWidth="100%" flexWrap="nowrap">
+                                                    <Text fontSize="md" color={textColor} fontWeight="bold">
+                                                        {event.name}
+                                                    </Text>
+                                                </Flex>
+                                            </Td>
+                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
+                                                <Text>
+                                                    {event.description}
+                                                </Text>
+                                            </Td>
+                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
+                                                <Text>
+                                                    {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(event.referrerId)] : event.referrerId}
+                                                </Text>
+                                            </Td>
+                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
+                                                <Text>
+                                                    {event.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}
+                                                </Text>
+                                            </Td>
+                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
+                                                <Text>
+                                                    {event.numberOfParticipants} / {event.maxParticipants}
+                                                </Text>
+                                                <Flex direction="column">
+                                                    <Text
+                                                        fontSize="md"
+                                                        color={(event.numberOfParticipants / event.maxParticipants) * 100 < 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 < 85 ? "orange" : "red"}
+                                                        fontWeight="bold"
+                                                        pb=".2rem"
+                                                    >{`${(event.numberOfParticipants / event.maxParticipants * 100).toFixed(1)}%`}</Text>
+                                                    <Progress
+                                                        colorScheme={(event.numberOfParticipants / event.maxParticipants) * 100 > 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 > 85 ? "orange" : "red"}
+                                                        size="xs"
+                                                        value={event.numberOfParticipants / event.maxParticipants * 100}
+                                                        borderRadius="15px"
+                                                    />
+                                                </Flex>
+                                            </Td>
+                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
+                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() => selectEventForModal(event, onOpenVisualizationModal)}>
+                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
+                                                        <Icon as={FaEye} />
+                                                        <Text fontSize="sm" fontWeight="semibold">
+                                                            Consulter
+                                                        </Text>
+                                                    </Flex>
+                                                </Button>
+                                            </Td>
+                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
+                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() =>selectEventForModal(event, onOpenEditionModal)}>
+                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
+                                                        <Icon as={FaPencilAlt} />
+                                                        <Text fontSize="sm" fontWeight="semibold">
+                                                            Modifier
+                                                        </Text>
+                                                    </Flex>
+                                                </Button>
+                                            </Td>
+                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
+                                                <Button p="0px" variant="outline" colorScheme="red" onClick={() => selectEventForModal(event, onOpenDeletionModal)} >
+                                                    <Flex cursor="pointer" align="center" p="12px">
+                                                        <Icon as={FaTrashAlt} />
+                                                        <Text fontSize="sm" fontWeight="semibold">
+                                                            Supprimer
+                                                        </Text>
+                                                    </Flex>
+                                                </Button>
+                                            </Td>
+                                        </Tr>
+                                    );
+                                })}
+                                {events.filter(e => e.startDate.getMonth() === (currentMonth % 12)).length === 0 && (
+                                    <Tr>
+                                        <Td colSpan="8" textAlign="center">
+                                            Aucun événement ce mois-ci
+                                        </Td>
+                                    </Tr>
+                                )}
+                                <Tr>
+                                    <Td colSpan="8" textAlign="left" fontSize="2xl" fontWeight="bold" ml="24px">
+                                        {currentYear} - {(new Date(currentYear, (currentMonth % 12) + 1)).toLocaleString('fr-FR', { month: 'long' })}
+                                    </Td>
+                                </Tr>
+                                {events.filter(e => e.startDate.getMonth() === (currentMonth + 1) % 12).map((event, index, arr) => {
+                                    return (
+                                        <Tr key={index}>
+                                            <Td pl="0px" borderColor={borderColor} borderBottom={index === arr.length - 1 ? "none" : null}>
+                                                <Flex align="center" py=".8rem" minWidth="100%" flexWrap="nowrap">
+                                                    <Text fontSize="md" color={textColor} fontWeight="bold">
+                                                        {event.name}
+                                                    </Text>
+                                                </Flex>
+                                            </Td>
+                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
+                                                <Text>
+                                                    {event.description}
+                                                </Text>
+                                            </Td>
+                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
+                                                <Text>
+                                                    {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(event.referrerId)] : event.referrerId}
+                                                </Text>
+                                            </Td>
+                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
+                                                <Text>
+                                                    {event.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}
+                                                </Text>
+                                            </Td>
+                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
+                                                <Text>
+                                                    {event.numberOfParticipants} / {event.maxParticipants}
+                                                </Text>
+                                                <Flex direction="column">
+                                                    <Text
+                                                        fontSize="md"
+                                                        color={(event.numberOfParticipants / event.maxParticipants) * 100 < 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 < 85 ? "orange" : "red"}
+                                                        fontWeight="bold"
+                                                        pb=".2rem"
+                                                    >{`${(event.numberOfParticipants / event.maxParticipants * 100).toFixed(1)}%`}</Text>
+                                                    <Progress
+                                                        colorScheme={(event.numberOfParticipants / event.maxParticipants) * 100 > 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 > 85 ? "orange" : "red"}
+                                                        size="xs"
+                                                        value={event.numberOfParticipants / event.maxParticipants * 100}
+                                                        borderRadius="15px"
+                                                    />
+                                                </Flex>
+                                            </Td>
+                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
+                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() => selectEventForModal(event, onOpenVisualizationModal)}>
+                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
+                                                        <Icon as={FaEye} />
+                                                        <Text fontSize="sm" fontWeight="semibold">
+                                                            Consulter
+                                                        </Text>
+                                                    </Flex>
+                                                </Button>
+                                            </Td>
+                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
+                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() =>selectEventForModal(event, onOpenEditionModal)}>
+                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
+                                                        <Icon as={FaPencilAlt} />
+                                                        <Text fontSize="sm" fontWeight="semibold">
+                                                            Modifier
+                                                        </Text>
+                                                    </Flex>
+                                                </Button>
+                                            </Td>
+                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
+                                                <Button p="0px" variant="outline" colorScheme="red" onClick={() => selectEventForModal(event, onOpenDeletionModal)} >
+                                                    <Flex cursor="pointer" align="center" p="12px">
+                                                        <Icon as={FaTrashAlt} />
+                                                        <Text fontSize="sm" fontWeight="semibold">
+                                                            Supprimer
+                                                        </Text>
+                                                    </Flex>
+                                                </Button>
+                                            </Td>
+                                        </Tr>
+                                    );
+                                })}
+                                {events.filter(e => e.startDate.getMonth() === (currentMonth + 1) % 12).length === 0 && (
+                                    <Tr>
+                                        <Td colSpan="8" textAlign="center">
+                                            Aucun événement ce mois-ci
+                                        </Td>
+                                    </Tr>
+                                )}
                             </Tbody>
                         </Table>
                     </CardBody>
