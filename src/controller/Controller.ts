@@ -20,6 +20,16 @@ export const getWithToken = async (url: string): Promise<Response> => {
     });
 }
 
+export const postWithoutToken = async (url: string, body: any): Promise<Response> => {
+    return fetch(`${API_URL}/${url}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+    });
+}
+
 export const postWithToken = async (url: string, body: any): Promise<Response> => {
     return fetch(`${API_URL}/${url}`, {
         method: 'POST',

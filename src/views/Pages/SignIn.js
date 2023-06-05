@@ -52,7 +52,6 @@ function SignIn() {
     }
 
     useEffect(() => {
-        //redirect to dashboard if token is set
         if (token) {
             history.push("/admin/dashboard");
         }
@@ -126,7 +125,8 @@ function SignIn() {
                                 w='100%'
                                 h='45'
                                 mb='24px'
-                                onClick={handleLoginClick}>
+                                onClick={handleLoginClick}
+                                disabled={loading}>
                                 SE CONNECTER
                             </Button>
                         </FormControl>
