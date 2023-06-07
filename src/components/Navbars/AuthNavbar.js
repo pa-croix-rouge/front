@@ -3,14 +3,11 @@ import {
   Box,
   Button,
   Flex,
-  HStack,
+  HStack, Image,
   Link, Stack, Text, useColorMode, useColorModeValue
 } from "@chakra-ui/react";
 import {
-  ArgonLogoDark,
-  ArgonLogoLight,
-  ChakraLogoBlue, ChakraLogoDark,
-  ChakraLogoLight, DocumentIcon,
+  DocumentIcon,
   HomeIcon,
   PersonIcon,
   RocketIcon
@@ -19,9 +16,9 @@ import { SidebarResponsive } from "../Sidebar/Sidebar";
 import React from "react";
 import { NavLink } from "react-router-dom";
 import routes from "./../../routes.js";
+import croixRougeLogoHr from "../../assets/img/hr_Croix-Rouge_française_Logo.png";
 export default function AuthNavbar(props) {
   const { logo, logoText, secondary, ...rest } = props;
-  const { colorMode } = useColorMode();
   // Chakra color mode
   let mainText = "white";
   let navbarIcon = "white";
@@ -49,9 +46,7 @@ export default function AuthNavbar(props) {
       color={mainText}
     >
       <Stack direction="row" spacing="12px" align="center" justify="center">
-        <ArgonLogoLight w="74px" h="27px" />
-        <Box w="1px" h="20px" bg={"white"} />
-        <ChakraLogoBlue w="82px" h="21px" />
+        <Image src={croixRougeLogoHr} w='157px' h='57px' />
       </Stack>
       <Text fontSize="sm" mt="3px">
         {logoText}
@@ -162,21 +157,7 @@ export default function AuthNavbar(props) {
                 align="center"
                 justify="center"
               >
-                {colorMode === "dark" ? (
-                  <ArgonLogoLight w="74px" h="27px" />
-                ) : (
-                  <ArgonLogoDark w="74px" h="27px" />
-                )}
-                <Box
-                  w="1px"
-                  h="20px"
-                  bg={colorMode === "dark" ? "white" : "gray.700"}
-                />
-                {colorMode === "dark" ? (
-                  <ChakraLogoLight w="82px" h="21px" />
-                ) : (
-                  <ChakraLogoDark w="82px" h="21px" />
-                )}
+                <Image src={croixRougeLogoHr} w='157px' h='57px' />
               </Stack>
             }
             {...rest}
