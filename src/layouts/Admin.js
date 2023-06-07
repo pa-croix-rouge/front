@@ -105,7 +105,7 @@ export default function Dashboard(props) {
   return (
     <Box>
       <Box
-        minH='45vh'
+        minH='70vh'
         w='100%'
         position='absolute'
         bgImage={bgAdmin}
