@@ -1,6 +1,6 @@
 import {LocalUnit} from "../model/LocalUnit";
 import {Address} from "../model/Address";
-import {getWithToken} from "./Controller";
+import {getWithToken, postWithToken} from "./Controller";
 
 export const getLocalUnit = async (id: string): Promise<LocalUnit> => {
     const response = await getWithToken(`localunit/${id}`);
@@ -12,4 +12,16 @@ export const getLocalUnit = async (id: string): Promise<LocalUnit> => {
     const data = await response.json();
 
     return new LocalUnit(data.id, data.name, new Address(data.address.departmentCode, data.address.postalCode, data.address.city, data.address.streetNumberAndName), data.managerName, data.code);
+}
+
+export const regenerateLocalUnitCode = async (id: string): Promise<boolean> => {
+    const response = await postWithToken(`localunit/secret`, {
+        localUnitId: id,
+    });
+
+    if (!response.ok) {
+        throw new Error(`Regenerating local unit code failed with status ${response.status}`);
+    }
+
+    return true;
 }
