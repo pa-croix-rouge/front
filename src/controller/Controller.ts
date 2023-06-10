@@ -6,6 +6,10 @@ const { API_URL } = require('env');
 
 const readToken = (): string => {
     const {token}: Token = useContext(TokenContext) as unknown as Token;
+    const localToken: Token = {token: localStorage.getItem('token')};
+    if (token === undefined || token === null || token === '') {
+        return localToken.token as string;
+    }
     return token;
 }
 

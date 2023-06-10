@@ -15,16 +15,10 @@ import CardHeader from "../../components/Card/CardHeader";
 import CardBody from "../../components/Card/CardBody";
 import Card from "../../components/Card/Card";
 import {getAllDepartment} from "../../controller/AddressController";
-import {getMyProfile} from "../../controller/VolunteerController";
-import {useHistory} from "react-router-dom";
-import TokenContext from "../../contexts/TokenContext";
 import VolunteerContext from "../../contexts/VolunteerContext";
 
 export default function Stocks() {
-    const history = useHistory();
-    const {token} = useContext(TokenContext);
     const {volunteer, setVolunteer} = useContext(VolunteerContext);
-    const [loadedVolunteer, setLoadedVolunteer] = useState(false);
     const [loadedStorages, setLoadedStorages] = useState(false);
     const [loadedDepartments, setLoadedDepartments] = useState(false);
     const [storages, setStorages] = useState([]);
@@ -44,21 +38,6 @@ export default function Stocks() {
             setStoragePostalCode(departments[storageDepartment].code);
         }
     }, [storageDepartment]);
-
-    const loadVolunteer = () => {
-        setLoadedVolunteer(true)
-        if (token === undefined || token === '') {
-            history.push("/auth/signin");
-        } else if (volunteer === '') {
-            getMyProfile()
-                .then((volunteer) => {
-                    setVolunteer(volunteer);
-                })
-                .catch((_) => {
-                    setLoadedVolunteer(false);
-                });
-        }
-    }
 
     const loadStorages = () => {
         setLoadedStorages(true);
@@ -124,7 +103,6 @@ export default function Stocks() {
 
     return (
         <>
-            {!loadedVolunteer && loadVolunteer()}
             {!loadedStorages && loadStorages()}
             {!loadedDepartments && loadDepartments()}
             {callAddStockage && addStorage()}

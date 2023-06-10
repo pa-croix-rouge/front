@@ -32,10 +32,8 @@ import {
 } from "@chakra-ui/react";
 import CardBody from "../../components/Card/CardBody";
 import React, {useContext, useEffect, useState} from "react";
-import TokenContext from "../../contexts/TokenContext";
 import VolunteerContext from "../../contexts/VolunteerContext";
-import {useHistory} from "react-router-dom";
-import {getMyProfile, getVolunteerById} from "../../controller/VolunteerController";
+import {getVolunteerById} from "../../controller/VolunteerController";
 import {
     createRecurrentEvent,
     createSingleEvent,
@@ -55,15 +53,12 @@ export default function ManageEvents() {
     // Component variables
     const textColor = useColorModeValue("gray.700", "white");
     const borderColor = useColorModeValue("gray.200", "gray.600");
-    const history = useHistory();
     // Data variables
-    const [loadedVolunteer, setLoadedVolunteer] = useState(false);
     const [loadedEvents, setLoadedEvents] = useState(false);
     const [loadedReferrers, setLoadedReferrers] = useState(false);
     const [referrersId, setReferrersId] = useState([]);
     const [referrersName, setReferrersName] = useState([]);
     const [events, setEvents] = useState([]);
-    const {token} = useContext(TokenContext);
     const {volunteer, setVolunteer} = useContext(VolunteerContext);
     const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
     const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
@@ -178,21 +173,6 @@ export default function ManageEvents() {
             setCurrentMonth(3);
         } else {
             setCurrentMonth(currentMonth + 3);
-        }
-    }
-
-    const loadVolunteer = () => {
-        setLoadedVolunteer(true)
-        if (token === undefined || token === '') {
-            history.push("/auth/signin");
-        } else if (volunteer === '') {
-            getMyProfile()
-                .then((volunteer) => {
-                    setVolunteer(volunteer);
-                })
-                .catch((_) => {
-                    setLoadedVolunteer(false);
-                });
         }
     }
 
@@ -477,7 +457,6 @@ export default function ManageEvents() {
     return (
         <>
             <Flex direction="column" pt={{ base: "120px", md: "75px" }}>
-                {!loadedVolunteer && loadVolunteer()}
                 {!loadedEvents && volunteer && loadEvents()}
                 {!loadedReferrers && referrersId.length > 0 && loadReferrersName()}
                 {selectedEvent !== undefined && callGetEventSessions && getAllSessions()}

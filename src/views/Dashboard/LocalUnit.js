@@ -14,12 +14,9 @@ import React, {useContext, useState} from "react";
 import Card from "../../components/Card/Card";
 import CardHeader from "../../components/Card/CardHeader";
 import CardBody from "../../components/Card/CardBody";
-import TokenContext from "../../contexts/TokenContext";
 import VolunteerContext from "../../contexts/VolunteerContext";
-import {useHistory} from "react-router-dom";
 import {
     deleteVolunteer,
-    getMyProfile,
     getVolunteers,
     invalidateVolunteer,
     validateVolunteer
@@ -36,35 +33,17 @@ function LocalUnit() {
     const [luAddress, setLuAddress] = useState("");
     const [luManager, setLuManager] = useState("");
     const [luSecretCode, setLuSecretCode] = useState("");
-    const [loadedVolunteer, setLoadedVolunteer] = useState(false);
     const [loadedLocalUnit, setLoadedLocalUnit] = useState(false);
     const [loadedVolunteers, setLoadedVolunteers] = useState(false);
     const [volunteers, setVolunteers] = useState([]);
     const { isOpen: isOpenRegenerateCodeModal, onOpen: onOpenRegenerateCodeModal, onClose: onCloseRegenerateCodeModal } = useDisclosure();
-    const {token} = useContext(TokenContext);
     const {volunteer, setVolunteer} = useContext(VolunteerContext);
-    const history = useHistory();
     const [callRegenerateCode, setCallRegenerateCode] = useState(false);
     const [regenerateCodeLoading, setRegenerateCodeLoading] = useState(false);
     const [callValidateVolunteer, setCallValidateVolunteer] = useState(false);
     const [callInvalidateVolunteer, setCallInvalidateVolunteer] = useState(false);
     const [callDeleteVolunteer, setCallDeleteVolunteer] = useState(false);
     const [selectedVolunteerId, setSelectedVolunteerId] = useState('');
-
-    const loadVolunteer = () => {
-        setLoadedVolunteer(true)
-        if (token === undefined || token === '') {
-            history.push("/auth/signin");
-        } else if (volunteer === '') {
-            getMyProfile()
-                .then((volunteer) => {
-                    setVolunteer(volunteer);
-                })
-                .catch((_) => {
-                    setLoadedVolunteer(false);
-                });
-        }
-    }
 
     const loadLocalUnit = () => {
         setLoadedLocalUnit(true);
@@ -152,7 +131,6 @@ function LocalUnit() {
 
     return (
         <>
-            {!loadedVolunteer && loadVolunteer()}
             {volunteer && !loadedLocalUnit && loadLocalUnit()}
             {!loadedVolunteers && loadVolunteers()}
             {callRegenerateCode && regenerateCode()}
