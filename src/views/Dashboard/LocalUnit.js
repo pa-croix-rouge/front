@@ -2,7 +2,7 @@ import {
     Avatar, Button,
     Flex,
     HStack,
-    Icon, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay,
+    Icon, IconButton, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay,
     SimpleGrid,
     Text,
     useColorModeValue, useDisclosure
@@ -17,9 +17,16 @@ import CardBody from "../../components/Card/CardBody";
 import TokenContext from "../../contexts/TokenContext";
 import VolunteerContext from "../../contexts/VolunteerContext";
 import {useHistory} from "react-router-dom";
-import {getMyProfile, getVolunteers} from "../../controller/VolunteerController";
+import {
+    deleteVolunteer,
+    getMyProfile,
+    getVolunteers,
+    invalidateVolunteer,
+    validateVolunteer
+} from "../../controller/VolunteerController";
 import {getLocalUnit, regenerateLocalUnitCode} from "../../controller/LocalUnitController";
-import {PersonIcon} from "../../components/Icons/Icons";
+import {CheckIcon, DeleteIcon, EmailIcon, PhoneIcon} from "@chakra-ui/icons";
+import {FaBan} from "react-icons/fa";
 
 function LocalUnit() {
     const borderProfileColor = useColorModeValue("white", "transparent");
@@ -39,6 +46,10 @@ function LocalUnit() {
     const history = useHistory();
     const [callRegenerateCode, setCallRegenerateCode] = useState(false);
     const [regenerateCodeLoading, setRegenerateCodeLoading] = useState(false);
+    const [callValidateVolunteer, setCallValidateVolunteer] = useState(false);
+    const [callInvalidateVolunteer, setCallInvalidateVolunteer] = useState(false);
+    const [callDeleteVolunteer, setCallDeleteVolunteer] = useState(false);
+    const [selectedVolunteerId, setSelectedVolunteerId] = useState('');
 
     const loadVolunteer = () => {
         setLoadedVolunteer(true)
@@ -77,7 +88,7 @@ function LocalUnit() {
                 setVolunteers(volunteers);
             })
             .catch((_) => {
-                setLoadedVolunteers(false);
+                // setLoadedVolunteers(false);
             });
     }
 
@@ -85,12 +96,57 @@ function LocalUnit() {
         setCallRegenerateCode(false);
         setRegenerateCodeLoading(true);
         regenerateLocalUnitCode(luId)
-            .then((success) => {
+            .then((_) => {
                 setLoadedLocalUnit(false);
                 onCloseRegenerateCodeModal();
                 setRegenerateCodeLoading(false);
             })
             .catch((_) => {
+            });
+    }
+
+    const setupValidateVolunteer = (volunteerId) => {
+        setSelectedVolunteerId(volunteerId);
+        setCallValidateVolunteer(true);
+    }
+
+    const setupInvalidateVolunteer = (volunteerId) => {
+        setSelectedVolunteerId(volunteerId);
+        setCallInvalidateVolunteer(true);
+    }
+
+    const setupDeleteVolunteer = (volunteerId) => {
+        setSelectedVolunteerId(volunteerId);
+        setCallDeleteVolunteer(true);
+    }
+
+    const validateVolunteerAccount = (volunteerId) => {
+        setCallValidateVolunteer(false);
+        validateVolunteer(volunteerId)
+            .then((_) => {
+                setSelectedVolunteerId('')
+                setLoadedVolunteers(false);
+            }).catch((_) => {
+            });
+    }
+
+    const invalidateVolunteerAccount = (volunteerId) => {
+        setCallInvalidateVolunteer(false);
+        invalidateVolunteer(volunteerId)
+            .then((_) => {
+                setSelectedVolunteerId('')
+                setLoadedVolunteers(false);
+            }).catch((_) => {
+            });
+    }
+
+    const deleteVolunteerAccount = (volunteerId) => {
+        setCallDeleteVolunteer(false);
+        deleteVolunteer(volunteerId)
+            .then((_) => {
+                setSelectedVolunteerId('')
+                setLoadedVolunteers(false);
+            }).catch((_) => {
             });
     }
 
@@ -100,6 +156,9 @@ function LocalUnit() {
             {volunteer && !loadedLocalUnit && loadLocalUnit()}
             {!loadedVolunteers && loadVolunteers()}
             {callRegenerateCode && regenerateCode()}
+            {callValidateVolunteer && selectedVolunteerId !== '' && validateVolunteerAccount(selectedVolunteerId)}
+            {callInvalidateVolunteer && selectedVolunteerId !== '' && invalidateVolunteerAccount(selectedVolunteerId)}
+            {callDeleteVolunteer && selectedVolunteerId !== '' && deleteVolunteerAccount(selectedVolunteerId)}
             <Flex
                 direction='column'
                 pt={{ base: "120px", md: "75px", lg: "100px" }}>
@@ -135,25 +194,58 @@ function LocalUnit() {
                 {volunteer.username !== '' && volunteer.username === luManager && (
                     <Card m="24px 0px">
                         <CardHeader>
-                            <Text fontWeight="bold">
+                            <Text fontWeight="bold" fontSize="xl">
                                 Information de gestion
                             </Text>
                         </CardHeader>
                         <CardBody>
                             <Flex direction="row" justify="space-between">
                                 <Text m="auto 0">
-                                    Code d'inscription de l'unité locale: {luSecretCode}
+                                    Code d'inscription de l'unité locale: <i>{luSecretCode}</i>
                                 </Text>
                                 <Button colorScheme="orange" onClick={onOpenRegenerateCodeModal}>
                                     Regénérer le code
                                 </Button>
                             </Flex>
+                            <Text fontWeight="semibold" mt="8px">
+                                Comptes en attentes de validation
+                            </Text>
+                            {volunteers.filter(v => !v.isValidated).length === 0 && (
+                                <Text textAlign="center">
+                                    Aucune demande en attente
+                                </Text>
+                            )}
+                            <SimpleGrid columns={{ sm: 1, md: 3, xl: 6 }} spacing='24px' mb='8px'>
+                                {volunteers.filter(v => !v.isValidated).map((v, key) => (
+                                    <Card minH='72px' key={key}>
+                                        <Text fontWeight="bold" textAlign="center">
+                                            {v.firstName} {v.lastName}
+                                        </Text>
+                                        <Flex direction='row' m="4px 0">
+                                            <Icon as={EmailIcon} mr="8px"/>
+                                            <Text>
+                                                {v.username}
+                                            </Text>
+                                        </Flex>
+                                        <Flex direction='row' m="4px 0">
+                                            <Icon as={PhoneIcon} mr="8px"/>
+                                            <Text>
+                                                {v.phoneNumber}
+                                            </Text>
+                                        </Flex>
+                                        <Flex direction='row' justify="space-evenly" m="8px 0">
+                                            <IconButton colorScheme="green" aria-label="Valider" icon={<CheckIcon />} onClick={() => setupValidateVolunteer(v.id)}/>
+                                            <IconButton colorScheme="red" aria-label="Supprimer" icon={<DeleteIcon />} onClick={() => setupDeleteVolunteer(v.id)}/>
+                                        </Flex>
+                                    </Card>
+                                ))}
+                            </SimpleGrid>
                         </CardBody>
                     </Card>
                 )}
                 <Card>
                     <CardHeader>
-                        <Text fontWeight="bold">
+                        <Text fontWeight="bold" fontSize="xl">
                             Information générales
                         </Text>
                     </CardHeader>
@@ -162,17 +254,31 @@ function LocalUnit() {
                             Gérant: {luManager}
                         </Text>
                         <Text>
-                            Bénévoles: {volunteers.length}
+                            Bénévoles: {volunteers.filter(v => v.isValidated).length}
                         </Text>
                         <SimpleGrid columns={{ sm: 1, md: 3, xl: 6 }} spacing='24px' mb='8px'>
-                            {volunteers.map((v, key) => (
+                            {volunteers.filter(v => v.isValidated).map((v, key) => (
                                 <Card minH='72px' key={key}>
-                                    <Flex direction='row'>
-                                        <Icon as={PersonIcon} mr="8px"/>
-                                        <Text fontWeight="bold">
-                                            {v.firstName} {v.lastName}
+                                    <Text fontWeight="bold" textAlign="center">
+                                        {v.firstName} {v.lastName}
+                                    </Text>
+                                    <Flex direction='row' m="4px 0">
+                                        <Icon as={EmailIcon} mr="8px"/>
+                                        <Text>
+                                            {v.username}
                                         </Text>
                                     </Flex>
+                                    <Flex direction='row' m="4px 0">
+                                        <Icon as={PhoneIcon} mr="8px"/>
+                                        <Text>
+                                            {v.phoneNumber}
+                                        </Text>
+                                    </Flex>
+                                    {volunteer.username !== '' && volunteer.username === luManager && (
+                                        <Flex direction='row' justify="space-evenly" m="8px 0">
+                                            <IconButton colorScheme="gray" aria-label="Bloquer" icon={<FaBan />} onClick={() => setupInvalidateVolunteer(v.id)}/>
+                                        </Flex>
+                                    )}
                                 </Card>
                             ))}
                         </SimpleGrid>
