@@ -94,6 +94,18 @@ export const getEventForSpecificMonth = async (localUnitId: string, month: numbe
     return mapJsonEventToEvent(data);
 }
 
+export const getEventForTrimester = async (localUnitId: string, month: number, year: number): Promise<Event[]> => {
+    const response = await getWithToken(`event/trimester?localUnitId=${localUnitId}&month=${month}&year=${year}`,);
+
+    if (!response.ok) {
+        throw new Error(`Fetching events for specific month failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    return mapJsonEventToEvent(data);
+}
+
 export const createSingleEvent = async (event: SingleEventCreation): Promise<boolean> => {
     const response = await postWithToken(`event/details`, event);
 

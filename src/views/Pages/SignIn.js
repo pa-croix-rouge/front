@@ -53,6 +53,7 @@ function SignIn() {
 
     useEffect(() => {
         if (token) {
+            localStorage.setItem('token', token);
             history.push("/admin/dashboard");
         }
     }, [token]);

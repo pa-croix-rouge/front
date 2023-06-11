@@ -16,8 +16,7 @@ import React, {useContext, useEffect, useRef, useState} from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import VolunteerContext from "../../contexts/VolunteerContext";
-import {getMyProfile, getVolunteerById} from "../../controller/VolunteerController";
-import TokenContext from "../../contexts/TokenContext";
+import {getVolunteerById} from "../../controller/VolunteerController";
 import {getEventForSpecificMonth, getEventsStats} from "../../controller/EventController";
 import IconBox from "../../components/Icons/IconBox";
 import {CartIcon, DocumentIcon, GlobeIcon, WalletIcon} from "../../components/Icons/Icons";
@@ -35,12 +34,10 @@ export default function Events() {
     const [tableMaxHeight, setTableMaxHeight] = useState('320px');
     const calendarContainerRef = useRef(null);
     const [isInitialRender, setIsInitialRender] = useState(true);
-    const [loadedVolunteer, setLoadedVolunteer] = useState(false);
     const [loadedEvents, setLoadedEvents] = useState(false);
     const [loadedReferrers, setLoadedReferrers] = useState(false);
     const [loadedStats, setLoadedStats] = useState(false);
     const {volunteer, setVolunteer} = useContext(VolunteerContext);
-    const {token} = useContext(TokenContext);
     const [events, setEvents] = useState([]);
     const [referrersId, setReferrersId] = useState([]);
     const [referrersName, setReferrersName] = useState([]);
@@ -80,21 +77,6 @@ export default function Events() {
         setCurrentMonth(newDate.getMonth() + 1);
     };
 
-    const loadVolunteer = () => {
-        setLoadedVolunteer(true)
-        if (token === undefined || token === '') {
-            history.push("/auth/signin");
-        } else if (volunteer === '') {
-            getMyProfile()
-                .then((volunteer) => {
-                    setVolunteer(volunteer);
-                })
-                .catch((_) => {
-                    setLoadedVolunteer(false);
-                });
-        }
-    }
-
     const loadEvents = () => {
         setLoadedEvents(true);
         getEventForSpecificMonth(volunteer.localUnitId, currentMonth, currentYear)
@@ -133,7 +115,6 @@ export default function Events() {
 
     return (
         <Flex flexDirection='column' pt={{ base: "120px", md: "75px" }} mr='32px'>
-            {!loadedVolunteer && loadVolunteer()}
             {!loadedEvents && volunteer && loadEvents()}
             {!loadedReferrers && referrersId.length > 0 && loadReferrersName()}
             {!loadedStats && volunteer && loadStats()}
