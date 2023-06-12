@@ -58,7 +58,7 @@ export default function HeaderLinks(props) {
     setLoadedVolunteer(true);
 
     const localToken = localStorage.getItem('token');
-    if (localToken !== undefined && localToken !== '') {
+    if (localToken !== undefined && localToken !== '' && token !== null) {
         setToken(localToken);
     }
 
