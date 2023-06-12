@@ -152,6 +152,9 @@ export default function Stocks() {
                                     </CardBody>
                                 </Card>
                             ))}
+                            {allProducts.foods.length === 0 && (
+                                <Text>Aucun produit en stock</Text>
+                            )}
                         </SimpleGrid>
                         <Text fontSize="xl" mt="16px" fontWeight="semibold">
                             Vêtements
@@ -168,6 +171,9 @@ export default function Stocks() {
                                     </CardBody>
                                 </Card>
                             ))}
+                            {allProducts.clothes.length === 0 && (
+                                <Text>Aucun produit en stock</Text>
+                            )}
                         </SimpleGrid>
                     </CardBody>
                 </Card>
@@ -244,43 +250,51 @@ export default function Stocks() {
                     <ModalCloseButton />
                     <ModalBody>
                         {console.log(selectedStorage)}
-                        <Flex direction="column">
-                            <Text>{selectedStorage.name}</Text>
-                            <Text>{selectedStorage.address.city} ({selectedStorage.address.departmentCode} - {departments.filter(d => d.code === selectedStorage.address.departmentCode)[0].name})</Text>
-                            <Text>{selectedStorage.address.streetNumberAndName} - {selectedStorage.address.postalCode}</Text>
-                            <Text fontSize="xl" fontWeight="semibold">
-                                Nourriture
-                            </Text>
-                            <SimpleGrid columns={{ sm: 2, md: 3, lg: 3, xl: 4 }} spacing="24px" m="12px">
-                                {allProducts.foods.map((foodStorageProduct, key) => (
-                                    <Card key={key}>
-                                        <CardHeader>
-                                            <Text>{foodStorageProduct.product.name}</Text>
-                                        </CardHeader>
-                                        <CardBody>
-                                            <Text>Total: {foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Text>
-                                            <Text>{foodStorageProduct.product.quantity} * {foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Text>
-                                        </CardBody>
-                                    </Card>
-                                ))}
-                            </SimpleGrid>
-                            <Text fontSize="xl" mt="16px" fontWeight="semibold">
-                                Vêtements
-                            </Text>
-                            <SimpleGrid columns={{ sm: 2, md: 3, lg: 3, xl: 4 }} spacing="24px" m="12px">
-                                {allProducts.clothes.map((clothStorageProduct, key) => (
-                                    <Card key={key}>
-                                        <CardHeader>
-                                            <Text>{clothStorageProduct.product.name}</Text>
-                                        </CardHeader>
-                                        <CardBody>
-                                            <Text>Total: {clothStorageProduct.product.quantity * clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Text>
-                                            <Text>{clothStorageProduct.product.quantity} * {clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Text>
-                                        </CardBody>
-                                    </Card>
-                                ))}
-                            </SimpleGrid>
-                        </Flex>
+                        {selectedStorage !== null && (
+                            <Flex direction="column">
+                                <Text>{selectedStorage.name}</Text>
+                                <Text>{selectedStorage.address.city} ({selectedStorage.address.departmentCode} - {departments.filter(d => d.code === selectedStorage.address.departmentCode)[0].name})</Text>
+                                <Text>{selectedStorage.address.streetNumberAndName} - {selectedStorage.address.postalCode}</Text>
+                                <Text fontSize="xl" fontWeight="semibold">
+                                    Nourriture
+                                </Text>
+                                <SimpleGrid columns={{ sm: 2, md: 3, lg: 3, xl: 4 }} spacing="24px" m="12px">
+                                    {allProducts.foods.filter(f => f.product.storageId === selectedStorage.id).map((foodStorageProduct, key) => (
+                                        <Card key={key}>
+                                            <CardHeader>
+                                                <Text>{foodStorageProduct.product.name}</Text>
+                                            </CardHeader>
+                                            <CardBody>
+                                                <Text>Total: {foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Text>
+                                                <Text>{foodStorageProduct.product.quantity} * {foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Text>
+                                            </CardBody>
+                                        </Card>
+                                    ))}
+                                    {allProducts.foods.filter(f => f.product.storageId === selectedStorage.id).length === 0 && (
+                                        <Text>Aucun produit en stock</Text>
+                                    )}
+                                </SimpleGrid>
+                                <Text fontSize="xl" mt="16px" fontWeight="semibold">
+                                    Vêtements
+                                </Text>
+                                <SimpleGrid columns={{ sm: 2, md: 3, lg: 3, xl: 4 }} spacing="24px" m="12px">
+                                    {allProducts.clothes.filter(f => f.product.storageId === selectedStorage.id).map((clothStorageProduct, key) => (
+                                        <Card key={key}>
+                                            <CardHeader>
+                                                <Text>{clothStorageProduct.product.name}</Text>
+                                            </CardHeader>
+                                            <CardBody>
+                                                <Text>Total: {clothStorageProduct.product.quantity * clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Text>
+                                                <Text>{clothStorageProduct.product.quantity} * {clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Text>
+                                            </CardBody>
+                                        </Card>
+                                    ))}
+                                    {allProducts.clothes.filter(f => f.product.storageId === selectedStorage.id).length === 0 && (
+                                        <Text>Aucun produit en stock</Text>
+                                    )}
+                                </SimpleGrid>
+                            </Flex>
+                        )}
                     </ModalBody>
                     <ModalFooter>
                         <Button colorScheme="blue" mr={3} onClick={onCloseViewStorageModal}>
