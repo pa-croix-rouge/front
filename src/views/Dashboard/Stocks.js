@@ -243,7 +243,11 @@ export default function Stocks() {
                     <ModalHeader>Contenu de l'espace de stockage</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
+                        {console.log(selectedStorage)}
                         <Flex direction="column">
+                            <Text>{selectedStorage.name}</Text>
+                            <Text>{selectedStorage.address.city} ({selectedStorage.address.departmentCode} - {departments.filter(d => d.code === selectedStorage.address.departmentCode)[0].name})</Text>
+                            <Text>{selectedStorage.address.streetNumberAndName} - {selectedStorage.address.postalCode}</Text>
                             <Text fontSize="xl" fontWeight="semibold">
                                 Nourriture
                             </Text>
