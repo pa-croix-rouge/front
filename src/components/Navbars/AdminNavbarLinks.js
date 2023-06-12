@@ -1,13 +1,8 @@
-import { BellIcon } from "@chakra-ui/icons";
 import {
   Button,
   Flex,
   Icon,
   Image,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -21,11 +16,7 @@ import {
   useColorModeValue,
   useDisclosure
 } from "@chakra-ui/react";
-import avatar1 from "./../../assets/img/avatars/avatar1.png";
-import avatar2 from "./../../assets/img/avatars/avatar2.png";
-import avatar3 from "./../../assets/img/avatars/avatar3.png";
-import { ProfileIcon, SettingsIcon } from "../Icons/Icons";
-import { ItemContent } from "../Menu/ItemContent";
+import { ProfileIcon } from "../Icons/Icons";
 import { SidebarResponsive } from "../Sidebar/Sidebar";
 import React, {useContext, useState} from "react";
 import {NavLink, useHistory} from "react-router-dom";
@@ -87,7 +78,6 @@ export default function HeaderLinks(props) {
     fixed && scrolled
       ? useColorModeValue("gray.700", "gray.200")
       : useColorModeValue("white", "gray.200");
-  let menuBg = useColorModeValue("white", "navy.800");
   if (secondary) {
     navbarIcon = "white";
   }
@@ -119,7 +109,7 @@ export default function HeaderLinks(props) {
                   me={{ sm: "2px", md: "16px" }}
                   color={navbarIcon}
                   variant='no-effects'
-                  leftIcon={<Icon as={FiLogOut} w='22px' h='22px' me='0px' />}
+                  rightIcon={<Icon as={FiLogOut} w='22px' h='22px' me='0px' />}
                   onClick={onOpenLogout}>
                 <Text display={{ sm: "none", md: "flex" }}>{volunteer.username}</Text>
               </Button>
@@ -136,51 +126,6 @@ export default function HeaderLinks(props) {
               routes={routes}
               {...rest}
           />
-          <SettingsIcon
-              cursor='pointer'
-              ms={{ base: "16px", xl: "0px" }}
-              me='16px'
-              onClick={props.onOpen}
-              color={navbarIcon}
-              w='18px'
-              h='18px'
-          />
-          <Menu>
-            <MenuButton>
-              <BellIcon color={navbarIcon} w='18px' h='18px' />
-            </MenuButton>
-            <MenuList p='16px 8px' bg={menuBg}>
-              <Flex flexDirection='column'>
-                <MenuItem borderRadius='8px' mb='10px'>
-                  <ItemContent
-                      time='13 minutes ago'
-                      info='from Alicia'
-                      boldInfo='New Message'
-                      aName='Alicia'
-                      aSrc={avatar1}
-                  />
-                </MenuItem>
-                <MenuItem borderRadius='8px' mb='10px'>
-                  <ItemContent
-                      time='2 days ago'
-                      info='by Josh Henry'
-                      boldInfo='New Album'
-                      aName='Josh Henry'
-                      aSrc={avatar2}
-                  />
-                </MenuItem>
-                <MenuItem borderRadius='8px'>
-                  <ItemContent
-                      time='3 days ago'
-                      info='Payment succesfully completed!'
-                      boldInfo=''
-                      aName='Kara'
-                      aSrc={avatar3}
-                  />
-                </MenuItem>
-              </Flex>
-            </MenuList>
-          </Menu>
         </Flex>
         <Modal isOpen={isOpenLogout} onClose={onCloseLogout}>
           <ModalOverlay />
