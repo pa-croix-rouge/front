@@ -277,8 +277,8 @@ export default function ManageEvents() {
             return;
         }
 
-        if (eventMaxParticipants < 1) {
-            setEventError("Une session doit avoir au moins un participant");
+        if (eventMaxParticipants < 0) {
+            setEventError("Une session doit avoir un nombre de participants positif");
             return;
         }
 
@@ -585,20 +585,38 @@ export default function ManageEvents() {
                                                 <Text>
                                                     {event.numberOfParticipants} / {event.maxParticipants}
                                                 </Text>
-                                                <Flex direction="column">
-                                                    <Text
-                                                        fontSize="md"
-                                                        color={(event.numberOfParticipants / event.maxParticipants) * 100 < 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 < 85 ? "orange" : "red"}
-                                                        fontWeight="bold"
-                                                        pb=".2rem"
-                                                    >{`${(event.numberOfParticipants / event.maxParticipants * 100).toFixed(1)}%`}</Text>
-                                                    <Progress
-                                                        colorScheme={(event.numberOfParticipants / event.maxParticipants) * 100 > 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 > 85 ? "orange" : "red"}
-                                                        size="xs"
-                                                        value={event.numberOfParticipants / event.maxParticipants * 100}
-                                                        borderRadius="15px"
-                                                    />
-                                                </Flex>
+                                                {event.maxParticipants === 0 && (
+                                                    <Flex direction="column">
+                                                        <Text
+                                                            fontSize="md"
+                                                            color="red"
+                                                            fontWeight="bold"
+                                                            pb=".2rem"
+                                                        >100%</Text>
+                                                        <Progress
+                                                            colorScheme="red"
+                                                            size="xs"
+                                                            value={100}
+                                                            borderRadius="15px"
+                                                        />
+                                                    </Flex>
+                                                )}
+                                                {event.maxParticipants !== 0 && (
+                                                    <Flex direction="column">
+                                                        <Text
+                                                            fontSize="md"
+                                                            color={(event.numberOfParticipants / event.maxParticipants) * 100 < 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 < 85 ? "orange" : "red"}
+                                                            fontWeight="bold"
+                                                            pb=".2rem"
+                                                        >{`${(event.numberOfParticipants / event.maxParticipants * 100).toFixed(1)}%`}</Text>
+                                                        <Progress
+                                                            colorScheme={(event.numberOfParticipants / event.maxParticipants) * 100 > 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 > 85 ? "orange" : "red"}
+                                                            size="xs"
+                                                            value={event.numberOfParticipants / event.maxParticipants * 100}
+                                                            borderRadius="15px"
+                                                        />
+                                                    </Flex>
+                                                )}
                                             </Td>
                                             <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
                                                 <Menu>
@@ -857,6 +875,9 @@ export default function ManageEvents() {
                 </Card>
             </Flex>
             <Modal isOpen={isOpenCreationModal} onClose={onCloseCreationModal} size="6xl" scrollBehavior="outside">
+                {(isNaN(eventMaxParticipants) || eventMaxParticipants < 0) && setEventMaxParticipants(0)}
+                {(isNaN(eventTimeWindowDuration) || eventTimeWindowDuration < 1) && setEventTimeWindowDuration(1)}
+                {(isNaN(eventNumberOfTimeWindow) || eventNumberOfTimeWindow < 1) && setEventNumberOfTimeWindow(1)}
                 <ModalOverlay />
                 <ModalContent>
                     <ModalHeader>Ajouter un événement</ModalHeader>
@@ -889,7 +910,7 @@ export default function ManageEvents() {
                                 <SimpleGrid columns={{ sm: 1, md: 2 }} spacing='24px' mt="8px">
                                     <Flex direction="column" ml="16px" mr="16px">
                                         <FormLabel>Nombre de participants par plage horaire</FormLabel>
-                                        <NumberInput defaultValue={10} min={1} value={eventMaxParticipants} onChange={(e) => setEventMaxParticipants(parseInt(e))}>
+                                        <NumberInput defaultValue={10} min={0} value={eventMaxParticipants} onChange={(e) => setEventMaxParticipants(parseInt(e))}>
                                             <NumberInputField />
                                             <NumberInputStepper>
                                                 <NumberIncrementStepper />
@@ -981,28 +1002,32 @@ export default function ManageEvents() {
                                 )}
                                 <Text mt="16px" fontWeight="semibold" fontSize="md">Visualisation des plages horaires:</Text>
                                 <SimpleGrid columns={{ sm: 1, md: 2, xl: 3 }} spacing='24px'>
-                                    {[...Array(eventNumberOfTimeWindow)].map((e, i) => (
-                                        <Card key={i}>
-                                            <Flex direction="column">
-                                                <Flex direction="row">
-                                                    <Text fontSize="sm" fontWeight="semibold">De {new Date(new Date(
-                                                        parseInt(eventStartDate.split("-")[0]),
-                                                        parseInt(eventStartDate.split("-")[1]) - 1,
-                                                        parseInt(eventStartDate.split("-")[2]),
-                                                        parseInt(eventStartTime.split(":")[0]),
-                                                        parseInt(eventStartTime.split(":")[1])
-                                                    ).getTime() + (eventTimeWindowDuration * i) * 60 * 1000).toLocaleTimeString().substring(0, 5).replaceAll(':', 'h')} à {new Date(new Date(
-                                                        parseInt(eventStartDate.split("-")[0]),
-                                                        parseInt(eventStartDate.split("-")[1]) - 1,
-                                                        parseInt(eventStartDate.split("-")[2]),
-                                                        parseInt(eventStartTime.split(":")[0]),
-                                                        parseInt(eventStartTime.split(":")[1])
-                                                    ).getTime() + (eventTimeWindowDuration * (i + 1)) * 60 * 1000).toLocaleTimeString().substring(0, 5).replaceAll(':', 'h')}</Text>
-                                                </Flex>
-                                                <Text>Participants: {eventMaxParticipants}</Text>
-                                            </Flex>
-                                        </Card>
-                                    ))}
+                                    {!isNaN(eventNumberOfTimeWindow) && (
+                                        <>
+                                            {[...Array(eventNumberOfTimeWindow)].map((e, i) => (
+                                                <Card key={i}>
+                                                    <Flex direction="column">
+                                                        <Flex direction="row">
+                                                            <Text fontSize="sm" fontWeight="semibold">De {new Date(new Date(
+                                                                parseInt(eventStartDate.split("-")[0]),
+                                                                parseInt(eventStartDate.split("-")[1]) - 1,
+                                                                parseInt(eventStartDate.split("-")[2]),
+                                                                parseInt(eventStartTime.split(":")[0]),
+                                                                parseInt(eventStartTime.split(":")[1])
+                                                            ).getTime() + (eventTimeWindowDuration * i) * 60 * 1000).toLocaleTimeString().substring(0, 5).replaceAll(':', 'h')} à {new Date(new Date(
+                                                                parseInt(eventStartDate.split("-")[0]),
+                                                                parseInt(eventStartDate.split("-")[1]) - 1,
+                                                                parseInt(eventStartDate.split("-")[2]),
+                                                                parseInt(eventStartTime.split(":")[0]),
+                                                                parseInt(eventStartTime.split(":")[1])
+                                                            ).getTime() + (eventTimeWindowDuration * (i + 1)) * 60 * 1000).toLocaleTimeString().substring(0, 5).replaceAll(':', 'h')}</Text>
+                                                        </Flex>
+                                                        <Text>Participants: {eventMaxParticipants}</Text>
+                                                    </Flex>
+                                                </Card>
+                                            ))}
+                                        </>
+                                    )}
                                 </SimpleGrid>
                                 {eventError !== "" && (
                                     <Text fontSize="sm" color="red" fontWeight="semibold">
