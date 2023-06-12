@@ -1,4 +1,4 @@
-import React, {useContext, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {
     Box,
     Button,
@@ -25,6 +25,7 @@ function SignIn() {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [isError, setIsError] = useState(false);
+    const [loadTokenSuccess, setLoadTokenSuccess] = useState(false);
     const {token, setToken} = useContext(TokenContext);
     const history = useHistory();
 
@@ -44,14 +45,20 @@ function SignIn() {
             .then((jwtToken) => {
                 setLoading(false);
                 setToken(jwtToken.token);
-                localStorage.setItem('token', token);
-                history.push("/admin/dashboard");
+                setLoadTokenSuccess(true);
             })
             .catch((_) => {
                 setLoading(false);
                 setIsError(true);
             });
     }
+
+    useEffect(() => {
+        if (loadTokenSuccess && token) {
+            localStorage.setItem('token', token);
+            history.push("/admin/dashboard");
+        }
+    }, [loadTokenSuccess, token]);
 
     return (
         <Flex position='relative' mb='40px'>
