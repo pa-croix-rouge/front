@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from "react";
+import React, {useContext, useState} from "react";
 import {
     Box,
     Button,
@@ -44,19 +44,14 @@ function SignIn() {
             .then((jwtToken) => {
                 setLoading(false);
                 setToken(jwtToken.token);
+                localStorage.setItem('token', token);
+                history.push("/admin/dashboard");
             })
             .catch((_) => {
                 setLoading(false);
                 setIsError(true);
             });
     }
-
-    useEffect(() => {
-        if (token) {
-            localStorage.setItem('token', token);
-            history.push("/admin/dashboard");
-        }
-    }, [token]);
 
     return (
         <Flex position='relative' mb='40px'>
