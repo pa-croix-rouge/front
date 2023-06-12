@@ -6,7 +6,7 @@ import {
     Flex,
     FormControl,
     FormLabel,
-    Icon, Input,
+    Icon, Input, Menu, MenuButton, MenuItem, MenuList,
     Modal,
     ModalBody,
     ModalCloseButton,
@@ -43,7 +43,7 @@ import {
     getEventSessions, updateAllEventSessions,
     updateEventSession
 } from "../../controller/EventController";
-import {FaArrowRight, FaPencilAlt, FaPlus, FaTrashAlt, FaUser, FaEye, FaArrowLeft} from "react-icons/fa";
+import {FaArrowRight, FaPencilAlt, FaPlus, FaTrashAlt, FaUser, FaEye, FaArrowLeft, FaCog} from "react-icons/fa";
 import TimelineRow from "../../components/Tables/TimelineRow";
 import {CalendarIcon, CheckIcon} from "@chakra-ui/icons";
 import {SingleEventCreation} from "../../model/event/SingleEventCreation";
@@ -548,8 +548,6 @@ export default function ManageEvents() {
                                     <Th borderColor={borderColor} color="gray.400" >Date</Th>
                                     <Th borderColor={borderColor} color="gray.400" >Inscriptions</Th>
                                     <Th borderColor={borderColor}></Th>
-                                    <Th borderColor={borderColor}></Th>
-                                    <Th borderColor={borderColor}></Th>
                                 </Tr>
                             </Thead>
                             <Tbody>
@@ -603,34 +601,45 @@ export default function ManageEvents() {
                                                 </Flex>
                                             </Td>
                                             <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() => selectEventForModal(event, onOpenVisualizationModal)}>
-                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
-                                                        <Icon as={FaEye} />
-                                                        <Text fontSize="sm" fontWeight="semibold">
-                                                            Consulter
-                                                        </Text>
-                                                    </Flex>
-                                                </Button>
-                                            </Td>
-                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() =>selectEventForModal(event, onOpenEditionModal)}>
-                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
-                                                        <Icon as={FaPencilAlt} />
-                                                        <Text fontSize="sm" fontWeight="semibold">
-                                                            Modifier
-                                                        </Text>
-                                                    </Flex>
-                                                </Button>
-                                            </Td>
-                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Button p="0px" variant="outline" colorScheme="red" onClick={() => selectEventForModal(event, onOpenDeletionModal)} >
-                                                    <Flex cursor="pointer" align="center" p="12px">
-                                                        <Icon as={FaTrashAlt} />
-                                                        <Text fontSize="sm" fontWeight="semibold">
-                                                            Supprimer
-                                                        </Text>
-                                                    </Flex>
-                                                </Button>
+                                                <Menu>
+                                                    <MenuButton>
+                                                        <Icon as={FaCog} />
+                                                    </MenuButton>
+                                                    <MenuList>
+                                                        <Flex direction="column">
+                                                            <MenuItem>
+                                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() => selectEventForModal(event, onOpenVisualizationModal)}>
+                                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
+                                                                        <Icon as={FaEye} mr="8px"/>
+                                                                        <Text fontSize="sm" fontWeight="semibold">
+                                                                            Consulter
+                                                                        </Text>
+                                                                    </Flex>
+                                                                </Button>
+                                                            </MenuItem>
+                                                            <MenuItem>
+                                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() =>selectEventForModal(event, onOpenEditionModal)}>
+                                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
+                                                                        <Icon as={FaPencilAlt} mr="8px"/>
+                                                                        <Text fontSize="sm" fontWeight="semibold">
+                                                                            Modifier
+                                                                        </Text>
+                                                                    </Flex>
+                                                                </Button>
+                                                            </MenuItem>
+                                                            <MenuItem>
+                                                                <Button p="0px" variant="transparent" colorScheme="red" onClick={() => selectEventForModal(event, onOpenDeletionModal)} >
+                                                                    <Flex cursor="pointer" align="center" p="12px">
+                                                                        <Icon as={FaTrashAlt} mr="8px" />
+                                                                        <Text fontSize="sm" fontWeight="semibold">
+                                                                            Supprimer
+                                                                        </Text>
+                                                                    </Flex>
+                                                                </Button>
+                                                            </MenuItem>
+                                                        </Flex>
+                                                    </MenuList>
+                                                </Menu>
                                             </Td>
                                         </Tr>
                                     );
@@ -692,34 +701,45 @@ export default function ManageEvents() {
                                                 </Flex>
                                             </Td>
                                             <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() => selectEventForModal(event, onOpenVisualizationModal)}>
-                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
-                                                        <Icon as={FaEye} />
-                                                        <Text fontSize="sm" fontWeight="semibold">
-                                                            Consulter
-                                                        </Text>
-                                                    </Flex>
-                                                </Button>
-                                            </Td>
-                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() =>selectEventForModal(event, onOpenEditionModal)}>
-                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
-                                                        <Icon as={FaPencilAlt} />
-                                                        <Text fontSize="sm" fontWeight="semibold">
-                                                            Modifier
-                                                        </Text>
-                                                    </Flex>
-                                                </Button>
-                                            </Td>
-                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Button p="0px" variant="outline" colorScheme="red" onClick={() => selectEventForModal(event, onOpenDeletionModal)} >
-                                                    <Flex cursor="pointer" align="center" p="12px">
-                                                        <Icon as={FaTrashAlt} />
-                                                        <Text fontSize="sm" fontWeight="semibold">
-                                                            Supprimer
-                                                        </Text>
-                                                    </Flex>
-                                                </Button>
+                                                <Menu>
+                                                    <MenuButton>
+                                                        <Icon as={FaCog} />
+                                                    </MenuButton>
+                                                    <MenuList>
+                                                        <Flex direction="column">
+                                                            <MenuItem>
+                                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() => selectEventForModal(event, onOpenVisualizationModal)}>
+                                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
+                                                                        <Icon as={FaEye} mr="8px"/>
+                                                                        <Text fontSize="sm" fontWeight="semibold">
+                                                                            Consulter
+                                                                        </Text>
+                                                                    </Flex>
+                                                                </Button>
+                                                            </MenuItem>
+                                                            <MenuItem>
+                                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() =>selectEventForModal(event, onOpenEditionModal)}>
+                                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
+                                                                        <Icon as={FaPencilAlt} mr="8px"/>
+                                                                        <Text fontSize="sm" fontWeight="semibold">
+                                                                            Modifier
+                                                                        </Text>
+                                                                    </Flex>
+                                                                </Button>
+                                                            </MenuItem>
+                                                            <MenuItem>
+                                                                <Button p="0px" variant="transparent" colorScheme="red" onClick={() => selectEventForModal(event, onOpenDeletionModal)} >
+                                                                    <Flex cursor="pointer" align="center" p="12px">
+                                                                        <Icon as={FaTrashAlt} mr="8px" />
+                                                                        <Text fontSize="sm" fontWeight="semibold">
+                                                                            Supprimer
+                                                                        </Text>
+                                                                    </Flex>
+                                                                </Button>
+                                                            </MenuItem>
+                                                        </Flex>
+                                                    </MenuList>
+                                                </Menu>
                                             </Td>
                                         </Tr>
                                     );
@@ -781,34 +801,45 @@ export default function ManageEvents() {
                                                 </Flex>
                                             </Td>
                                             <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() => selectEventForModal(event, onOpenVisualizationModal)}>
-                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
-                                                        <Icon as={FaEye} />
-                                                        <Text fontSize="sm" fontWeight="semibold">
-                                                            Consulter
-                                                        </Text>
-                                                    </Flex>
-                                                </Button>
-                                            </Td>
-                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() =>selectEventForModal(event, onOpenEditionModal)}>
-                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
-                                                        <Icon as={FaPencilAlt} />
-                                                        <Text fontSize="sm" fontWeight="semibold">
-                                                            Modifier
-                                                        </Text>
-                                                    </Flex>
-                                                </Button>
-                                            </Td>
-                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Button p="0px" variant="outline" colorScheme="red" onClick={() => selectEventForModal(event, onOpenDeletionModal)} >
-                                                    <Flex cursor="pointer" align="center" p="12px">
-                                                        <Icon as={FaTrashAlt} />
-                                                        <Text fontSize="sm" fontWeight="semibold">
-                                                            Supprimer
-                                                        </Text>
-                                                    </Flex>
-                                                </Button>
+                                                <Menu>
+                                                    <MenuButton>
+                                                        <Icon as={FaCog} />
+                                                    </MenuButton>
+                                                    <MenuList>
+                                                        <Flex direction="column">
+                                                            <MenuItem>
+                                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() => selectEventForModal(event, onOpenVisualizationModal)}>
+                                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
+                                                                        <Icon as={FaEye} mr="8px"/>
+                                                                        <Text fontSize="sm" fontWeight="semibold">
+                                                                            Consulter
+                                                                        </Text>
+                                                                    </Flex>
+                                                                </Button>
+                                                            </MenuItem>
+                                                            <MenuItem>
+                                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() =>selectEventForModal(event, onOpenEditionModal)}>
+                                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
+                                                                        <Icon as={FaPencilAlt} mr="8px"/>
+                                                                        <Text fontSize="sm" fontWeight="semibold">
+                                                                            Modifier
+                                                                        </Text>
+                                                                    </Flex>
+                                                                </Button>
+                                                            </MenuItem>
+                                                            <MenuItem>
+                                                                <Button p="0px" variant="transparent" colorScheme="red" onClick={() => selectEventForModal(event, onOpenDeletionModal)} >
+                                                                    <Flex cursor="pointer" align="center" p="12px">
+                                                                        <Icon as={FaTrashAlt} mr="8px" />
+                                                                        <Text fontSize="sm" fontWeight="semibold">
+                                                                            Supprimer
+                                                                        </Text>
+                                                                    </Flex>
+                                                                </Button>
+                                                            </MenuItem>
+                                                        </Flex>
+                                                    </MenuList>
+                                                </Menu>
                                             </Td>
                                         </Tr>
                                     );
