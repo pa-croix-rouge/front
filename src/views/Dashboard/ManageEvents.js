@@ -33,7 +33,7 @@ import {
 import CardBody from "../../components/Card/CardBody";
 import React, {useContext, useEffect, useState} from "react";
 import VolunteerContext from "../../contexts/VolunteerContext";
-import {getVolunteerById} from "../../controller/VolunteerController";
+import {getVolunteerById, getVolunteers} from "../../controller/VolunteerController";
 import {
     createRecurrentEvent,
     createSingleEvent,
@@ -60,6 +60,9 @@ export default function ManageEvents() {
     const [referrersName, setReferrersName] = useState([]);
     const [events, setEvents] = useState([]);
     const {volunteer, setVolunteer} = useContext(VolunteerContext);
+    const [loadVolunteerList, setLoadVolunteerList] = useState(false);
+    const [volunteerList, setVolunteerList] = useState([]);
+    const [volunteerNameList, setVolunteerNameList] = useState([]);
     const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
     const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
     // Modal variables
@@ -185,7 +188,8 @@ export default function ManageEvents() {
                 const allReferrersId = eventList.map((el) => el.referrerId);
                 setReferrersId(Array.from(new Set(allReferrersId)));
             })
-            .catch((_) => {
+            .catch((err) => {
+                console.log(err);
                 setLoadedEvents(false);
             });
     }
@@ -200,6 +204,17 @@ export default function ManageEvents() {
                 .catch((_) => {
                 });
         });
+    }
+
+    const loadVolunteers = () => {
+        setLoadVolunteerList(true);
+        getVolunteers()
+            .then((volunteers) => {
+                setVolunteerList(volunteers);
+                setVolunteerNameList(volunteers.map((el) => el.firstName + ' ' + el.lastName));
+            })
+            .catch((_) => {
+            });
     }
 
     const selectEventForModal = (event, onOpenModal) => {
@@ -268,7 +283,7 @@ export default function ManageEvents() {
         }
 
         if (eventType === "unique") {
-            createSingleEvent(new SingleEventCreation(eventName, eventDescription, eventStart.getTime(),eventReferrer, volunteer.localUnitId, eventTimeWindowDuration, eventNumberOfTimeWindow, eventMaxParticipants))
+            createSingleEvent(new SingleEventCreation(eventName, eventDescription, eventStart.getTime(), eventReferrer, volunteer.localUnitId, eventTimeWindowDuration, eventNumberOfTimeWindow, eventMaxParticipants))
                 .then(() => {
                     onCloseCreationModal();
                     setLoadedEvents(false);
@@ -358,7 +373,7 @@ export default function ManageEvents() {
                 parseInt(hours),
                 parseInt(minutes),
             );
-            if (eventEnd.getTime() <= eventStart.getTime()) {
+            if (modifiedEvent.recurring && eventEnd.getTime() <= eventStart.getTime()) {
                 setModifyEventError("La date de fin doit être à minima 1 minute après la date de début");
                 return;
             }
@@ -459,6 +474,7 @@ export default function ManageEvents() {
             <Flex direction="column" pt={{ base: "120px", md: "75px" }}>
                 {!loadedEvents && volunteer && loadEvents()}
                 {!loadedReferrers && referrersId.length > 0 && loadReferrersName()}
+                {!loadVolunteerList && loadVolunteers()}
                 {selectedEvent !== undefined && callGetEventSessions && getAllSessions()}
                 {callCreateEvent && createEvent()}
                 {modifiedEvent !== undefined && callModifyEvent && modifyEvent()}
@@ -832,9 +848,9 @@ export default function ManageEvents() {
                                 <Textarea value={eventDescription} onChange={(e) => setEventDescription(e.target.value)}/>
                                 <FormLabel>Référent</FormLabel>
                                 <Select placeholder="Sélectionnez un référent" value={eventReferrer} onChange={(e) => setEventReferrer(e.target.value)}>
-                                    {referrersId.map((referrerId, index) => {
+                                    {volunteerList.map((v, index) => {
                                         return (
-                                            <option key={index} value={referrerId}>{referrersName[index]}</option>
+                                            <option key={index} value={v.id}>{v.firstName} {v.lastName}</option>
                                         );
                                     })}
                                 </Select>
@@ -1041,9 +1057,9 @@ export default function ManageEvents() {
                                 <Textarea value={modifiedEvent?.description} onChange={(e) => setModifiedEvent({...modifiedEvent, description: e.target.value})} />
                                 <FormLabel>Référent</FormLabel>
                                 <Select value={modifiedEvent?.referrerId} onChange={(e) => setModifiedEvent({...modifiedEvent, referrerId: e.target.value})}>
-                                    {referrersId.length === referrersName.length && referrersId.map((referrerId, index) => {
+                                    {volunteerList.map((v, index) => {
                                         return (
-                                            <option key={index} value={referrerId}>{referrersName[index]}</option>
+                                            <option key={index} value={v.id}>{v.firstName} {v.lastName}</option>
                                         );
                                     })}
                                 </Select>
