@@ -10,20 +10,24 @@ import {
     SimpleGrid,
     Text, useDisclosure
 } from "@chakra-ui/react";
-import {createStockage, getStockages} from "../../controller/StorageController";
+import {createStockage, getAllProducts, getStockages} from "../../controller/StorageController";
 import CardHeader from "../../components/Card/CardHeader";
 import CardBody from "../../components/Card/CardBody";
 import Card from "../../components/Card/Card";
 import {getAllDepartment} from "../../controller/AddressController";
 import VolunteerContext from "../../contexts/VolunteerContext";
+import {ProductList} from "../../model/stock/ProductList";
 
 export default function Stocks() {
     const {volunteer, setVolunteer} = useContext(VolunteerContext);
     const [loadedStorages, setLoadedStorages] = useState(false);
     const [loadedDepartments, setLoadedDepartments] = useState(false);
+    const [loadedAllProducts, setLoadedAllProducts] = useState(false);
     const [storages, setStorages] = useState([]);
     const [departments, setDepartments] = useState([]);
+    const [allProducts, setAllProducts] = useState(new ProductList([], []));
     const { isOpen: isOpenAddModal, onOpen: onOpenAddModal, onClose: onCloseAddModal } = useDisclosure();
+    const { isOpen: isOpenViewStorageModal, onOpen: onOpenViewStorageModal, onClose: onCloseViewStorageModal } = useDisclosure();
     const [storageName, setStorageName] = useState("");
     const [storageDepartment, setStorageDepartment] = useState("");
     const [storagePostalCode, setStoragePostalCode] = useState("");
@@ -32,6 +36,7 @@ export default function Stocks() {
     const [errorAddingStorage, setErrorAddingStorage] = useState("");
     const [createEventLoading, setCreateEventLoading] = useState(false);
     const [callAddStockage, setCallAddStockage] = useState(false);
+    const [selectedStorage, setSelectedStorage] = useState(null);
 
     useEffect(() => {
         if (storageDepartment !== '' && departments.length > 0) {
@@ -59,6 +64,17 @@ export default function Stocks() {
             .catch((_) => {
                 setLoadedDepartments(false);
             });
+    }
+
+    const loadProducts = () => {
+        setLoadedAllProducts(true);
+        getAllProducts()
+            .then((products) => {
+                setAllProducts(products);
+            })
+            .catch((_) => {
+                setLoadedAllProducts(false);
+            })
     }
 
     const addStorage = () => {
@@ -101,13 +117,61 @@ export default function Stocks() {
             });
     }
 
+    const selectStorageForModal = (storage, onOpenModal) => {
+        setSelectedStorage(storage);
+        onOpenModal();
+    }
+
     return (
         <>
             {!loadedStorages && loadStorages()}
             {!loadedDepartments && loadDepartments()}
+            {!loadedAllProducts && loadProducts()}
             {callAddStockage && addStorage()}
+            {console.log(allProducts)}
             <Flex direction="column" pt={{ base: "120px", md: "75px" }}>
                 <Card pb="0px">
+                    <CardHeader>
+                        <Flex justify="space-between" m="12px 8px">
+                            <Text fontSize="2xl">Stock de l'unité locale</Text>
+                        </Flex>
+                    </CardHeader>
+                    <CardBody>
+                        <Text fontSize="xl" fontWeight="semibold">
+                            Nourriture
+                        </Text>
+                        <SimpleGrid columns={{ sm: 2, md: 3, lg: 4, xl: 5 }} spacing="24px" m="12px">
+                            {allProducts.foods.map((foodStorageProduct, key) => (
+                                <Card key={key}>
+                                    <CardHeader>
+                                        <Text>{foodStorageProduct.product.name}</Text>
+                                    </CardHeader>
+                                    <CardBody>
+                                        <Text>Total: {foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Text>
+                                        <Text>{foodStorageProduct.product.quantity} * {foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Text>
+                                    </CardBody>
+                                </Card>
+                            ))}
+                        </SimpleGrid>
+                        <Text fontSize="xl" mt="16px" fontWeight="semibold">
+                            Vêtements
+                        </Text>
+                        <SimpleGrid columns={{ sm: 2, md: 3, lg: 4, xl: 5 }} spacing="24px" m="12px">
+                            {allProducts.clothes.map((clothStorageProduct, key) => (
+                                <Card key={key}>
+                                    <CardHeader>
+                                        <Text>{clothStorageProduct.product.name}</Text>
+                                    </CardHeader>
+                                    <CardBody>
+                                        <Text>Total: {clothStorageProduct.product.quantity * clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Text>
+                                        <Text>{clothStorageProduct.product.quantity} * {clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Text>
+                                    </CardBody>
+                                </Card>
+                            ))}
+                        </SimpleGrid>
+                    </CardBody>
+                </Card>
+                <Card pb="0px" mt="24px">
                     <CardHeader>
                         <Flex justify="space-between" m="12px 8px">
                             <Text fontSize="2xl">Gestion des espaces de stockage</Text>
@@ -117,15 +181,15 @@ export default function Stocks() {
                         </Flex>
                     </CardHeader>
                     <CardBody>
-                        <SimpleGrid columns={{ lg: 1, md: 2, xl: 3 }} spacing="40px">
+                        <SimpleGrid columns={{ sm: 1, md: 2, xl: 3 }} spacing="40px">
                             {storages.map((storage) => (
                                 <Card key={storage.id}>
                                     <CardHeader>
                                         <Text fontSize="xl">{storage.name}</Text>
                                     </CardHeader>
                                     <CardBody>
-                                        <Button colorScheme="orange">
-                                            CONSULTER
+                                        <Button colorScheme="orange" onClick={() => selectStorageForModal(storage, onOpenViewStorageModal)}>
+                                            VOIR LE CONTENU
                                         </Button>
                                     </CardBody>
                                 </Card>
@@ -169,6 +233,54 @@ export default function Stocks() {
                         </Button>
                         <Button variant="outline" colorScheme="green" onClick={() => setCallAddStockage(true)} isDisabled={createEventLoading}>
                             Ajouter
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+            <Modal isOpen={isOpenViewStorageModal} onClose={onCloseViewStorageModal} size="4xl" scrollBehavior="outside">
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>Contenu de l'espace de stockage</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                        <Flex direction="column">
+                            <Text fontSize="xl" fontWeight="semibold">
+                                Nourriture
+                            </Text>
+                            <SimpleGrid columns={{ sm: 2, md: 3, lg: 3, xl: 4 }} spacing="24px" m="12px">
+                                {allProducts.foods.map((foodStorageProduct, key) => (
+                                    <Card key={key}>
+                                        <CardHeader>
+                                            <Text>{foodStorageProduct.product.name}</Text>
+                                        </CardHeader>
+                                        <CardBody>
+                                            <Text>Total: {foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Text>
+                                            <Text>{foodStorageProduct.product.quantity} * {foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Text>
+                                        </CardBody>
+                                    </Card>
+                                ))}
+                            </SimpleGrid>
+                            <Text fontSize="xl" mt="16px" fontWeight="semibold">
+                                Vêtements
+                            </Text>
+                            <SimpleGrid columns={{ sm: 2, md: 3, lg: 3, xl: 4 }} spacing="24px" m="12px">
+                                {allProducts.clothes.map((clothStorageProduct, key) => (
+                                    <Card key={key}>
+                                        <CardHeader>
+                                            <Text>{clothStorageProduct.product.name}</Text>
+                                        </CardHeader>
+                                        <CardBody>
+                                            <Text>Total: {clothStorageProduct.product.quantity * clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Text>
+                                            <Text>{clothStorageProduct.product.quantity} * {clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Text>
+                                        </CardBody>
+                                    </Card>
+                                ))}
+                            </SimpleGrid>
+                        </Flex>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button colorScheme="blue" mr={3} onClick={onCloseViewStorageModal}>
+                            Fermer
                         </Button>
                     </ModalFooter>
                 </ModalContent>
