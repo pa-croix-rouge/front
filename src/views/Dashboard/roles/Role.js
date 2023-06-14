@@ -26,7 +26,6 @@ import {
 import RoleCreationModal from "./RoleCreationModal";
 
 export default function Role(props) {
-  const options = ["CREATE", "UPDATE", "READ", "DELETE"];
   const { isOpen: isOpenAddModal, onOpen: onOpenAddModal, onClose: onCloseAddModal } = useDisclosure();
   const { isOpen: isOpenManageModal, onOpen: onOpenManageModal, onClose: onCloseManageModal } = useDisclosure();
   const [role, setRole] = useState(props.role);
@@ -48,7 +47,6 @@ export default function Role(props) {
       setRoleVolunteerLoaded(false);
     });
   }
-
 
   const onDelete = () => {
     setRoleDeleteProgress(true);
@@ -104,22 +102,23 @@ export default function Role(props) {
                 <Th color="gray.400">
                   Resource
                 </Th>
-                <Th color="gray.400">Create</Th>
-                <Th color="gray.400">Update</Th>
-                <Th color="gray.400">View</Th>
-                <Th color="gray.400">Delete</Th>
+                {props.roleAuth.operations.map((op, index) => {
+                  return (
+                    <Th color="gray.400">{op}</Th>
+                  );
+                })}
               </Tr>
             </Thead>
             <Tbody>
-              {Object.keys(role.authorizations).map((resource, index) => {
+              {props.roleAuth.resources.map((resource, index) => {
                 return (
                   <Tr>
                     <Th>{resource}</Th>
-                    {options.map((opt, index) => {
+                    {props.roleAuth.operations.map((opt, index) => {
                       return (
                         <Th>
                           <input type="checkbox"
-                                 checked={role.authorizations[resource].find(v => v === opt) !== undefined} />
+                                 checked={role.authorizations[resource]?.find(v => v === opt) !== undefined} />
                         </Th>
                       );
                     })}
@@ -131,7 +130,7 @@ export default function Role(props) {
         </Flex>
       </Card>
 
-      <RoleCreationModal isOpen={isOpenAddModal} onClose={onCloseAddModal}
+      <RoleCreationModal isOpen={isOpenAddModal} onClose={onCloseAddModal} roleAuth={props.roleAuth}
                          localUnitID={props.localUnitID} onNewValidRole={onEdit} role={role} />
 
       <Modal isOpen={isOpenManageModal} onClose={onCloseManageModal} size="xl" scrollBehavior="outside">
@@ -180,10 +179,7 @@ export default function Role(props) {
           <ModalFooter>
             <Text>{error}</Text>
             <Button colorScheme="blue" mr={3} onClick={onCloseManageModal}>
-              Annuler
-            </Button>
-            <Button variant="outline" colorScheme="green">
-              {props.role === undefined ? "Ajouter" : "Modifier"}
+              OK
             </Button>
           </ModalFooter>
         </ModalContent>

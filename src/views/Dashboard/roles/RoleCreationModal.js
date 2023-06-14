@@ -27,9 +27,6 @@ export default function RoleCreationModal(props) {
   const [roleCreationProgress, setRoleCreationProgress] = useState(false);
   const [error, setError] = useState("");
 
-  const options = ["CREATE", "UPDATE", "READ", "DELETE"];
-  const ressoucres = ["EVENT", "PRODUCT", "VOLUNTEER", "LOCAL_UNIT", "STORAGE", "ROLE"];
-
   const onAddNewRole = () => {
 
     setRoleCreationProgress(true);
@@ -90,18 +87,19 @@ export default function RoleCreationModal(props) {
                   <Th color="gray.400">
                     Resource
                   </Th>
-                  <Th color="gray.400">Create</Th>
-                  <Th color="gray.400">Update</Th>
-                  <Th color="gray.400">View</Th>
-                  <Th color="gray.400">Delete</Th>
+                  {props.roleAuth.operations.map((op, index) => {
+                    return (
+                      <Th color="gray.400">{op}</Th>
+                    );
+                  })}
                 </Tr>
               </Thead>
               <Tbody>
-                {ressoucres.map((resource, index) => {
+                {props.roleAuth.resources.map((resource, index) => {
                   return (
                     <Tr>
                       <Th>{resource}</Th>
-                      {options.map((opt, index) => {
+                      {props.roleAuth.operations.map((opt, index) => {
                         return (
                           <Th>
                             <input

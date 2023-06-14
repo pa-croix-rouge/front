@@ -16,6 +16,13 @@ export class Role {
   }
 }
 
+export class RoleAuth {
+
+  public resources: string[];
+  public operations: string[];
+
+}
+
 export class RoleCreation extends Role{
 
   public localUnitID: string;
