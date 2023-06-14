@@ -191,12 +191,18 @@ export default function Stocks() {
                             {storages.map((storage) => (
                                 <Card key={storage.id}>
                                     <CardHeader>
-                                        <Text fontSize="xl">{storage.name}</Text>
+                                        <Text fontSize="xl" textAlign="center">{storage.name}</Text>
                                     </CardHeader>
                                     <CardBody>
-                                        <Button colorScheme="orange" onClick={() => selectStorageForModal(storage, onOpenViewStorageModal)}>
-                                            VOIR LE CONTENU
-                                        </Button>
+                                        <Flex direction="row">
+                                            <Flex direction="column" w="50%">
+                                                <Text fontSize="sm">Quantité de nourriture: {allProducts.foods.filter(f => f.product.storageId === storage.id).reduce((acc, f) => acc + f.product.quantity, 0)}</Text>
+                                                <Text fontSize="sm">Quantité de vêtements: {allProducts.clothes.filter(c => c.product.storageId === storage.id).reduce((acc, c) => acc + c.product.quantity, 0)}</Text>
+                                            </Flex>
+                                            <Button colorScheme="orange" size="sm" onClick={() => selectStorageForModal(storage, onOpenViewStorageModal)} w="50%">
+                                                VOIR LE CONTENU
+                                            </Button>
+                                        </Flex>
                                     </CardBody>
                                 </Card>
                             ))}
