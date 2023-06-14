@@ -1,6 +1,6 @@
 import {
-  Button,
-  Flex, FormControl, FormLabel,
+  Button, Checkbox,
+  Flex, FormControl, FormLabel, HStack,
   IconButton, Input,
   Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select,
   Spacer,
@@ -10,7 +10,7 @@ import {
   Th,
   Thead,
   Tr,
-  useDisclosure
+  useDisclosure, VStack
 } from "@chakra-ui/react";
 import Card from "../../../components/Card/Card";
 import React, { useState } from "react";
@@ -84,19 +84,18 @@ export default function Role(props) {
     <>
       <Card>
         <Flex direction="row">
-          <Flex direction="column">
-            <Text>ID: {role.id}</Text>
+          <VStack flex={"0.5"}>
             <Text>Name: {role.name}</Text>
             <Text>Description: {role.description}</Text>
+            <Spacer />
             <Button colorScheme="blue" aria-label="Manage" onClick={onOpenManageModal}>Manage User</Button>
             <IconButton isLoading={roleDeletionProgress} colorScheme="yellow" aria-label="Modifier" icon={<EditIcon />}
                         onClick={onOpenAddModal} />
             <IconButton isLoading={roleDeletionProgress} colorScheme="red" aria-label="Supprimer" icon={<DeleteIcon />}
                         onClick={onDelete} />
             <Text>{error}</Text>
-          </Flex>
-          <Spacer grow={"10"} />
-          <Table variant="simple">
+          </VStack>
+          <Table variant="simple" flex={"1"}>
             <Thead>
               <Tr color="gray.400">
                 <Th color="gray.400">
@@ -117,8 +116,8 @@ export default function Role(props) {
                     {props.roleAuth.operations.map((opt, index) => {
                       return (
                         <Th>
-                          <input type="checkbox"
-                                 checked={role.authorizations[resource]?.find(v => v === opt) !== undefined} />
+                          <Checkbox isReadOnly={true}
+                                    isChecked={role.authorizations[resource]?.find(v => v === opt) !== undefined} />
                         </Th>
                       );
                     })}
@@ -139,41 +138,49 @@ export default function Role(props) {
           <ModalHeader>Manager les utilisateurs du role</ModalHeader>
           <ModalBody>
             <FormControl>
-              <FormLabel>Recherche</FormLabel>
+              <VStack align="stretch" spacing={10}>
+                <HStack>
+                  <FormLabel>Recherche</FormLabel>
+                  <Input flex={1} type="text" placeholder="Recherche" value={searchVolunteer}
+                         onChange={(e) => setSearchVolunteer(e.target.value)} />
+                </HStack>
 
-              <Input type="text" placeholder="Recherche" value={searchVolunteer}
-                     onChange={(e) => setSearchVolunteer(e.target.value)} />
 
-              <FormLabel>Volontaire dans l'UL :</FormLabel>
-              {props.localUnitVolunteer
-                ?.filter(luv =>
-                  role.volunteer?.find(v => v.id === luv.id) === undefined
-                  && (luv.firstName.search(searchVolunteer) !== -1 || luv.lastName.search(searchVolunteer) !== -1))
-                .map((volunteer, index) => {
-                  return (
-                    <Flex direction="row">
-                      <Text>{volunteer.id} {volunteer.firstName} {volunteer.lastName}</Text>
-                      <Spacer grow={"10"} />
-                      <IconButton colorScheme="green" aria-label="assign" icon={<AddIcon />}
-                                  onClick={e => onAssign(volunteer)} />
-                    </Flex>
-                  );
-                })
-              }
-              <FormLabel>Volontaire ayant le role :</FormLabel>
-              {role.volunteer
-                // ?.filter( rv => rv.firstName.search(searchVolunteer) !== -1 || rv.lastName.search(searchVolunteer) !== -1 )
-                ?.map((volunteer, index) => {
-                  return (
-                    <Flex direction="row">
-                      <Text>{volunteer.id} {volunteer.firstName} {volunteer.lastName}</Text>
-                      <Spacer grow={"10"} />
-                      <IconButton colorScheme="red" aria-label="unassign" icon={<DeleteIcon />}
-                                  onClick={e => onUnAssign(volunteer)} />
-                    </Flex>
-                  );
-                })
-              }
+                <FormLabel>Volontaire dans l'UL :</FormLabel>
+                <VStack align="stretch" spacing={1}>
+                  {props.localUnitVolunteer
+                    ?.filter(luv =>
+                      role.volunteer?.find(v => v.id === luv.id) === undefined
+                      && (luv.firstName.search(searchVolunteer) !== -1 || luv.lastName.search(searchVolunteer) !== -1))
+                    .map((volunteer, index) => {
+                      return (
+                        <Flex direction="row">
+                          <Text>{volunteer.id} {volunteer.firstName} {volunteer.lastName}</Text>
+                          <Spacer grow={"10"} />
+                          <IconButton colorScheme="green" aria-label="assign" icon={<AddIcon />}
+                                      onClick={e => onAssign(volunteer)} />
+                        </Flex>
+                      );
+                    })
+                  }
+                </VStack>
+                <FormLabel>Volontaire ayant le role :</FormLabel>
+                <VStack align="stretch" spacing={1}>
+                  {role.volunteer
+                    // ?.filter( rv => rv.firstName.search(searchVolunteer) !== -1 || rv.lastName.search(searchVolunteer) !== -1 )
+                    ?.map((volunteer, index) => {
+                      return (
+                        <Flex direction="row">
+                          <Text>{volunteer.id} {volunteer.firstName} {volunteer.lastName}</Text>
+                          <Spacer grow={"10"} />
+                          <IconButton colorScheme="red" aria-label="unassign" icon={<DeleteIcon />}
+                                      onClick={e => onUnAssign(volunteer)} />
+                        </Flex>
+                      );
+                    })
+                  }
+                </VStack>
+              </VStack>
             </FormControl>
           </ModalBody>
           <ModalFooter>

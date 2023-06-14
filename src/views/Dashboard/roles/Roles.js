@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import { Button, Progress, Text, useDisclosure } from "@chakra-ui/react";
+import { Button, Flex, ListItem, Progress, Spacer, Text, UnorderedList, useDisclosure, VStack } from "@chakra-ui/react";
 import VolunteerContext from "../../../contexts/VolunteerContext";
 import { getLocalUnitRoles, getRoleAuth, getRoleVolunteers } from "../../../controller/RoleController";
 import Role from "./Role";
@@ -47,7 +47,7 @@ export default function Roles(props) {
 
   if (!rolesLoaded) {
     getLocalUnitRoles(volunteer.localUnitId)
-      .then( async (roles) => {
+      .then(async (roles) => {
         setRoles(roles);
         setRolesLoaded(true);
       })
@@ -64,13 +64,18 @@ export default function Roles(props) {
   } else if (rolesLoaded) {
     return (
       <>
-        <div>
-          <Text>{volunteer.username}</Text>
-          {roles.map((role, index) => (
-            <Role localUnitID={volunteer.localUnitId} localUnitVolunteer={localUnitVolunteer} role={role} roleAuth={roleAuth} onDelete={onDeleteRole}></Role>
-          ))}
+        <VStack spacing={10}
+                align="stretch"
+                pt={{ base: "120px", md: "75px", lg: "75px" }}>
+          <VStack spacing={4}
+                  align="stretch">
+            {roles.map((role, index) => (
+              <Role localUnitID={volunteer.localUnitId} localUnitVolunteer={localUnitVolunteer} role={role}
+                    roleAuth={roleAuth} onDelete={onDeleteRole}></Role>
+            ))}
+          </VStack>
           <Button onClick={onOpenAddModal}> Add New Role </Button>
-        </div>
+        </VStack>
         <RoleCreationModal isOpen={isOpenAddModal} onClose={onCloseAddModal}
                            localUnitID={volunteer.localUnitId} roleAuth={roleAuth} onNewValidRole={onNewValidRole} />
       </>
