@@ -1,14 +1,27 @@
 import React, {useContext, useEffect, useState} from "react";
 import {
     Button,
-    Flex, FormControl, FormLabel, Input,
-    Modal, ModalBody,
+    Flex,
+    FormControl,
+    FormLabel,
+    Input,
+    Modal,
+    ModalBody,
     ModalCloseButton,
-    ModalContent, ModalFooter,
+    ModalContent,
+    ModalFooter,
     ModalHeader,
-    ModalOverlay, Select,
+    ModalOverlay,
+    NumberDecrementStepper,
+    NumberIncrementStepper, NumberInput,
+    NumberInputField,
+    NumberInputStepper,
+    Radio,
+    RadioGroup,
+    Select,
     SimpleGrid,
-    Text, useDisclosure
+    Text,
+    useDisclosure
 } from "@chakra-ui/react";
 import {createStockage, getAllProducts, getStockages} from "../../controller/StorageController";
 import CardHeader from "../../components/Card/CardHeader";
@@ -17,7 +30,11 @@ import Card from "../../components/Card/Card";
 import {getAllDepartment} from "../../controller/AddressController";
 import VolunteerContext from "../../contexts/VolunteerContext";
 import {ProductList} from "../../model/stock/ProductList";
-import {getConservations, getMeasurementUnits} from "../../controller/ProductController";
+import {
+    createFoodProduct,
+    getConservations,
+    getMeasurementUnits
+} from "../../controller/ProductController";
 
 export default function Stocks() {
     const {volunteer, setVolunteer} = useContext(VolunteerContext);
@@ -31,7 +48,6 @@ export default function Stocks() {
     const [allProducts, setAllProducts] = useState(new ProductList([], []));
     const [units, setUnits] = useState([]);
     const [conservations, setConservations] = useState([]);
-    const { isOpen: isOpenAddProductModal, onOpen: onOpenAddProductModal, onClose: onCloseAddProductModal } = useDisclosure();
     const { isOpen: isOpenAddStorageModal, onOpen: onOpenAddStorageModal, onClose: onCloseAddStorageModal } = useDisclosure();
     const { isOpen: isOpenViewStorageModal, onOpen: onOpenViewStorageModal, onClose: onCloseViewStorageModal } = useDisclosure();
     const [storageName, setStorageName] = useState("");
@@ -41,8 +57,21 @@ export default function Stocks() {
     const [storageAddress, setStorageAddress] = useState("");
     const [errorAddingStorage, setErrorAddingStorage] = useState("");
     const [createEventLoading, setCreateEventLoading] = useState(false);
-    const [callAddStockage, setCallAddStockage] = useState(false);
     const [selectedStorage, setSelectedStorage] = useState(null);
+    //Add new product
+    const [callAddStockage, setCallAddStockage] = useState(false);
+    const [addProductType, setAddProductType] = useState("food");
+    const [addProductName, setAddProductName] = useState("");
+    const [addProductQuantity, setAddProductQuantity] = useState(1);
+    const [addProductUnit, setAddProductUnit] = useState("");
+    const [addProductConservation, setAddProductConservation] = useState("");
+    const [addProductExpirationDate, setAddProductExpirationDate] = useState(new Date().toISOString().substring(0, 10));
+    const [addProductOptimalDate, setAddProductOptimalDate] = useState(new Date().toISOString().substring(0, 10));
+    const [addProductPrice, setAddProductPrice] = useState(1);
+    const [addProductStorageId, setAddProductStorageId] = useState("");
+    const [addProductAmount, setAddProductAmount] = useState(1);
+    const [addProductError, setAddProductError] = useState("");
+    const { isOpen: isOpenAddProductModal, onOpen: onOpenAddProductModal, onClose: onCloseAddProductModal } = useDisclosure();
 
     useEffect(() => {
         if (storageDepartment !== '' && departments.length > 0) {
@@ -87,7 +116,7 @@ export default function Stocks() {
         setLoadedConservations(true);
         getConservations()
             .then((conservations) => {
-                setConservations(conservations);
+                setConservations(conservations.conservations);
             })
             .catch((_) => {
                 setLoadedConservations(false);
@@ -148,6 +177,70 @@ export default function Stocks() {
     const selectStorageForModal = (storage, onOpenModal) => {
         setSelectedStorage(storage);
         onOpenModal();
+    }
+
+    const addProduct = () => {
+        setAddProductError("");
+        if (addProductType === "food") {
+            addFoodProduct();
+        }
+        if (addProductType === "cloth") {
+            addClothProduct();
+        }
+    }
+
+    const addFoodProduct = () => {
+        if (addProductName === "") {
+            setAddProductError("Veuillez renseigner un nom pour le produit");
+            return;
+        }
+
+        if (addProductUnit === "") {
+            setAddProductError("Veuillez renseigner une unité pour le produit");
+            return;
+        }
+
+        if (addProductConservation === "") {
+            setAddProductError("Veuillez renseigner une conservation pour le produit");
+            return;
+        }
+
+        let expirationDate;
+        try {
+            const [years, month, days] = addProductExpirationDate.split("-");
+            expirationDate = new Date(parseInt(years), parseInt(month) - 1, parseInt(days));
+        } catch (err) {
+            setAddProductError("Veuillez renseigner une date d'expiration valide pour le produit");
+            return;
+        }
+
+        let optimalDate;
+        try {
+            const [years, month, days] = addProductOptimalDate.split("-");
+            optimalDate = new Date(parseInt(years), parseInt(month) - 1, parseInt(days));
+        } catch (err) {
+            setAddProductError("Veuillez renseigner une date optimale de consommation valide pour le produit");
+            return;
+        }
+
+        if (addProductStorageId === "") {
+            setAddProductError("Veuillez renseigner un espace de stockage pour le produit");
+            return;
+        }
+
+        createFoodProduct(addProductName, addProductQuantity, addProductUnit, addProductConservation, expirationDate, optimalDate, addProductPrice, addProductStorageId, addProductAmount)
+            .then((_) => {
+                onCloseAddProductModal();
+                setLoadedAllProducts(false);
+            })
+            .catch((err) => {
+                console.log(err);
+                setAddProductError("Une erreur est survenue lors de l'ajout du produit");
+            });
+    }
+
+    const addClothProduct = () => {
+
     }
 
     return (
@@ -249,8 +342,96 @@ export default function Stocks() {
                     <ModalHeader>Ajouter un produit aux stocks</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
-                        <Text>TODO</Text>
+                        <Text size="md" fontWeight="semibold" w="40%">
+                            Type de produit à ajouter
+                        </Text>
+                        <RadioGroup value={addProductType} onChange={(e) => setAddProductType(e)}>
+                            <Radio value="food" margin="8px 64px">Nourriture</Radio>
+                            <Radio value="cloth" margin="8px 64px">Vêtement</Radio>
+                        </RadioGroup>
+                        {addProductType === "food" && (
+                            <FormControl>
+                                {(isNaN(addProductQuantity) || addProductQuantity <= 0) && setAddProductQuantity(1)}
+                                {(isNaN(addProductPrice) || addProductPrice < 0) && setAddProductPrice(0)}
+                                {(isNaN(addProductAmount) || addProductAmount <= 0) && setAddProductAmount(1)}
+                                <FormLabel>Nom du produit</FormLabel>
+                                <Input type="text" placeholder="Nom du produit" value={addProductName} onChange={(e) => setAddProductName(e.target.value)}/>
+                                <Text size="md" mt="8px" fontWeight="semibold">Quantité du produit</Text>
+                                <NumberInput defaultValue={1} min={0} max={2000000} value={addProductQuantity} onChange={(e) => setAddProductQuantity(parseInt(e))}>
+                                    <NumberInputField />
+                                    <NumberInputStepper>
+                                        <NumberIncrementStepper />
+                                        <NumberDecrementStepper />
+                                    </NumberInputStepper>
+                                </NumberInput>
+                                <Text size="md" mt="8px" fontWeight="semibold">Unité de quantité du produit</Text>
+                                <RadioGroup value={addProductUnit} onChange={(e) => setAddProductUnit(e)}>
+                                    <Flex direction="row" justify="space-between">
+                                        {units.map((unit, key) => (
+                                            <Flex direction="column" key={key}>
+                                                <Text>{unit.label}</Text>
+                                                {unit.units.map((unitName, keyRadio) => (
+                                                    <div key={keyRadio}>
+                                                        {unitName !== "" && (
+                                                            <Radio value={unitName}>{unitName}</Radio>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </Flex>
+                                        ))}
+                                    </Flex>
+                                </RadioGroup>
+                                <Text size="md" mt="8px" fontWeight="semibold">Méthode de conservation</Text>
+                                <RadioGroup value={addProductConservation} onChange={(e) => setAddProductConservation(e)}>
+                                    <Flex direction="row" justify="space-between">
+                                        {conservations.map((conservation, key) => (
+                                            <Radio key={key} value={conservation}>{conservation}</Radio>
+                                        ))}
+                                    </Flex>
+                                </RadioGroup>
+                                <Text size="md" mt="8px" fontWeight="semibold">Date de consommation optimale</Text>
+                                <Input type="date" value={addProductOptimalDate} onChange={(e) => setAddProductOptimalDate(e.target.value)} />
+                                <Text size="md" mt="8px" fontWeight="semibold">Date de péremption</Text>
+                                <Input type="date" value={addProductExpirationDate} onChange={(e) => setAddProductExpirationDate(e.target.value)} />
+                                <Text size="md" mt="8px" fontWeight="semibold">Prix en centimes</Text>
+                                <NumberInput defaultValue={1} min={0} max={2000000}value={addProductPrice} onChange={(e) => setAddProductPrice(parseInt(e))}>
+                                    <NumberInputField />
+                                    <NumberInputStepper>
+                                        <NumberIncrementStepper />
+                                        <NumberDecrementStepper />
+                                    </NumberInputStepper>
+                                </NumberInput>
+                                <Text size="md" mt="8px" fontWeight="semibold">Espace de stockage</Text>
+                                <Select placeholder="Espace de stockage" value={addProductStorageId} onChange={(e) => setAddProductStorageId(e.target.value)}>
+                                    {storages.map((storage, key) => (
+                                        <option key={key} value={storage.id}>{storage.name}</option>
+                                    ))}
+                                </Select>
+                                <Text size="md" mt="8px" fontWeight="semibold">Quantité du produit à ajouter</Text>
+                                <NumberInput defaultValue={1} min={1} max={2000000} value={addProductAmount} onChange={(e) => setAddProductAmount(parseInt(e))}>
+                                    <NumberInputField />
+                                    <NumberInputStepper>
+                                        <NumberIncrementStepper />
+                                        <NumberDecrementStepper />
+                                    </NumberInputStepper>
+                                </NumberInput>
+                            </FormControl>
+                        )}
+                        {addProductType === "cloth" && (
+                            <Text>TODO</Text>
+                        )}
+                        {addProductError !== "" && (
+                            <Text color="red">{addProductError}</Text>
+                        )}
                     </ModalBody>
+                    <ModalFooter>
+                        <Button colorScheme="blue" mr={3} onClick={onCloseAddProductModal}>
+                            Fermer
+                        </Button>
+                        <Button colorScheme="green" mr={3} onClick={() => addProduct()}>
+                            Ajouter
+                        </Button>
+                    </ModalFooter>
                 </ModalContent>
             </Modal>
             <Modal isOpen={isOpenAddStorageModal} onClose={onCloseAddStorageModal} size="xl" scrollBehavior="outside">
