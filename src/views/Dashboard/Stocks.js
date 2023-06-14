@@ -17,16 +17,22 @@ import Card from "../../components/Card/Card";
 import {getAllDepartment} from "../../controller/AddressController";
 import VolunteerContext from "../../contexts/VolunteerContext";
 import {ProductList} from "../../model/stock/ProductList";
+import {getConservations, getMeasurementUnits} from "../../controller/ProductController";
 
 export default function Stocks() {
     const {volunteer, setVolunteer} = useContext(VolunteerContext);
     const [loadedStorages, setLoadedStorages] = useState(false);
     const [loadedDepartments, setLoadedDepartments] = useState(false);
     const [loadedAllProducts, setLoadedAllProducts] = useState(false);
+    const [loadedUnits, setLoadedUnits] = useState(false);
+    const [loadedConservations, setLoadedConservations] = useState(false);
     const [storages, setStorages] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [allProducts, setAllProducts] = useState(new ProductList([], []));
-    const { isOpen: isOpenAddModal, onOpen: onOpenAddModal, onClose: onCloseAddModal } = useDisclosure();
+    const [units, setUnits] = useState([]);
+    const [conservations, setConservations] = useState([]);
+    const { isOpen: isOpenAddProductModal, onOpen: onOpenAddProductModal, onClose: onCloseAddProductModal } = useDisclosure();
+    const { isOpen: isOpenAddStorageModal, onOpen: onOpenAddStorageModal, onClose: onCloseAddStorageModal } = useDisclosure();
     const { isOpen: isOpenViewStorageModal, onOpen: onOpenViewStorageModal, onClose: onCloseViewStorageModal } = useDisclosure();
     const [storageName, setStorageName] = useState("");
     const [storageDepartment, setStorageDepartment] = useState("");
@@ -63,6 +69,28 @@ export default function Stocks() {
             })
             .catch((_) => {
                 setLoadedDepartments(false);
+            });
+    }
+
+    const loadUnits = () => {
+        setLoadedUnits(true);
+        getMeasurementUnits()
+            .then((units) => {
+                setUnits(units);
+            })
+            .catch((_) => {
+                setLoadedUnits(false);
+            });
+    }
+
+    const loadConservations = () => {
+        setLoadedConservations(true);
+        getConservations()
+            .then((conservations) => {
+                setConservations(conservations);
+            })
+            .catch((_) => {
+                setLoadedConservations(false);
             });
     }
 
@@ -108,7 +136,7 @@ export default function Stocks() {
 
         createStockage(storageName, volunteer.localUnitId, departments[storageDepartment].code, storagePostalCode, storageCity, storageAddress)
             .then(() => {
-                onCloseAddModal();
+                onCloseAddStorageModal();
                 setLoadedStorages(false);
                 setCreateEventLoading(false);
             })
@@ -126,14 +154,16 @@ export default function Stocks() {
         <>
             {!loadedStorages && loadStorages()}
             {!loadedDepartments && loadDepartments()}
+            {!loadedUnits && loadUnits()}
+            {!loadedConservations && loadConservations()}
             {!loadedAllProducts && loadProducts()}
             {callAddStockage && addStorage()}
-            {console.log(allProducts)}
             <Flex direction="column" pt={{ base: "120px", md: "75px" }}>
                 <Card pb="0px">
                     <CardHeader>
                         <Flex justify="space-between" m="12px 8px">
                             <Text fontSize="2xl">Stock de l'unité locale</Text>
+                            <Button colorScheme="green" onClick={onOpenAddProductModal}>Ajouter un produit aux stocks</Button>
                         </Flex>
                     </CardHeader>
                     <CardBody>
@@ -181,7 +211,7 @@ export default function Stocks() {
                     <CardHeader>
                         <Flex justify="space-between" m="12px 8px">
                             <Text fontSize="2xl">Gestion des espaces de stockage</Text>
-                            <Button onClick={onOpenAddModal} colorScheme="green">
+                            <Button onClick={onOpenAddStorageModal} colorScheme="green">
                                 AJOUTER
                             </Button>
                         </Flex>
@@ -206,11 +236,24 @@ export default function Stocks() {
                                     </CardBody>
                                 </Card>
                             ))}
+                            {storages.length === 0 && (
+                                <Text>Aucun espace de stockage</Text>
+                            )}
                         </SimpleGrid>
                     </CardBody>
                 </Card>
             </Flex>
-            <Modal isOpen={isOpenAddModal} onClose={onCloseAddModal} size="xl" scrollBehavior="outside">
+            <Modal isOpen={isOpenAddProductModal} onClose={onCloseAddProductModal} size="2xl" scrollBehavior="outside">
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>Ajouter un produit aux stocks</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                        <Text>TODO</Text>
+                    </ModalBody>
+                </ModalContent>
+            </Modal>
+            <Modal isOpen={isOpenAddStorageModal} onClose={onCloseAddStorageModal} size="xl" scrollBehavior="outside">
                 <ModalOverlay />
                 <ModalContent>
                     <ModalHeader>Ajouter un espace de stockage</ModalHeader>
@@ -240,7 +283,7 @@ export default function Stocks() {
                         )}
                     </ModalBody>
                     <ModalFooter>
-                        <Button colorScheme="blue" mr={3} onClick={onCloseAddModal}>
+                        <Button colorScheme="blue" mr={3} onClick={onCloseAddStorageModal}>
                             Annuler
                         </Button>
                         <Button variant="outline" colorScheme="green" onClick={() => setCallAddStockage(true)} isDisabled={createEventLoading}>
@@ -255,7 +298,6 @@ export default function Stocks() {
                     <ModalHeader>Contenu de l'espace de stockage</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
-                        {console.log(selectedStorage)}
                         {selectedStorage !== null && (
                             <Flex direction="column">
                                 <Text>{selectedStorage.name}</Text>
