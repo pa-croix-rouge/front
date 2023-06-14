@@ -16,6 +16,7 @@ import ManageEvents from "./views/Dashboard/ManageEvents";
 import Stocks from "./views/Dashboard/Stocks";
 import FoodStocks from "./views/Dashboard/FoodStocks";
 import ClothStocks from "./views/Dashboard/ClothStocks";
+import Roles from "./views/Dashboard/roles/Roles";
 
 var dashRoutes = [
   {
@@ -86,6 +87,13 @@ var dashRoutes = [
     name: "Cloth Stocks",
     icon: <HomeIcon color='inherit' />,
     component: ClothStocks,
+    layout: "/admin",
+  },
+  {
+    path: "/roles",
+    name: "Roles",
+    icon: <HomeIcon color='inherit' />,
+    component: Roles,
     layout: "/admin",
   },
   {
