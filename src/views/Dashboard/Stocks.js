@@ -31,20 +31,23 @@ import {getAllDepartment} from "../../controller/AddressController";
 import VolunteerContext from "../../contexts/VolunteerContext";
 import {ProductList} from "../../model/stock/ProductList";
 import {
+    createClothProduct,
     createFoodProduct,
     getConservations,
-    getMeasurementUnits
+    getMeasurementUnits, getSizes
 } from "../../controller/ProductController";
 
 export default function Stocks() {
     const {volunteer, setVolunteer} = useContext(VolunteerContext);
     const [loadedStorages, setLoadedStorages] = useState(false);
     const [loadedDepartments, setLoadedDepartments] = useState(false);
+    const [loadedSizes, setLoadedSizes] = useState(false);
     const [loadedAllProducts, setLoadedAllProducts] = useState(false);
     const [loadedUnits, setLoadedUnits] = useState(false);
     const [loadedConservations, setLoadedConservations] = useState(false);
     const [storages, setStorages] = useState([]);
     const [departments, setDepartments] = useState([]);
+    const [sizes, setSizes] = useState([]);
     const [allProducts, setAllProducts] = useState(new ProductList([], []));
     const [units, setUnits] = useState([]);
     const [conservations, setConservations] = useState([]);
@@ -70,6 +73,7 @@ export default function Stocks() {
     const [addProductPrice, setAddProductPrice] = useState(1);
     const [addProductStorageId, setAddProductStorageId] = useState("");
     const [addProductAmount, setAddProductAmount] = useState(1);
+    const [addProductSize, setAddProductSize] = useState("");
     const [addProductError, setAddProductError] = useState("");
     const { isOpen: isOpenAddProductModal, onOpen: onOpenAddProductModal, onClose: onCloseAddProductModal } = useDisclosure();
 
@@ -134,6 +138,17 @@ export default function Stocks() {
             })
     }
 
+    const loadSizes = () => {
+        setLoadedSizes(true);
+        getSizes()
+            .then((sizes) => {
+                setSizes(sizes);
+            })
+            .catch((_) => {
+                setLoadedSizes(false);
+            });
+    }
+
     const addStorage = () => {
         setCallAddStockage(false);
         setCreateEventLoading(true);
@@ -181,6 +196,14 @@ export default function Stocks() {
 
     const addProduct = () => {
         setAddProductError("");
+        if (addProductName === "") {
+            setAddProductError("Veuillez renseigner un nom pour le produit");
+            return;
+        }
+        if (addProductStorageId === "") {
+            setAddProductError("Veuillez renseigner un espace de stockage pour le produit");
+            return;
+        }
         if (addProductType === "food") {
             addFoodProduct();
         }
@@ -190,21 +213,14 @@ export default function Stocks() {
     }
 
     const addFoodProduct = () => {
-        if (addProductName === "") {
-            setAddProductError("Veuillez renseigner un nom pour le produit");
-            return;
-        }
-
         if (addProductUnit === "") {
             setAddProductError("Veuillez renseigner une unité pour le produit");
             return;
         }
-
         if (addProductConservation === "") {
             setAddProductError("Veuillez renseigner une conservation pour le produit");
             return;
         }
-
         let expirationDate;
         try {
             const [years, month, days] = addProductExpirationDate.split("-");
@@ -213,7 +229,6 @@ export default function Stocks() {
             setAddProductError("Veuillez renseigner une date d'expiration valide pour le produit");
             return;
         }
-
         let optimalDate;
         try {
             const [years, month, days] = addProductOptimalDate.split("-");
@@ -222,12 +237,6 @@ export default function Stocks() {
             setAddProductError("Veuillez renseigner une date optimale de consommation valide pour le produit");
             return;
         }
-
-        if (addProductStorageId === "") {
-            setAddProductError("Veuillez renseigner un espace de stockage pour le produit");
-            return;
-        }
-
         createFoodProduct(addProductName, addProductQuantity, addProductUnit, addProductConservation, expirationDate, optimalDate, addProductPrice, addProductStorageId, addProductAmount)
             .then((_) => {
                 onCloseAddProductModal();
@@ -240,7 +249,19 @@ export default function Stocks() {
     }
 
     const addClothProduct = () => {
-
+        if (addProductSize === "") {
+            setAddProductError("Veuillez renseigner une taille pour le produit");
+            return;
+        }
+        createClothProduct(addProductName, addProductQuantity, addProductSize, addProductStorageId, addProductAmount)
+            .then((_) => {
+                onCloseAddProductModal();
+                setLoadedAllProducts(false);
+            })
+            .catch((err) => {
+                console.log(err);
+                setAddProductError("Une erreur est survenue lors de l'ajout du produit");
+            });
     }
 
     return (
@@ -249,6 +270,7 @@ export default function Stocks() {
             {!loadedDepartments && loadDepartments()}
             {!loadedUnits && loadUnits()}
             {!loadedConservations && loadConservations()}
+            {!loadedSizes && loadSizes()}
             {!loadedAllProducts && loadProducts()}
             {callAddStockage && addStorage()}
             <Flex direction="column" pt={{ base: "120px", md: "75px" }}>
@@ -349,77 +371,86 @@ export default function Stocks() {
                             <Radio value="food" margin="8px 64px">Nourriture</Radio>
                             <Radio value="cloth" margin="8px 64px">Vêtement</Radio>
                         </RadioGroup>
-                        {addProductType === "food" && (
-                            <FormControl>
-                                {(isNaN(addProductQuantity) || addProductQuantity <= 0) && setAddProductQuantity(1)}
-                                {(isNaN(addProductPrice) || addProductPrice < 0) && setAddProductPrice(0)}
-                                {(isNaN(addProductAmount) || addProductAmount <= 0) && setAddProductAmount(1)}
-                                <FormLabel>Nom du produit</FormLabel>
-                                <Input type="text" placeholder="Nom du produit" value={addProductName} onChange={(e) => setAddProductName(e.target.value)}/>
-                                <Text size="md" mt="8px" fontWeight="semibold">Quantité du produit</Text>
-                                <NumberInput defaultValue={1} min={0} max={2000000} value={addProductQuantity} onChange={(e) => setAddProductQuantity(parseInt(e))}>
-                                    <NumberInputField />
-                                    <NumberInputStepper>
-                                        <NumberIncrementStepper />
-                                        <NumberDecrementStepper />
-                                    </NumberInputStepper>
-                                </NumberInput>
-                                <Text size="md" mt="8px" fontWeight="semibold">Unité de quantité du produit</Text>
-                                <RadioGroup value={addProductUnit} onChange={(e) => setAddProductUnit(e)}>
-                                    <Flex direction="row" justify="space-between">
-                                        {units.map((unit, key) => (
-                                            <Flex direction="column" key={key}>
-                                                <Text>{unit.label}</Text>
-                                                {unit.units.map((unitName, keyRadio) => (
-                                                    <div key={keyRadio}>
-                                                        {unitName !== "" && (
-                                                            <Radio value={unitName}>{unitName}</Radio>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                            </Flex>
+                        {(isNaN(addProductQuantity) || addProductQuantity <= 0) && setAddProductQuantity(1)}
+                        {(isNaN(addProductPrice) || addProductPrice < 0) && setAddProductPrice(0)}
+                        {(isNaN(addProductAmount) || addProductAmount <= 0) && setAddProductAmount(1)}
+                        <FormControl>
+                            <FormLabel>Nom du produit</FormLabel>
+                            <Input type="text" placeholder="Nom du produit" value={addProductName} onChange={(e) => setAddProductName(e.target.value)}/>
+                            <Text size="md" mt="8px" fontWeight="semibold">Espace de stockage</Text>
+                            <Select placeholder="Espace de stockage" value={addProductStorageId} onChange={(e) => setAddProductStorageId(e.target.value)}>
+                                {storages.map((storage, key) => (
+                                    <option key={key} value={storage.id}>{storage.name}</option>
+                                ))}
+                            </Select>
+                            <Text size="md" mt="8px" fontWeight="semibold">Nombre d'exemplaire du produit perçu</Text>
+                            <NumberInput defaultValue={1} min={1} max={2000000} value={addProductAmount} onChange={(e) => setAddProductAmount(parseInt(e))}>
+                                <NumberInputField />
+                                <NumberInputStepper>
+                                    <NumberIncrementStepper />
+                                    <NumberDecrementStepper />
+                                </NumberInputStepper>
+                            </NumberInput>
+                            <Text size="md" mt="8px" fontWeight="semibold">Contenue du produit en quantité</Text>
+                            <NumberInput defaultValue={1} min={1} max={2000000} value={addProductQuantity} onChange={(e) => setAddProductQuantity(parseInt(e))}>
+                                <NumberInputField />
+                                <NumberInputStepper>
+                                    <NumberIncrementStepper />
+                                    <NumberDecrementStepper />
+                                </NumberInputStepper>
+                            </NumberInput>
+                            {addProductType === "food" && (
+                                <>
+                                    <Text size="md" mt="8px" fontWeight="semibold">Unité de quantité du produit</Text>
+                                    <RadioGroup value={addProductUnit} onChange={(e) => setAddProductUnit(e)}>
+                                        <Flex direction="row" justify="space-between">
+                                            {units.map((unit, key) => (
+                                                <Flex direction="column" key={key}>
+                                                    <Text>{unit.label}</Text>
+                                                    {unit.units.map((unitName, keyRadio) => (
+                                                        <div key={keyRadio}>
+                                                            {unitName !== "" && (
+                                                                <Radio value={unitName}>{unitName}</Radio>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </Flex>
+                                            ))}
+                                        </Flex>
+                                    </RadioGroup>
+                                    <Text size="md" mt="8px" fontWeight="semibold">Méthode de conservation</Text>
+                                    <RadioGroup value={addProductConservation} onChange={(e) => setAddProductConservation(e)}>
+                                        <Flex direction="row" justify="space-between">
+                                            {conservations.map((conservation, key) => (
+                                                <Radio key={key} value={conservation}>{conservation}</Radio>
+                                            ))}
+                                        </Flex>
+                                    </RadioGroup>
+                                    <Text size="md" mt="8px" fontWeight="semibold">Date de consommation optimale</Text>
+                                    <Input type="date" value={addProductOptimalDate} onChange={(e) => setAddProductOptimalDate(e.target.value)} />
+                                    <Text size="md" mt="8px" fontWeight="semibold">Date de péremption</Text>
+                                    <Input type="date" value={addProductExpirationDate} onChange={(e) => setAddProductExpirationDate(e.target.value)} />
+                                    <Text size="md" mt="8px" fontWeight="semibold">Prix en centimes</Text>
+                                    <NumberInput defaultValue={1} min={0} max={2000000} value={addProductPrice} onChange={(e) => setAddProductPrice(parseInt(e))}>
+                                        <NumberInputField />
+                                        <NumberInputStepper>
+                                            <NumberIncrementStepper />
+                                            <NumberDecrementStepper />
+                                        </NumberInputStepper>
+                                    </NumberInput>
+                                </>
+                            )}
+                            {addProductType === "cloth" && (
+                                <>
+                                    <Text size="md" mt="8px" fontWeight="semibold">Taille du vêtement</Text>
+                                    <Select placeholder="Taille du vêtement" value={addProductSize} onChange={(e) => setAddProductSize(e.target.value)}>
+                                        {sizes.map((size, key) => (
+                                            <option key={key} value={size}>{size}</option>
                                         ))}
-                                    </Flex>
-                                </RadioGroup>
-                                <Text size="md" mt="8px" fontWeight="semibold">Méthode de conservation</Text>
-                                <RadioGroup value={addProductConservation} onChange={(e) => setAddProductConservation(e)}>
-                                    <Flex direction="row" justify="space-between">
-                                        {conservations.map((conservation, key) => (
-                                            <Radio key={key} value={conservation}>{conservation}</Radio>
-                                        ))}
-                                    </Flex>
-                                </RadioGroup>
-                                <Text size="md" mt="8px" fontWeight="semibold">Date de consommation optimale</Text>
-                                <Input type="date" value={addProductOptimalDate} onChange={(e) => setAddProductOptimalDate(e.target.value)} />
-                                <Text size="md" mt="8px" fontWeight="semibold">Date de péremption</Text>
-                                <Input type="date" value={addProductExpirationDate} onChange={(e) => setAddProductExpirationDate(e.target.value)} />
-                                <Text size="md" mt="8px" fontWeight="semibold">Prix en centimes</Text>
-                                <NumberInput defaultValue={1} min={0} max={2000000}value={addProductPrice} onChange={(e) => setAddProductPrice(parseInt(e))}>
-                                    <NumberInputField />
-                                    <NumberInputStepper>
-                                        <NumberIncrementStepper />
-                                        <NumberDecrementStepper />
-                                    </NumberInputStepper>
-                                </NumberInput>
-                                <Text size="md" mt="8px" fontWeight="semibold">Espace de stockage</Text>
-                                <Select placeholder="Espace de stockage" value={addProductStorageId} onChange={(e) => setAddProductStorageId(e.target.value)}>
-                                    {storages.map((storage, key) => (
-                                        <option key={key} value={storage.id}>{storage.name}</option>
-                                    ))}
-                                </Select>
-                                <Text size="md" mt="8px" fontWeight="semibold">Quantité du produit à ajouter</Text>
-                                <NumberInput defaultValue={1} min={1} max={2000000} value={addProductAmount} onChange={(e) => setAddProductAmount(parseInt(e))}>
-                                    <NumberInputField />
-                                    <NumberInputStepper>
-                                        <NumberIncrementStepper />
-                                        <NumberDecrementStepper />
-                                    </NumberInputStepper>
-                                </NumberInput>
-                            </FormControl>
-                        )}
-                        {addProductType === "cloth" && (
-                            <Text>TODO</Text>
-                        )}
+                                    </Select>
+                                </>
+                            )}
+                        </FormControl>
                         {addProductError !== "" && (
                             <Text color="red">{addProductError}</Text>
                         )}

@@ -1,6 +1,7 @@
 import {MeasurementUnit} from "../model/stock/MeasurementUnit";
 import {getWithToken, postWithToken} from "./Controller";
 import {CreateFoodProduct} from "../model/stock/CreateFoodProduct";
+import {CreateClothProduct} from "../model/stock/CreateClothProduct";
 
 export const getMeasurementUnits = async (): Promise<MeasurementUnit[]> => {
     const response = await getWithToken(`product/units`);
@@ -34,11 +35,31 @@ export const getConservations = async (): Promise<string[]> => {
     return await response.json();
 }
 
+export const getSizes = async (): Promise<string[]> => {
+    const response = await getWithToken(`product/sizes`);
+
+    if (!response.ok) {
+        throw new Error(`Fetching sizes failed with status ${response.status}`);
+    }
+
+    return await response.json();
+}
+
 export const createFoodProduct = async (name: string, quantity: number, measurementUnit: string, foodConservation: string, expirationDate: Date, optimalConsumptionDate: Date, price: number, storageId: string, amount: number): Promise<void> => {
     const response = await postWithToken(`product/food`, new CreateFoodProduct(name, quantity, measurementUnit, foodConservation, expirationDate, optimalConsumptionDate, price, storageId, amount));
 
     if (!response.ok) {
         throw new Error(`Adding food product failed with status ${response.status}`);
+    }
+
+    return await response.json();
+}
+
+export const createClothProduct = async (name: string, quantity: number, size: string, storageId: string, amount: number): Promise<void> => {
+    const response = await postWithToken(`product/cloth`, new CreateClothProduct(name, quantity, size, storageId, amount));
+
+    if (!response.ok) {
+        throw new Error(`Adding cloth product failed with status ${response.status}`);
     }
 
     return await response.json();
