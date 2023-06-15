@@ -1,9 +1,10 @@
 import React, {useContext, useEffect, useState} from "react";
 import {
+    Badge,
     Button,
     Flex,
     FormControl,
-    FormLabel,
+    FormLabel, IconButton,
     Input,
     Modal,
     ModalBody,
@@ -36,6 +37,7 @@ import {
     getConservations,
     getMeasurementUnits, getSizes
 } from "../../controller/ProductController";
+import {FaEdit, FaTrash} from "react-icons/fa";
 
 export default function Stocks() {
     const {volunteer, setVolunteer} = useContext(VolunteerContext);
@@ -76,6 +78,11 @@ export default function Stocks() {
     const [addProductSize, setAddProductSize] = useState("");
     const [addProductError, setAddProductError] = useState("");
     const { isOpen: isOpenAddProductModal, onOpen: onOpenAddProductModal, onClose: onCloseAddProductModal } = useDisclosure();
+    //Update product
+    const { isOpen: isOpenUpdateProductModal, onOpen: onOpenUpdateProductModal, onClose: onCloseUpdateProductModal } = useDisclosure();
+    const [selectedProduct, setSelectedProduct] = useState(null);
+    //Delete product
+    const { isOpen: isOpenDeleteProductModal, onOpen: onOpenDeleteProductModal, onClose: onCloseDeleteProductModal } = useDisclosure();
 
     useEffect(() => {
         if (storageDepartment !== '' && departments.length > 0) {
@@ -189,6 +196,11 @@ export default function Stocks() {
             });
     }
 
+    const selectProductForModal = (product, onOpenModal) => {
+        setSelectedProduct(product);
+        onOpenModal();
+    }
+
     const selectStorageForModal = (storage, onOpenModal) => {
         setSelectedStorage(storage);
         onOpenModal();
@@ -289,11 +301,33 @@ export default function Stocks() {
                             {allProducts.foods.map((foodStorageProduct, key) => (
                                 <Card key={key}>
                                     <CardHeader>
-                                        <Text>{foodStorageProduct.product.name}</Text>
+                                        <Flex direction="row">
+                                            <IconButton aria-label="Editer le produit" icon={<FaEdit />} size="sm" onClick={() => selectProductForModal(foodStorageProduct, onOpenUpdateProductModal)} mr="4px"/>
+                                            <IconButton aria-label="Supprimer le produit" icon={<FaTrash />} size="sm" onClick={() => selectProductForModal(foodStorageProduct, onOpenDeleteProductModal)}/>
+                                            <Text m="auto 0 auto 12px">{foodStorageProduct.product.name}</Text>
+                                        </Flex>
                                     </CardHeader>
                                     <CardBody>
-                                        <Text>Total: {foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Text>
+                                        {foodStorageProduct.expirationDate && new Date(foodStorageProduct.expirationDate.split('[')[0]).getTime() < Date.now() && (
+                                            <Badge m="2px" colorScheme="red">DLC {new Date(foodStorageProduct.expirationDate.split('[')[0]).toLocaleDateString()}</Badge>
+                                        )}
+                                        {foodStorageProduct.expirationDate && new Date(foodStorageProduct.expirationDate.split('[')[0]).getTime() > Date.now() && new Date(foodStorageProduct.expirationDate.split('[')[0]).getTime() < (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
+                                            <Badge m="2px" colorScheme="orange">DLC {new Date(foodStorageProduct.expirationDate.split('[')[0]).toLocaleDateString()}</Badge>
+                                        )}
+                                        {foodStorageProduct.expirationDate && new Date(foodStorageProduct.expirationDate.split('[')[0]).getTime() > (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
+                                            <Badge m="2px" colorScheme="green">DLC {new Date(foodStorageProduct.expirationDate.split('[')[0]).toLocaleDateString()}</Badge>
+                                        )}
+                                        {foodStorageProduct.optimalConsumptionDate && new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).getTime() < Date.now() && (
+                                            <Badge m="2px" colorScheme="red">DLUO {new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).toLocaleDateString()}</Badge>
+                                        )}
+                                        {foodStorageProduct.optimalConsumptionDate && new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).getTime() > Date.now() && new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).getTime() < (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
+                                            <Badge m="2px" colorScheme="orange">DLUO {new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).toLocaleDateString()}</Badge>
+                                        )}
+                                        {foodStorageProduct.optimalConsumptionDate && new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).getTime() > (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
+                                            <Badge m="2px" colorScheme="green">DLUO {new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).toLocaleDateString()}</Badge>
+                                        )}
                                         <Text>{foodStorageProduct.product.quantity} * {foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Text>
+                                        <Badge colorScheme="purple">{foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Badge>
                                     </CardBody>
                                 </Card>
                             ))}
@@ -308,11 +342,15 @@ export default function Stocks() {
                             {allProducts.clothes.map((clothStorageProduct, key) => (
                                 <Card key={key}>
                                     <CardHeader>
-                                        <Text>{clothStorageProduct.product.name}</Text>
+                                        <Flex direction="row">
+                                            <IconButton aria-label="Editer le produit" icon={<FaEdit />} size="sm" onClick={() => selectProductForModal(clothStorageProduct, onOpenUpdateProductModal)} mr="4px"/>
+                                            <IconButton aria-label="Supprimer le produit" icon={<FaTrash />} size="sm" onClick={() => selectProductForModal(clothStorageProduct, onOpenDeleteProductModal)}/>
+                                            <Text m="auto 0 auto 12px">{clothStorageProduct.product.name}</Text>
+                                        </Flex>
                                     </CardHeader>
                                     <CardBody>
-                                        <Text>Total: {clothStorageProduct.product.quantity * clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Text>
                                         <Text>{clothStorageProduct.product.quantity} * {clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Text>
+                                        <Badge colorScheme="purple">{clothStorageProduct.product.quantity * clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Badge>
                                     </CardBody>
                                 </Card>
                             ))}
@@ -465,6 +503,40 @@ export default function Stocks() {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
+            <Modal isOpen={isOpenUpdateProductModal} onClose={onCloseUpdateProductModal} size="lg" scrollBehavior="outside">
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>Modifier un produit</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                        <FormControl>
+                            <Text>TODO</Text>
+                        </FormControl>
+                    </ModalBody>
+                </ModalContent>
+            </Modal>
+            <Modal isOpen={isOpenDeleteProductModal} onClose={onCloseDeleteProductModal} size="lg" scrollBehavior="outside">
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>Supprimer un produit</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                        <FormControl>
+                            {selectedProduct !== null && (
+                                <Text>Etes-vous sur de vouloir supprimer {selectedProduct?.product?.name} ?</Text>
+                            )}
+                        </FormControl>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button colorScheme="blue" mr={3} onClick={onCloseDeleteProductModal}>
+                            Annuler
+                        </Button>
+                        <Button colorScheme="red" variant="outline" mr={3} onClick={() => console.log("yeeet")}>
+                            Supprimer
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
             <Modal isOpen={isOpenAddStorageModal} onClose={onCloseAddStorageModal} size="xl" scrollBehavior="outside">
                 <ModalOverlay />
                 <ModalContent>
@@ -520,13 +592,35 @@ export default function Stocks() {
                                 </Text>
                                 <SimpleGrid columns={{ sm: 2, md: 3, lg: 3, xl: 4 }} spacing="24px" m="12px">
                                     {allProducts.foods.filter(f => f.product.storageId === selectedStorage.id).map((foodStorageProduct, key) => (
-                                        <Card key={key}>
+                                        <Card>
                                             <CardHeader>
-                                                <Text>{foodStorageProduct.product.name}</Text>
+                                                <Flex direction="row">
+                                                    <IconButton aria-label="Editer le produit" icon={<FaEdit />} size="sm" onClick={() => selectProductForModal(foodStorageProduct, onOpenUpdateProductModal)} mr="4px"/>
+                                                    <IconButton aria-label="Supprimer le produit" icon={<FaTrash />} size="sm" onClick={() => selectProductForModal(foodStorageProduct, onOpenDeleteProductModal)}/>
+                                                    <Text m="auto 0 auto 12px">{foodStorageProduct.product.name}</Text>
+                                                </Flex>
                                             </CardHeader>
                                             <CardBody>
-                                                <Text>Total: {foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Text>
+                                                {foodStorageProduct.expirationDate && new Date(foodStorageProduct.expirationDate.split('[')[0]).getTime() < Date.now() && (
+                                                    <Badge m="2px" colorScheme="red">DLC {new Date(foodStorageProduct.expirationDate.split('[')[0]).toLocaleDateString()}</Badge>
+                                                )}
+                                                {foodStorageProduct.expirationDate && new Date(foodStorageProduct.expirationDate.split('[')[0]).getTime() > Date.now() && new Date(foodStorageProduct.expirationDate.split('[')[0]).getTime() < (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
+                                                    <Badge m="2px" colorScheme="orange">DLC {new Date(foodStorageProduct.expirationDate.split('[')[0]).toLocaleDateString()}</Badge>
+                                                )}
+                                                {foodStorageProduct.expirationDate && new Date(foodStorageProduct.expirationDate.split('[')[0]).getTime() > (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
+                                                    <Badge m="2px" colorScheme="green">DLC {new Date(foodStorageProduct.expirationDate.split('[')[0]).toLocaleDateString()}</Badge>
+                                                )}
+                                                {foodStorageProduct.optimalConsumptionDate && new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).getTime() < Date.now() && (
+                                                    <Badge m="2px" colorScheme="red">DLUO {new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).toLocaleDateString()}</Badge>
+                                                )}
+                                                {foodStorageProduct.optimalConsumptionDate && new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).getTime() > Date.now() && new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).getTime() < (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
+                                                    <Badge m="2px" colorScheme="orange">DLUO {new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).toLocaleDateString()}</Badge>
+                                                )}
+                                                {foodStorageProduct.optimalConsumptionDate && new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).getTime() > (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
+                                                    <Badge m="2px" colorScheme="green">DLUO {new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).toLocaleDateString()}</Badge>
+                                                )}
                                                 <Text>{foodStorageProduct.product.quantity} * {foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Text>
+                                                <Badge colorScheme="purple">{foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Badge>
                                             </CardBody>
                                         </Card>
                                     ))}
@@ -541,11 +635,15 @@ export default function Stocks() {
                                     {allProducts.clothes.filter(f => f.product.storageId === selectedStorage.id).map((clothStorageProduct, key) => (
                                         <Card key={key}>
                                             <CardHeader>
-                                                <Text>{clothStorageProduct.product.name}</Text>
+                                                <Flex direction="row">
+                                                    <IconButton aria-label="Editer le produit" icon={<FaEdit />} size="sm" onClick={() => selectProductForModal(clothStorageProduct, onOpenUpdateProductModal)} mr="4px"/>
+                                                    <IconButton aria-label="Supprimer le produit" icon={<FaTrash />} size="sm" onClick={() => selectProductForModal(clothStorageProduct, onOpenDeleteProductModal)}/>
+                                                    <Text m="auto 0 auto 12px">{clothStorageProduct.product.name}</Text>
+                                                </Flex>
                                             </CardHeader>
                                             <CardBody>
-                                                <Text>Total: {clothStorageProduct.product.quantity * clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Text>
                                                 <Text>{clothStorageProduct.product.quantity} * {clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Text>
+                                                <Badge colorScheme="purple">{clothStorageProduct.product.quantity * clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Badge>
                                             </CardBody>
                                         </Card>
                                     ))}
