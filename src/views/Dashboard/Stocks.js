@@ -33,7 +33,7 @@ import VolunteerContext from "../../contexts/VolunteerContext";
 import {ProductList} from "../../model/stock/ProductList";
 import {
     createClothProduct,
-    createFoodProduct,
+    createFoodProduct, deleteClothProduct, deleteFoodProduct,
     getConservations,
     getMeasurementUnits, getSizes
 } from "../../controller/ProductController";
@@ -81,6 +81,7 @@ export default function Stocks() {
     //Update product
     const { isOpen: isOpenUpdateProductModal, onOpen: onOpenUpdateProductModal, onClose: onCloseUpdateProductModal } = useDisclosure();
     const [selectedProduct, setSelectedProduct] = useState(null);
+    const [selectedProductType, setSelectedProductType] = useState("");
     //Delete product
     const { isOpen: isOpenDeleteProductModal, onOpen: onOpenDeleteProductModal, onClose: onCloseDeleteProductModal } = useDisclosure();
 
@@ -196,8 +197,9 @@ export default function Stocks() {
             });
     }
 
-    const selectProductForModal = (product, onOpenModal) => {
+    const selectProductForModal = (product, type, onOpenModal) => {
         setSelectedProduct(product);
+        setSelectedProductType(type);
         onOpenModal();
     }
 
@@ -276,6 +278,27 @@ export default function Stocks() {
             });
     }
 
+    const deleteProduct = () => {
+        if (selectedProductType === "food" && selectedProduct !== null) {
+            deleteFoodProduct(selectedProduct.id)
+                .then((_) => {
+                    onCloseDeleteProductModal();
+                    setLoadedAllProducts(false);
+                })
+                .catch((_) => {
+                });
+        }
+        if (selectedProductType === "cloth" && selectedProduct !== null) {
+            deleteClothProduct(selectedProduct.id)
+                .then((_) => {
+                    onCloseDeleteProductModal();
+                    setLoadedAllProducts(false);
+                })
+                .catch((_) => {
+                });
+        }
+    }
+
     return (
         <>
             {!loadedStorages && loadStorages()}
@@ -302,8 +325,8 @@ export default function Stocks() {
                                 <Card key={key}>
                                     <CardHeader>
                                         <Flex direction="row">
-                                            <IconButton aria-label="Editer le produit" icon={<FaEdit />} size="sm" onClick={() => selectProductForModal(foodStorageProduct, onOpenUpdateProductModal)} mr="4px"/>
-                                            <IconButton aria-label="Supprimer le produit" icon={<FaTrash />} size="sm" onClick={() => selectProductForModal(foodStorageProduct, onOpenDeleteProductModal)}/>
+                                            <IconButton aria-label="Editer le produit" icon={<FaEdit />} size="sm" onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenUpdateProductModal)} mr="4px"/>
+                                            <IconButton aria-label="Supprimer le produit" icon={<FaTrash />} size="sm" onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenDeleteProductModal)}/>
                                             <Text m="auto 0 auto 12px">{foodStorageProduct.product.name}</Text>
                                         </Flex>
                                     </CardHeader>
@@ -343,8 +366,8 @@ export default function Stocks() {
                                 <Card key={key}>
                                     <CardHeader>
                                         <Flex direction="row">
-                                            <IconButton aria-label="Editer le produit" icon={<FaEdit />} size="sm" onClick={() => selectProductForModal(clothStorageProduct, onOpenUpdateProductModal)} mr="4px"/>
-                                            <IconButton aria-label="Supprimer le produit" icon={<FaTrash />} size="sm" onClick={() => selectProductForModal(clothStorageProduct, onOpenDeleteProductModal)}/>
+                                            <IconButton aria-label="Editer le produit" icon={<FaEdit />} size="sm" onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenUpdateProductModal)} mr="4px"/>
+                                            <IconButton aria-label="Supprimer le produit" icon={<FaTrash />} size="sm" onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenDeleteProductModal)}/>
                                             <Text m="auto 0 auto 12px">{clothStorageProduct.product.name}</Text>
                                         </Flex>
                                     </CardHeader>
@@ -531,7 +554,7 @@ export default function Stocks() {
                         <Button colorScheme="blue" mr={3} onClick={onCloseDeleteProductModal}>
                             Annuler
                         </Button>
-                        <Button colorScheme="red" variant="outline" mr={3} onClick={() => console.log("yeeet")}>
+                        <Button colorScheme="red" variant="outline" mr={3} onClick={() => deleteProduct()}>
                             Supprimer
                         </Button>
                     </ModalFooter>
@@ -592,11 +615,11 @@ export default function Stocks() {
                                 </Text>
                                 <SimpleGrid columns={{ sm: 2, md: 3, lg: 3, xl: 4 }} spacing="24px" m="12px">
                                     {allProducts.foods.filter(f => f.product.storageId === selectedStorage.id).map((foodStorageProduct, key) => (
-                                        <Card>
+                                        <Card key={key}>
                                             <CardHeader>
                                                 <Flex direction="row">
-                                                    <IconButton aria-label="Editer le produit" icon={<FaEdit />} size="sm" onClick={() => selectProductForModal(foodStorageProduct, onOpenUpdateProductModal)} mr="4px"/>
-                                                    <IconButton aria-label="Supprimer le produit" icon={<FaTrash />} size="sm" onClick={() => selectProductForModal(foodStorageProduct, onOpenDeleteProductModal)}/>
+                                                    <IconButton aria-label="Editer le produit" icon={<FaEdit />} size="sm" onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenUpdateProductModal)} mr="4px"/>
+                                                    <IconButton aria-label="Supprimer le produit" icon={<FaTrash />} size="sm" onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenDeleteProductModal)}/>
                                                     <Text m="auto 0 auto 12px">{foodStorageProduct.product.name}</Text>
                                                 </Flex>
                                             </CardHeader>
@@ -636,8 +659,8 @@ export default function Stocks() {
                                         <Card key={key}>
                                             <CardHeader>
                                                 <Flex direction="row">
-                                                    <IconButton aria-label="Editer le produit" icon={<FaEdit />} size="sm" onClick={() => selectProductForModal(clothStorageProduct, onOpenUpdateProductModal)} mr="4px"/>
-                                                    <IconButton aria-label="Supprimer le produit" icon={<FaTrash />} size="sm" onClick={() => selectProductForModal(clothStorageProduct, onOpenDeleteProductModal)}/>
+                                                    <IconButton aria-label="Editer le produit" icon={<FaEdit />} size="sm" onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenUpdateProductModal)} mr="4px"/>
+                                                    <IconButton aria-label="Supprimer le produit" icon={<FaTrash />} size="sm" onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenDeleteProductModal)}/>
                                                     <Text m="auto 0 auto 12px">{clothStorageProduct.product.name}</Text>
                                                 </Flex>
                                             </CardHeader>
