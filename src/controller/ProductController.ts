@@ -65,6 +65,26 @@ export const createClothProduct = async (name: string, quantity: number, size: s
     return await response.json();
 }
 
+export const updateFoodProduct = async (id: string, name: string, quantity: number, measurementUnit: string, foodConservation: string, expirationDate: Date, optimalConsumptionDate: Date, price: number, storageId: string, amount: number): Promise<void> => {
+    const response = await postWithToken(`product/food/${id}`, new CreateFoodProduct(name, quantity, measurementUnit, foodConservation, expirationDate, optimalConsumptionDate, price, storageId, amount));
+
+    if (!response.ok) {
+        throw new Error(`Updating food product failed with status ${response.status}`);
+    }
+
+    return await response.json();
+}
+
+export const updateClothProduct = async (id: string, name: string, quantity: number, size: string, storageId: string, amount: number): Promise<void> => {
+    const response = await postWithToken(`product/cloth/${id}`, new CreateClothProduct(name, quantity, size, storageId, amount));
+
+    if (!response.ok) {
+        throw new Error(`Updating cloth product failed with status ${response.status}`);
+    }
+
+    return await response.json();
+}
+
 export const deleteFoodProduct = async (id: string): Promise<void> => {
     const response = await deleteWithToken(`product/food/${id}`);
 
