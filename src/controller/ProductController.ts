@@ -1,5 +1,5 @@
 import {MeasurementUnit} from "../model/stock/MeasurementUnit";
-import {getWithToken, postWithToken} from "./Controller";
+import {deleteWithToken, getWithToken, postWithToken} from "./Controller";
 import {CreateFoodProduct} from "../model/stock/CreateFoodProduct";
 import {CreateClothProduct} from "../model/stock/CreateClothProduct";
 
@@ -63,4 +63,24 @@ export const createClothProduct = async (name: string, quantity: number, size: s
     }
 
     return await response.json();
+}
+
+export const deleteFoodProduct = async (id: string): Promise<void> => {
+    const response = await deleteWithToken(`product/food/${id}`);
+
+    if (!response.ok) {
+        throw new Error(`Deleting food product failed with status ${response.status}`);
+    }
+
+    return;
+}
+
+export const deleteClothProduct = async (id: string): Promise<void> => {
+    const response = await deleteWithToken(`product/cloth/${id}`);
+
+    if (!response.ok) {
+        throw new Error(`Deleting cloth product failed with status ${response.status}`);
+    }
+
+    return;
 }
