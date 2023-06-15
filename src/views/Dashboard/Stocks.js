@@ -35,7 +35,7 @@ import {
     createClothProduct,
     createFoodProduct, deleteClothProduct, deleteFoodProduct,
     getConservations,
-    getMeasurementUnits, getSizes
+    getMeasurementUnits, getSizes, updateClothProduct, updateFoodProduct
 } from "../../controller/ProductController";
 import {FaEdit, FaTrash} from "react-icons/fa";
 
@@ -64,6 +64,7 @@ export default function Stocks() {
     const [createEventLoading, setCreateEventLoading] = useState(false);
     const [selectedStorage, setSelectedStorage] = useState(null);
     //Add new product
+    const { isOpen: isOpenAddProductModal, onOpen: onOpenAddProductModal, onClose: onCloseAddProductModal } = useDisclosure();
     const [callAddStockage, setCallAddStockage] = useState(false);
     const [addProductType, setAddProductType] = useState("food");
     const [addProductName, setAddProductName] = useState("");
@@ -77,11 +78,21 @@ export default function Stocks() {
     const [addProductAmount, setAddProductAmount] = useState(1);
     const [addProductSize, setAddProductSize] = useState("");
     const [addProductError, setAddProductError] = useState("");
-    const { isOpen: isOpenAddProductModal, onOpen: onOpenAddProductModal, onClose: onCloseAddProductModal } = useDisclosure();
     //Update product
     const { isOpen: isOpenUpdateProductModal, onOpen: onOpenUpdateProductModal, onClose: onCloseUpdateProductModal } = useDisclosure();
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [selectedProductType, setSelectedProductType] = useState("");
+    const [updatedProductName, setUpdatedProductName] = useState("");
+    const [updatedProductQuantity, setUpdatedProductQuantity] = useState(1);
+    const [updatedProductUnit, setUpdatedProductUnit] = useState("");
+    const [updatedProductConservation, setUpdatedProductConservation] = useState("");
+    const [updatedProductExpirationDate, setUpdatedProductExpirationDate] = useState(new Date().toISOString().substring(0, 10));
+    const [updatedProductOptimalDate, setUpdatedProductOptimalDate] = useState(new Date().toISOString().substring(0, 10));
+    const [updatedProductPrice, setUpdatedProductPrice] = useState(1);
+    const [updatedProductStorageId, setUpdatedProductStorageId] = useState("");
+    const [updatedProductAmount, setUpdatedProductAmount] = useState(1);
+    const [updatedProductSize, setUpdatedProductSize] = useState("");
+    const [updatedProductError, setUpdatedProductError] = useState("");
     //Delete product
     const { isOpen: isOpenDeleteProductModal, onOpen: onOpenDeleteProductModal, onClose: onCloseDeleteProductModal } = useDisclosure();
 
@@ -200,6 +211,20 @@ export default function Stocks() {
     const selectProductForModal = (product, type, onOpenModal) => {
         setSelectedProduct(product);
         setSelectedProductType(type);
+        setUpdatedProductName(product.product.name);
+        setUpdatedProductQuantity(product.product.quantityQuantifier);
+        setUpdatedProductUnit(product.product.quantifierName)
+        setUpdatedProductStorageId(product.product.storageId);
+        setUpdatedProductAmount(product.product.quantity);
+        if (type === "food") {
+            setUpdatedProductConservation(product.conservation);
+            setUpdatedProductExpirationDate(new Date(product.expirationDate.split('[')[0]).toISOString().substring(0, 10));
+            setUpdatedProductOptimalDate(new Date(product.optimalConsumptionDate.split('[')[0]).toISOString().substring(0, 10));
+            setUpdatedProductPrice(product.product.price);
+        }
+        if (type === "cloth") {
+            setUpdatedProductSize(product.size);
+        }
         onOpenModal();
     }
 
@@ -256,8 +281,7 @@ export default function Stocks() {
                 onCloseAddProductModal();
                 setLoadedAllProducts(false);
             })
-            .catch((err) => {
-                console.log(err);
+            .catch((_) => {
                 setAddProductError("Une erreur est survenue lors de l'ajout du produit");
             });
     }
@@ -272,9 +296,76 @@ export default function Stocks() {
                 onCloseAddProductModal();
                 setLoadedAllProducts(false);
             })
-            .catch((err) => {
-                console.log(err);
+            .catch((_) => {
                 setAddProductError("Une erreur est survenue lors de l'ajout du produit");
+            });
+    }
+
+    const modifyProduct = () => {
+        setUpdatedProductError("");
+        if (updatedProductName === "") {
+            setUpdatedProductError("Veuillez renseigner un nom pour le produit");
+            return;
+        }
+        if (updatedProductStorageId === "") {
+            setUpdatedProductError("Veuillez renseigner un espace de stockage pour le produit");
+            return;
+        }
+        if (selectedProductType === "food") {
+            modifyFoodProduct();
+        }
+        if (selectedProductType === "cloth") {
+            modifyClothProduct();
+        }
+    }
+
+    const modifyFoodProduct = () => {
+        if (updatedProductUnit === "") {
+            setUpdatedProductError("Veuillez renseigner une unité pour le produit");
+            return;
+        }
+        if (updatedProductConservation === "") {
+            setUpdatedProductConservation("Veuillez renseigner une conservation pour le produit");
+            return;
+        }
+        let expirationDate;
+        try {
+            const [years, month, days] = updatedProductExpirationDate.split("-");
+            expirationDate = new Date(parseInt(years), parseInt(month) - 1, parseInt(days));
+        } catch (err) {
+            setUpdatedProductError("Veuillez renseigner une date d'expiration valide pour le produit");
+            return;
+        }
+        let optimalDate;
+        try {
+            const [years, month, days] = updatedProductOptimalDate.split("-");
+            optimalDate = new Date(parseInt(years), parseInt(month) - 1, parseInt(days));
+        } catch (err) {
+            setUpdatedProductError("Veuillez renseigner une date optimale de consommation valide pour le produit");
+            return;
+        }
+        updateFoodProduct(selectedProduct.id, updatedProductName, updatedProductQuantity, updatedProductUnit, updatedProductConservation, expirationDate, optimalDate, updatedProductPrice, updatedProductStorageId, updatedProductAmount)
+            .then((_) => {
+                onCloseUpdateProductModal();
+                setLoadedAllProducts(false);
+            })
+            .catch((_) => {
+                setUpdatedProductError("Une erreur est survenue lors de la modification du produit");
+            });
+    }
+
+    const modifyClothProduct = () => {
+        if (updatedProductSize === "") {
+            setUpdatedProductError("Veuillez renseigner une taille pour le produit");
+            return;
+        }
+        updateClothProduct(selectedProduct.id, updatedProductName, updatedProductQuantity, updatedProductSize, updatedProductStorageId, updatedProductAmount)
+            .then((_) => {
+                onCloseUpdateProductModal();
+                setLoadedAllProducts(false);
+            })
+            .catch((_) => {
+                setUpdatedProductError("Une erreur est survenue lors de la modification du produit");
             });
     }
 
@@ -373,6 +464,7 @@ export default function Stocks() {
                                     </CardHeader>
                                     <CardBody>
                                         <Text>{clothStorageProduct.product.quantity} * {clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Text>
+                                        <Badge colorScheme="teal" m="4px">{clothStorageProduct.size}</Badge>
                                         <Badge colorScheme="purple">{clothStorageProduct.product.quantity * clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Badge>
                                     </CardBody>
                                 </Card>
@@ -529,13 +621,98 @@ export default function Stocks() {
             <Modal isOpen={isOpenUpdateProductModal} onClose={onCloseUpdateProductModal} size="lg" scrollBehavior="outside">
                 <ModalOverlay />
                 <ModalContent>
-                    <ModalHeader>Modifier un produit</ModalHeader>
+                    <ModalHeader>Modifier {selectedProduct?.product?.name}</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
                         <FormControl>
-                            <Text>TODO</Text>
+                            <FormLabel>Nom du produit</FormLabel>
+                            <Input type="text" placeholder="Nom du produit" value={updatedProductName} onChange={(e) => setUpdatedProductName(e.target.value)}/>
+                            <Text size="md" mt="8px" fontWeight="semibold">Espace de stockage</Text>
+                            <Select placeholder="Espace de stockage" value={updatedProductStorageId} onChange={(e) => setUpdatedProductStorageId(e.target.value)}>
+                                {storages.map((storage, key) => (
+                                    <option key={key} value={storage.id}>{storage.name}</option>
+                                ))}
+                            </Select>
+                            <Text size="md" mt="8px" fontWeight="semibold">Nombre d'exemplaire du produit perçu</Text>
+                            <NumberInput defaultValue={1} min={1} max={2000000} value={updatedProductAmount} onChange={(e) => setUpdatedProductAmount(parseInt(e))}>
+                                <NumberInputField />
+                                <NumberInputStepper>
+                                    <NumberIncrementStepper />
+                                    <NumberDecrementStepper />
+                                </NumberInputStepper>
+                            </NumberInput>
+                            <Text size="md" mt="8px" fontWeight="semibold">Contenue du produit en quantité</Text>
+                            <NumberInput defaultValue={1} min={1} max={2000000} value={updatedProductQuantity} onChange={(e) => setUpdatedProductQuantity(parseInt(e))}>
+                                <NumberInputField />
+                                <NumberInputStepper>
+                                    <NumberIncrementStepper />
+                                    <NumberDecrementStepper />
+                                </NumberInputStepper>
+                            </NumberInput>
+                            {selectedProductType === "food" && (
+                                <>
+                                    <Text size="md" mt="8px" fontWeight="semibold">Unité de quantité du produit</Text>
+                                    <RadioGroup value={updatedProductUnit} onChange={(e) => setUpdatedProductUnit(e)}>
+                                        <Flex direction="row" justify="space-between">
+                                            {units.map((unit, key) => (
+                                                <Flex direction="column" key={key}>
+                                                    <Text>{unit.label}</Text>
+                                                    {unit.units.map((unitName, keyRadio) => (
+                                                        <div key={keyRadio}>
+                                                            {unitName !== "" && (
+                                                                <Radio value={unitName}>{unitName}</Radio>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </Flex>
+                                            ))}
+                                        </Flex>
+                                    </RadioGroup>
+                                    <Text size="md" mt="8px" fontWeight="semibold">Méthode de conservation</Text>
+                                    <RadioGroup value={updatedProductConservation} onChange={(e) => setUpdatedProductConservation(e)}>
+                                        <Flex direction="row" justify="space-between">
+                                            {conservations.map((conservation, key) => (
+                                                <Radio key={key} value={conservation}>{conservation}</Radio>
+                                            ))}
+                                        </Flex>
+                                    </RadioGroup>
+                                    <Text size="md" mt="8px" fontWeight="semibold">Date de consommation optimale</Text>
+                                    <Input type="date" value={updatedProductOptimalDate} onChange={(e) => setUpdatedProductOptimalDate(e.target.value)} />
+                                    <Text size="md" mt="8px" fontWeight="semibold">Date de péremption</Text>
+                                    <Input type="date" value={updatedProductExpirationDate} onChange={(e) => setUpdatedProductExpirationDate(e.target.value)} />
+                                    <Text size="md" mt="8px" fontWeight="semibold">Prix en centimes</Text>
+                                    <NumberInput defaultValue={1} min={0} max={2000000} value={updatedProductPrice} onChange={(e) => setUpdatedProductPrice(parseInt(e))}>
+                                        <NumberInputField />
+                                        <NumberInputStepper>
+                                            <NumberIncrementStepper />
+                                            <NumberDecrementStepper />
+                                        </NumberInputStepper>
+                                    </NumberInput>
+                                </>
+                            )}
+                            {selectedProductType === "cloth" && (
+                                <>
+                                    <Text size="md" mt="8px" fontWeight="semibold">Taille du vêtement</Text>
+                                    <Select placeholder="Taille du vêtement" value={updatedProductSize} onChange={(e) => setUpdatedProductSize(e.target.value)}>
+                                        {sizes.map((size, key) => (
+                                            <option key={key} value={size}>{size}</option>
+                                        ))}
+                                    </Select>
+                                </>
+                            )}
                         </FormControl>
+                        {updatedProductError !== "" && (
+                            <Text color="red">{updatedProductError}</Text>
+                        )}
                     </ModalBody>
+                    <ModalFooter>
+                        <Button colorScheme="blue" mr={3} onClick={onCloseUpdateProductModal}>
+                            Fermer
+                        </Button>
+                        <Button colorScheme="green" mr={3} onClick={() => modifyProduct()}>
+                            Modifier
+                        </Button>
+                    </ModalFooter>
                 </ModalContent>
             </Modal>
             <Modal isOpen={isOpenDeleteProductModal} onClose={onCloseDeleteProductModal} size="lg" scrollBehavior="outside">
@@ -666,6 +843,7 @@ export default function Stocks() {
                                             </CardHeader>
                                             <CardBody>
                                                 <Text>{clothStorageProduct.product.quantity} * {clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Text>
+                                                <Badge colorScheme="teal" m="4px">{clothStorageProduct.size}</Badge>
                                                 <Badge colorScheme="purple">{clothStorageProduct.product.quantity * clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Badge>
                                             </CardBody>
                                         </Card>
