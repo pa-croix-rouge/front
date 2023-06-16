@@ -412,6 +412,7 @@ export default function Stocks() {
                             Nourriture
                         </Text>
                         <SimpleGrid columns={{ sm: 2, md: 3, lg: 4, xl: 5 }} spacing="24px" m="12px">
+                            {console.log(allProducts)}
                             {allProducts.foods.map((foodStorageProduct, key) => (
                                 <Card key={key}>
                                     <CardHeader>
@@ -441,6 +442,7 @@ export default function Stocks() {
                                             <Badge m="2px" colorScheme="green">DLUO {new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).toLocaleDateString()}</Badge>
                                         )}
                                         <Text>{foodStorageProduct.product.quantity} * {foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Text>
+                                        <Badge colorScheme="teal" mr="4px">{foodStorageProduct.price} €</Badge>
                                         <Badge colorScheme="purple">{foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Badge>
                                     </CardBody>
                                 </Card>
@@ -820,6 +822,7 @@ export default function Stocks() {
                                                     <Badge m="2px" colorScheme="green">DLUO {new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).toLocaleDateString()}</Badge>
                                                 )}
                                                 <Text>{foodStorageProduct.product.quantity} * {foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Text>
+                                                <Badge colorScheme="teal" mr="4px">{foodStorageProduct.price} €</Badge>
                                                 <Badge colorScheme="purple">{foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Badge>
                                             </CardBody>
                                         </Card>
