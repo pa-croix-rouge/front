@@ -36,7 +36,8 @@ const mapJsonToFoodStorageProduct = (data: any): FoodStorageProduct[] => {
                 foodJson.quantifierName),
             foodJson.foodConservation,
             foodJson.expirationDate,
-            foodJson.optimalConsumptionDate);
+            foodJson.optimalConsumptionDate,
+            foodJson.price);
     });
 }
 
