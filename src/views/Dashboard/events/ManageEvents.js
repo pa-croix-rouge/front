@@ -49,6 +49,7 @@ import {CalendarIcon, CheckIcon} from "@chakra-ui/icons";
 import {SingleEventCreation} from "../../../model/event/SingleEventCreation";
 import {RecurrentEventCreation} from "../../../model/event/RecurrentEventCreation";
 import EventCreation from "./EventCreation";
+import EventViewer from "./EventViewer";
 
 export default function ManageEvents() {
     // Component variables
@@ -796,53 +797,8 @@ export default function ManageEvents() {
 
             <EventCreation isOpen={isOpenCreationModal} onClose={onCloseCreationModal} volunteers={volunteerList} onNewEvent={onNewEvent}> </EventCreation>
 
-            <Modal isOpen={isOpenVisualizationModal} onClose={onCloseVisualizationModal} size="6xl" scrollBehavior="outside">
-                <ModalOverlay />
-                <ModalContent>
-                    <ModalHeader>Détails de l'événement</ModalHeader>
-                    <ModalCloseButton />
-                    <ModalBody>
-                        <Flex direction="column">
-                            {selectedEvent !== undefined && (
-                                <Flex direction="column">
-                                    <Text fontSize="2xl" fontWeight="bold">{selectedEvent.name}</Text>
-                                    <Text><i>{selectedEvent.description}</i></Text>
-                                    <Text>Du {selectedEvent.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")} au {selectedEvent.endDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}</Text>
-                                    <Text>Référent: {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(selectedEvent.referrerId)] : selectedEvent.referrerId}</Text>
-                                    <Text>Participants: {selectedEvent.numberOfParticipants} / {selectedEvent.maxParticipants}</Text>
-                                    <Text>Plage{selectedEvent.timeWindows.length > 1 ? "s" : ""} horaire{selectedEvent.timeWindows.length > 1 ? "s" : ""}</Text>
-                                    <SimpleGrid columns={{ sm: 1, md: 2, xl: 3 }} spacing='24px'>
-                                        {selectedEvent.timeWindows.map((timeWindow, index) => (
-                                            <Card key={index}>
-                                                <Flex direction="column">
-                                                    <Flex direction="row">
-                                                        <Text fontSize="sm" fontWeight="semibold">De {timeWindow.startTime.toLocaleTimeString().substring(0, 5).replaceAll(':', 'h')} à {timeWindow.endTime.toLocaleTimeString().substring(0, 5).replaceAll(':', 'h')}</Text>
-                                                    </Flex>
-                                                    <Text>Participants: {timeWindow.participants.length} / {timeWindow.maxParticipants}</Text>
-                                                    <Progress
-                                                        colorScheme={(timeWindow.participants.length / timeWindow.maxParticipants) * 100 > 50 ? "green" : (timeWindow.participants.length / timeWindow.maxParticipants) * 100 > 85 ? "orange" : "red"}
-                                                        size="xs"
-                                                        value={timeWindow.participants.length / timeWindow.maxParticipants * 100}
-                                                        borderRadius="15px"
-                                                    />
-                                                    {timeWindow.participants.map((participant, index) => (
-                                                        <Text key={index}>{participant}</Text>
-                                                    ))}
-                                                </Flex>
-                                            </Card>
-                                        ))}
-                                    </SimpleGrid>
-                                </Flex>
-                            )}
-                        </Flex>
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button colorScheme="blue" mr={3} onClick={onCloseVisualizationModal}>
-                            Fermer
-                        </Button>
-                    </ModalFooter>
-                </ModalContent>
-            </Modal>
+            <EventViewer isOpen={isOpenVisualizationModal} onClose={onCloseVisualizationModal} event={selectedEvent} ></EventViewer>
+
             <Modal isOpen={isOpenEditionModal} onClose={onCloseEditionModal} size="6xl" scrollBehavior="outside">
                 <ModalOverlay />
                 <ModalContent>
@@ -1066,6 +1022,7 @@ export default function ManageEvents() {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
+
             <Modal isOpen={isOpenDeletionModal} onClose={onCloseDeletionModal} size="xl" isCentered>
                 <ModalOverlay />
                 <ModalContent>
@@ -1103,6 +1060,7 @@ export default function ManageEvents() {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
+
             <Modal isOpen={isOpenDeletionAllModal} onClose={onCloseDeletionAllModal} size="xl" scrollBehavior="outside">
                 <ModalOverlay />
                 <ModalContent>
