@@ -1,26 +1,27 @@
-import React, { useState } from "react";
+import React, {useState} from "react";
 import {
   Button,
+  Checkbox,
   FormControl,
   FormLabel,
   Input,
   Modal,
   ModalBody,
-  ModalCloseButton,
   ModalContent,
   ModalFooter,
   ModalHeader,
   ModalOverlay,
+  SimpleGrid,
   Table,
-  Text,
   Tbody,
+  Text,
   Th,
   Thead,
   Tr,
-  useDisclosure, Spacer, VStack, HStack, Grid, GridItem, SimpleGrid, Checkbox
+  VStack
 } from "@chakra-ui/react";
-import { createRole, getRole, updateRole } from "../../../controller/RoleController";
-import { Role, RoleCreation } from "../../../model/Role";
+import {createRole, getRole, updateRole} from "../../../controller/RoleController";
+import {Role} from "../../../model/Role";
 
 export default function RoleCreationModal(props) {
   const [role, setRole] = useState(props.role === undefined ? new Role(undefined, "", "", new Map(), [], "") : props.role);

@@ -1,5 +1,5 @@
-import { User } from "../model/User";
-import { Token } from "../model/Token";
+import {User} from "../model/User";
+import {Token} from "../model/Token";
 import {postWithoutToken} from "./Controller";
 
 export const login = async (user: User): Promise<Token> => {
