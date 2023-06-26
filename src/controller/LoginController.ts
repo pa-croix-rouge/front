@@ -3,7 +3,7 @@ import { Token } from "../model/Token";
 import {postWithoutToken} from "./Controller";
 
 export const login = async (user: User): Promise<Token> => {
-    const response = await postWithoutToken(`login`, user);
+    const response = await postWithoutToken(`login/volunteer`, user);
 
     if (!response.ok) {
         throw new Error(`Login failed with status ${response.status}`);

@@ -442,7 +442,7 @@ export default function Stocks() {
                                             <Badge m="2px" colorScheme="green">DLUO {new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).toLocaleDateString()}</Badge>
                                         )}
                                         <Text>{foodStorageProduct.product.quantity} * {foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Text>
-                                        <Badge colorScheme="teal" mr="4px">{foodStorageProduct.price} €</Badge>
+                                        <Badge colorScheme="teal" mr="4px">{foodStorageProduct.price / 100} €</Badge>
                                         <Badge colorScheme="purple">{foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Badge>
                                     </CardBody>
                                 </Card>
@@ -822,7 +822,7 @@ export default function Stocks() {
                                                     <Badge m="2px" colorScheme="green">DLUO {new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).toLocaleDateString()}</Badge>
                                                 )}
                                                 <Text>{foodStorageProduct.product.quantity} * {foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Text>
-                                                <Badge colorScheme="teal" mr="4px">{foodStorageProduct.price} €</Badge>
+                                                <Badge colorScheme="teal" mr="4px">{foodStorageProduct.price / 100} €</Badge>
                                                 <Badge colorScheme="purple">{foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Badge>
                                             </CardBody>
                                         </Card>
