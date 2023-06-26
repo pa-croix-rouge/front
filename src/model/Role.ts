@@ -5,9 +5,9 @@ export class Role {
   public description: string;
 
   public authorizations: Map<string, string[]>;
-  public userIDs: string[];
+  public userIDs: number[];
 
-  constructor(id: number, name: string, description: string, authorizations: Map<string, string[]>, userIDs: string[]) {
+  constructor(id: number, name: string, description: string, authorizations: Map<string, string[]>, userIDs: number[]) {
     this.id = id;
     this.name = name;
     this.description = description;
@@ -16,11 +16,18 @@ export class Role {
   }
 }
 
+export class RoleAuth {
+
+  public resources: string[];
+  public operations: string[];
+
+}
+
 export class RoleCreation extends Role{
 
   public localUnitID: string;
 
-  constructor(name: string, description: string, authorizations: Map<string, string[]>, userIDs: string[], localUnitID: string) {
+  constructor(name: string, description: string, authorizations: Map<string, string[]>, userIDs: number[], localUnitID: string) {
     super(undefined, name, description, authorizations, userIDs);
     this.localUnitID = localUnitID;
   }

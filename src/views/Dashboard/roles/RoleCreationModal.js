@@ -17,7 +17,7 @@ import {
   Th,
   Thead,
   Tr,
-  useDisclosure
+  useDisclosure, Spacer, VStack, HStack, Grid, GridItem, SimpleGrid, Checkbox
 } from "@chakra-ui/react";
 import { createRole, getRole, updateRole } from "../../../controller/RoleController";
 import { Role, RoleCreation } from "../../../model/Role";
@@ -26,9 +26,6 @@ export default function RoleCreationModal(props) {
   const [role, setRole] = useState(props.role === undefined ? new Role(undefined, "", "", new Map(), [], "") : props.role);
   const [roleCreationProgress, setRoleCreationProgress] = useState(false);
   const [error, setError] = useState("");
-
-  const options = ["CREATE", "UPDATE", "READ", "DELETE"];
-  const ressoucres = ["EVENT", "PRODUCT", "VOLUNTEER", "LOCAL_UNIT", "STORAGE", "ROLE"];
 
   const onAddNewRole = () => {
 
@@ -79,44 +76,48 @@ export default function RoleCreationModal(props) {
         <ModalHeader>Ajouter un role</ModalHeader>
         <ModalBody>
           <FormControl>
-            <FormLabel>Nom du role</FormLabel>
-            <Input type="text" placeholder="Nom du role" value={role.name}
-                   onChange={(e) => setRole({ ...role, name: e.target.value })} />
-            <Input type="text" placeholder="description du role" value={role.description}
-                   onChange={(e) => setRole({ ...role, description: e.target.value })} />
-            <Table variant="simple">
-              <Thead>
-                <Tr color="gray.400">
-                  <Th color="gray.400">
-                    Resource
-                  </Th>
-                  <Th color="gray.400">Create</Th>
-                  <Th color="gray.400">Update</Th>
-                  <Th color="gray.400">View</Th>
-                  <Th color="gray.400">Delete</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {ressoucres.map((resource, index) => {
-                  return (
-                    <Tr>
-                      <Th>{resource}</Th>
-                      {options.map((opt, index) => {
-                        return (
-                          <Th>
-                            <input
-                              type="checkbox"
-                              checked={role.authorizations[resource]?.find(v => v === opt) !== undefined}
-                              onChange={(e) => onAuthNewRole(resource, opt, e.target.checked)} />
-                          </Th>
-                        );
-                      })}
-                    </Tr>
-                  );
-                })}
-              </Tbody>
-            </Table>
-
+            <VStack  align="stretch">
+              <SimpleGrid columns={2} spacing={5}>
+                <FormLabel >Nom du role</FormLabel>
+                <Input type="text" placeholder="Nom du role" value={role.name}
+                       onChange={(e) => setRole({ ...role, name: e.target.value })} />
+                <FormLabel>Description du role</FormLabel>
+                <Input flex={1} type="text" placeholder="description du role" value={role.description}
+                       onChange={(e) => setRole({ ...role, description: e.target.value })} />
+              </SimpleGrid >
+              <Table variant="simple">
+                <Thead>
+                  <Tr color="gray.400">
+                    <Th color="gray.400">
+                      Resource
+                    </Th>
+                    {props.roleAuth.operations.map((op, index) => {
+                      return (
+                        <Th color="gray.400">{op}</Th>
+                      );
+                    })}
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {props.roleAuth.resources.map((resource, index) => {
+                    return (
+                      <Tr>
+                        <Th>{resource}</Th>
+                        {props.roleAuth.operations.map((opt, index) => {
+                          return (
+                            <Th>
+                              <Checkbox
+                                isChecked={role.authorizations[resource]?.find(v => v === opt) !== undefined}
+                                onChange={(e) => onAuthNewRole(resource, opt, e.target.checked)} />
+                            </Th>
+                          );
+                        })}
+                      </Tr>
+                    );
+                  })}
+                </Tbody>
+              </Table>
+            </VStack>
           </FormControl>
 
         </ModalBody>
