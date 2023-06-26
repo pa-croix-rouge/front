@@ -141,22 +141,6 @@ export default function Dashboard(props) {
           </PanelContent>
         ) : null}
         <Footer />
-        <Portal>
-          <FixedPlugin
-            secondary={getActiveNavbar(routes)}
-            fixed={fixed}
-            onOpen={onOpen}
-          />
-        </Portal>
-        <Configurator
-          secondary={getActiveNavbar(routes)}
-          isOpen={isOpen}
-          onClose={onClose}
-          isChecked={fixed}
-          onSwitch={(value) => {
-            setFixed(value);
-          }}
-        />
       </MainPanel>
     </Box>
   );
