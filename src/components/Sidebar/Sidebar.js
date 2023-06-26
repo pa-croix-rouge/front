@@ -228,7 +228,6 @@ function Sidebar(props) {
             <Stack direction="column" mb="40px">
               <Box>{links}</Box>
             </Stack>
-            <SidebarHelp sidebarVariant={sidebarVariant} />
           </Scrollbars>
         </Box>
       </Box>
@@ -452,7 +451,6 @@ export function SidebarResponsive(props) {
               <Stack direction="column" mb="40px">
                 <Box>{links}</Box>
               </Stack>
-              <SidebarHelp />
             </Box>
           </DrawerBody>
         </DrawerContent>

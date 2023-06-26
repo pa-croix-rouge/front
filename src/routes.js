@@ -1,14 +1,11 @@
 // import
 import React from 'react';
-import Dashboard from "./views/Dashboard/Dashboard.js";
 import Events from "./views/Dashboard/Events";
-import Tables from "./views/Dashboard/Tables.js";
-import Billing from "./views/Dashboard/Billing.js";
 import Profile from "./views/Dashboard/Profile.js";
 import SignIn from "./views/Pages/SignIn.js";
 import SignUp from "./views/Pages/SignUp.js";
 
-import {CreditIcon, DocumentIcon, HomeIcon, PersonIcon, RocketIcon, StatsIcon,} from "components/Icons/Icons";
+import {DocumentIcon, HomeIcon, PersonIcon, RocketIcon,} from "components/Icons/Icons";
 import LocalUnit from "./views/Dashboard/LocalUnit";
 import {CalendarIcon, TimeIcon} from "@chakra-ui/icons";
 import ULDashboard from "./views/Dashboard/ULDashboard";
@@ -19,13 +16,6 @@ import ClothStocks from "./views/Dashboard/ClothStocks";
 import Roles from "./views/Dashboard/roles/Roles";
 
 var dashRoutes = [
-  {
-    path: "/dashboard",
-    name: "Dashboard",
-    icon: <HomeIcon color='inherit' />,
-    component: Dashboard,
-    layout: "/admin",
-  },
   {
     path: "/ul-dashboard",
     name: "UL Dashboard",
@@ -45,20 +35,6 @@ var dashRoutes = [
     name: "Manage Events",
     icon: <CalendarIcon color='inherit' />,
     component: ManageEvents,
-    layout: "/admin",
-  },
-  {
-    path: "/tables",
-    name: "Tables",
-    icon: <StatsIcon color='inherit' />,
-    component: Tables,
-    layout: "/admin",
-  },
-  {
-    path: "/billing",
-    name: "Billing",
-    icon: <CreditIcon color='inherit' />,
-    component: Billing,
     layout: "/admin",
   },
   {
