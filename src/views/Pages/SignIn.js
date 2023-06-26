@@ -56,7 +56,7 @@ function SignIn() {
     useEffect(() => {
         if (loadTokenSuccess && token) {
             localStorage.setItem('token', token);
-            history.push("/admin/dashboard");
+            history.push("/admin/ul-dashboard");
         }
     }, [loadTokenSuccess, token]);
 

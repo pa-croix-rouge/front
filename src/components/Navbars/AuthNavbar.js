@@ -4,12 +4,10 @@ import {
   Button,
   Flex,
   HStack, Image,
-  Link, Stack, Text, useColorMode, useColorModeValue
+  Link, Stack, Text, useColorModeValue
 } from "@chakra-ui/react";
 import {
   DocumentIcon,
-  HomeIcon,
-  PersonIcon,
   RocketIcon
 } from "../Icons/Icons";
 import { SidebarResponsive } from "../Sidebar/Sidebar";
@@ -27,8 +25,6 @@ export default function AuthNavbar(props) {
   let navbarShadow = "initial";
   let navbarFilter = "initial";
   let navbarBackdrop = "none";
-  let bgButton = useColorModeValue("white", "navy.900");
-  let colorButton = useColorModeValue("gray.700", "white");
   let navbarPosition = "absolute";
   let hamburgerColor = {
     base: useColorModeValue("gray.700", "white"),
@@ -54,70 +50,39 @@ export default function AuthNavbar(props) {
     </Link>
   );
   hamburgerColor = { base: "white" };
-  var linksAuth = (
-    <HStack display={{ sm: "none", lg: "flex" }}>
-      <NavLink to="/admin/dashboard">
-        <Button
-          fontSize="sm"
-          ms="0px"
-          me="0px"
-          px="0px"
-          me={{ sm: "2px", md: "16px" }}
-          color={navbarIcon}
-          variant="no-effects"
-          leftIcon={<HomeIcon color={navbarIcon} w="12px" h="12px" me="0px" />}
-        >
-          <Text>Dashboard</Text>
-        </Button>
-      </NavLink>
-      <NavLink to="/admin/profile">
-        <Button
-          fontSize="sm"
-          ms="0px"
-          me="0px"
-          px="0px"
-          me={{ sm: "2px", md: "16px" }}
-          color={navbarIcon}
-          variant="no-effects"
-          leftIcon={
-            <PersonIcon color={navbarIcon} w="12px" h="12px" me="0px" />
-          }
-        >
-          <Text>Profile</Text>
-        </Button>
-      </NavLink>
-      <NavLink to="/auth/signup">
-        <Button
-          fontSize="sm"
-          ms="0px"
-          me="0px"
-          px="0px"
-          me={{ sm: "2px", md: "16px" }}
-          color={navbarIcon}
-          variant="no-effects"
-          leftIcon={
-            <RocketIcon color={navbarIcon} w="12px" h="12px" me="0px" />
-          }
-        >
-          <Text>Sign Up</Text>
-        </Button>
-      </NavLink>
-      <NavLink to="/auth/signin">
-        <Button
-          fontSize="sm"
-          ms="0px"
-          px="0px"
-          me={{ sm: "2px", md: "16px" }}
-          color={navbarIcon}
-          variant="no-effects"
-          leftIcon={
-            <DocumentIcon color={navbarIcon} w="12px" h="12px" me="0px" />
-          }
-        >
-          <Text>Sign In</Text>
-        </Button>
-      </NavLink>
-    </HStack>
+  const linksAuth = (
+      <HStack display={{sm: "none", lg: "flex"}}>
+        <NavLink to="/auth/signup">
+          <Button
+              fontSize="sm"
+              ms="0px"
+              px="0px"
+              me={{sm: "2px", md: "16px"}}
+              color={navbarIcon}
+              variant="no-effects"
+              leftIcon={
+                <RocketIcon color={navbarIcon} w="12px" h="12px" me="0px"/>
+              }
+          >
+            <Text>Sign Up</Text>
+          </Button>
+        </NavLink>
+        <NavLink to="/auth/signin">
+          <Button
+              fontSize="sm"
+              ms="0px"
+              px="0px"
+              me={{sm: "2px", md: "16px"}}
+              color={navbarIcon}
+              variant="no-effects"
+              leftIcon={
+                <DocumentIcon color={navbarIcon} w="12px" h="12px" me="0px"/>
+              }
+          >
+            <Text>Sign In</Text>
+          </Button>
+        </NavLink>
+      </HStack>
   );
   return (
     <Flex
@@ -164,21 +129,6 @@ export default function AuthNavbar(props) {
           />
         </Box>
         {linksAuth}
-        <Link href="https://creative-tim.com/product/argon-dashboard-chakra">
-          <Button
-            bg={bgButton}
-            color={colorButton}
-            fontSize="xs"
-            variant="no-hover"
-            px="30px"
-            display={{
-              sm: "none",
-              lg: "flex",
-            }}
-          >
-            Free Download
-          </Button>
-        </Link>
       </Flex>
     </Flex>
   );
