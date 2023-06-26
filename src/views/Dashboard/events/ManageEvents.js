@@ -235,6 +235,132 @@ export default function ManageEvents() {
         }
     }
 
+    const getTableMonthBody = (month) => {
+        const filteredEvent = events.filter(e => e.startDate.getMonth() === (month));
+        return (
+            <>
+                <Tr>
+                    <Td colSpan="8" textAlign="left" fontSize="2xl" fontWeight="bold" ml="24px">
+                        {currentYear} - {(new Date(currentYear, (month) % 12)).toLocaleString('fr-FR', { month: 'long' })}
+                    </Td>
+                </Tr>
+                {filteredEvent.map((event, index, arr) => {
+                    return (
+                        <Tr key={index}>
+                            <Td pl="0px" borderColor={borderColor} borderBottom={index === arr.length - 1 ? "none" : null}>
+                                <Flex align="center" py=".8rem" minWidth="100%" flexWrap="nowrap">
+                                    <Text fontSize="md" color={textColor} fontWeight="bold">
+                                        {event.name}
+                                    </Text>
+                                </Flex>
+                            </Td>
+                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
+                                <Text>
+                                    {event.description}
+                                </Text>
+                            </Td>
+                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
+                                <Text>
+                                    {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(event.referrerId)] : event.referrerId}
+                                </Text>
+                            </Td>
+                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
+                                <Text>
+                                    {event.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}
+                                </Text>
+                            </Td>
+                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
+                                <Text>
+                                    {event.numberOfParticipants} / {event.maxParticipants}
+                                </Text>
+                                {event.maxParticipants === 0 && (
+                                    <Flex direction="column">
+                                        <Text
+                                            fontSize="md"
+                                            color="red"
+                                            fontWeight="bold"
+                                            pb=".2rem"
+                                        >100%</Text>
+                                        <Progress
+                                            colorScheme="red"
+                                            size="xs"
+                                            value={100}
+                                            borderRadius="15px"
+                                        />
+                                    </Flex>
+                                )}
+                                {event.maxParticipants !== 0 && (
+                                    <Flex direction="column">
+                                        <Text
+                                            fontSize="md"
+                                            color={(event.numberOfParticipants / event.maxParticipants) * 100 < 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 < 85 ? "orange" : "red"}
+                                            fontWeight="bold"
+                                            pb=".2rem"
+                                        >{`${(event.numberOfParticipants / event.maxParticipants * 100).toFixed(1)}%`}</Text>
+                                        <Progress
+                                            colorScheme={(event.numberOfParticipants / event.maxParticipants) * 100 > 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 > 85 ? "orange" : "red"}
+                                            size="xs"
+                                            value={event.numberOfParticipants / event.maxParticipants * 100}
+                                            borderRadius="15px"
+                                        />
+                                    </Flex>
+                                )}
+                            </Td>
+                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
+                                <Menu>
+                                    <MenuButton>
+                                        <Icon as={FaCog} />
+                                    </MenuButton>
+                                    <MenuList>
+                                        <Flex direction="column">
+                                            <MenuItem>
+                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() => selectEventForModal(event, onOpenVisualizationModal)}>
+                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
+                                                        <Icon as={FaEye} mr="8px"/>
+                                                        <Text fontSize="sm" fontWeight="semibold">
+                                                            Consulter
+                                                        </Text>
+                                                    </Flex>
+                                                </Button>
+                                            </MenuItem>
+                                            <MenuItem>
+                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() =>selectEventForModal(event, onOpenEditionModal)}>
+                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
+                                                        <Icon as={FaPencilAlt} mr="8px"/>
+                                                        <Text fontSize="sm" fontWeight="semibold">
+                                                            Modifier
+                                                        </Text>
+                                                    </Flex>
+                                                </Button>
+                                            </MenuItem>
+                                            <MenuItem>
+                                                <Button p="0px" variant="transparent" colorScheme="red" onClick={() => selectEventForModal(event, onOpenDeletionModal)} >
+                                                    <Flex cursor="pointer" align="center" p="12px">
+                                                        <Icon as={FaTrashAlt} mr="8px" />
+                                                        <Text fontSize="sm" fontWeight="semibold">
+                                                            Supprimer
+                                                        </Text>
+                                                    </Flex>
+                                                </Button>
+                                            </MenuItem>
+                                        </Flex>
+                                    </MenuList>
+                                </Menu>
+                            </Td>
+                        </Tr>
+                    );
+                })}
+                {filteredEvent.length === 0 && (
+                    <Tr>
+                        <Td colSpan="8" textAlign="center">
+                            Aucun événement ce mois-ci
+                        </Td>
+                    </Tr>
+                )}
+            </>
+        );
+    }
+
     return (
         <>
             <Flex direction="column" pt={{ base: "120px", md: "75px" }}>
@@ -313,324 +439,9 @@ export default function ManageEvents() {
                                 </Tr>
                             </Thead>
                             <Tbody>
-                                <Tr>
-                                    <Td colSpan="8" textAlign="left" fontSize="2xl" fontWeight="bold" ml="24px">
-                                        {currentYear} - {(new Date(currentYear, (currentMonth - 1) % 12)).toLocaleString('fr-FR', { month: 'long' })}
-                                    </Td>
-                                </Tr>
-                                {events.filter(e => e.startDate.getMonth() === (currentMonth - 1)).map((event, index, arr) => {
-                                    return (
-                                        <Tr key={index}>
-                                            <Td pl="0px" borderColor={borderColor} borderBottom={index === arr.length - 1 ? "none" : null}>
-                                                <Flex align="center" py=".8rem" minWidth="100%" flexWrap="nowrap">
-                                                    <Text fontSize="md" color={textColor} fontWeight="bold">
-                                                        {event.name}
-                                                    </Text>
-                                                </Flex>
-                                            </Td>
-                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Text>
-                                                    {event.description}
-                                                </Text>
-                                            </Td>
-                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Text>
-                                                    {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(event.referrerId)] : event.referrerId}
-                                                </Text>
-                                            </Td>
-                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Text>
-                                                    {event.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}
-                                                </Text>
-                                            </Td>
-                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Text>
-                                                    {event.numberOfParticipants} / {event.maxParticipants}
-                                                </Text>
-                                                {event.maxParticipants === 0 && (
-                                                    <Flex direction="column">
-                                                        <Text
-                                                            fontSize="md"
-                                                            color="red"
-                                                            fontWeight="bold"
-                                                            pb=".2rem"
-                                                        >100%</Text>
-                                                        <Progress
-                                                            colorScheme="red"
-                                                            size="xs"
-                                                            value={100}
-                                                            borderRadius="15px"
-                                                        />
-                                                    </Flex>
-                                                )}
-                                                {event.maxParticipants !== 0 && (
-                                                    <Flex direction="column">
-                                                        <Text
-                                                            fontSize="md"
-                                                            color={(event.numberOfParticipants / event.maxParticipants) * 100 < 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 < 85 ? "orange" : "red"}
-                                                            fontWeight="bold"
-                                                            pb=".2rem"
-                                                        >{`${(event.numberOfParticipants / event.maxParticipants * 100).toFixed(1)}%`}</Text>
-                                                        <Progress
-                                                            colorScheme={(event.numberOfParticipants / event.maxParticipants) * 100 > 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 > 85 ? "orange" : "red"}
-                                                            size="xs"
-                                                            value={event.numberOfParticipants / event.maxParticipants * 100}
-                                                            borderRadius="15px"
-                                                        />
-                                                    </Flex>
-                                                )}
-                                            </Td>
-                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Menu>
-                                                    <MenuButton>
-                                                        <Icon as={FaCog} />
-                                                    </MenuButton>
-                                                    <MenuList>
-                                                        <Flex direction="column">
-                                                            <MenuItem>
-                                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() => selectEventForModal(event, onOpenVisualizationModal)}>
-                                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
-                                                                        <Icon as={FaEye} mr="8px"/>
-                                                                        <Text fontSize="sm" fontWeight="semibold">
-                                                                            Consulter
-                                                                        </Text>
-                                                                    </Flex>
-                                                                </Button>
-                                                            </MenuItem>
-                                                            <MenuItem>
-                                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() =>selectEventForModal(event, onOpenEditionModal)}>
-                                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
-                                                                        <Icon as={FaPencilAlt} mr="8px"/>
-                                                                        <Text fontSize="sm" fontWeight="semibold">
-                                                                            Modifier
-                                                                        </Text>
-                                                                    </Flex>
-                                                                </Button>
-                                                            </MenuItem>
-                                                            <MenuItem>
-                                                                <Button p="0px" variant="transparent" colorScheme="red" onClick={() => selectEventForModal(event, onOpenDeletionModal)} >
-                                                                    <Flex cursor="pointer" align="center" p="12px">
-                                                                        <Icon as={FaTrashAlt} mr="8px" />
-                                                                        <Text fontSize="sm" fontWeight="semibold">
-                                                                            Supprimer
-                                                                        </Text>
-                                                                    </Flex>
-                                                                </Button>
-                                                            </MenuItem>
-                                                        </Flex>
-                                                    </MenuList>
-                                                </Menu>
-                                            </Td>
-                                        </Tr>
-                                    );
-                                })}
-                                {events.filter(e => e.startDate.getMonth() === (currentMonth - 1)).length === 0 && (
-                                    <Tr>
-                                        <Td colSpan="8" textAlign="center">
-                                            Aucun événement ce mois-ci
-                                        </Td>
-                                    </Tr>
-                                )}
-                                <Tr>
-                                    <Td colSpan="8" textAlign="left" fontSize="2xl" fontWeight="bold" ml="24px">
-                                        {currentYear} - {(new Date(currentYear, currentMonth % 12)).toLocaleString('fr-FR', { month: 'long' })}
-                                    </Td>
-                                </Tr>
-                                {events.filter(e => e.startDate.getMonth() === (currentMonth % 12) ).map((event, index, arr) => {
-                                    return (
-                                        <Tr key={index}>
-                                            <Td pl="0px" borderColor={borderColor} borderBottom={index === arr.length - 1 ? "none" : null}>
-                                                <Flex align="center" py=".8rem" minWidth="100%" flexWrap="nowrap">
-                                                    <Text fontSize="md" color={textColor} fontWeight="bold">
-                                                        {event.name}
-                                                    </Text>
-                                                </Flex>
-                                            </Td>
-                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Text>
-                                                    {event.description}
-                                                </Text>
-                                            </Td>
-                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Text>
-                                                    {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(event.referrerId)] : event.referrerId}
-                                                </Text>
-                                            </Td>
-                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Text>
-                                                    {event.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}
-                                                </Text>
-                                            </Td>
-                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Text>
-                                                    {event.numberOfParticipants} / {event.maxParticipants}
-                                                </Text>
-                                                <Flex direction="column">
-                                                    <Text
-                                                        fontSize="md"
-                                                        color={(event.numberOfParticipants / event.maxParticipants) * 100 < 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 < 85 ? "orange" : "red"}
-                                                        fontWeight="bold"
-                                                        pb=".2rem"
-                                                    >{`${(event.numberOfParticipants / event.maxParticipants * 100).toFixed(1)}%`}</Text>
-                                                    <Progress
-                                                        colorScheme={(event.numberOfParticipants / event.maxParticipants) * 100 > 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 > 85 ? "orange" : "red"}
-                                                        size="xs"
-                                                        value={event.numberOfParticipants / event.maxParticipants * 100}
-                                                        borderRadius="15px"
-                                                    />
-                                                </Flex>
-                                            </Td>
-                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Menu>
-                                                    <MenuButton>
-                                                        <Icon as={FaCog} />
-                                                    </MenuButton>
-                                                    <MenuList>
-                                                        <Flex direction="column">
-                                                            <MenuItem>
-                                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() => selectEventForModal(event, onOpenVisualizationModal)}>
-                                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
-                                                                        <Icon as={FaEye} mr="8px"/>
-                                                                        <Text fontSize="sm" fontWeight="semibold">
-                                                                            Consulter
-                                                                        </Text>
-                                                                    </Flex>
-                                                                </Button>
-                                                            </MenuItem>
-                                                            <MenuItem>
-                                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() =>selectEventForModal(event, onOpenEditionModal)}>
-                                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
-                                                                        <Icon as={FaPencilAlt} mr="8px"/>
-                                                                        <Text fontSize="sm" fontWeight="semibold">
-                                                                            Modifier
-                                                                        </Text>
-                                                                    </Flex>
-                                                                </Button>
-                                                            </MenuItem>
-                                                            <MenuItem>
-                                                                <Button p="0px" variant="transparent" colorScheme="red" onClick={() => selectEventForModal(event, onOpenDeletionModal)} >
-                                                                    <Flex cursor="pointer" align="center" p="12px">
-                                                                        <Icon as={FaTrashAlt} mr="8px" />
-                                                                        <Text fontSize="sm" fontWeight="semibold">
-                                                                            Supprimer
-                                                                        </Text>
-                                                                    </Flex>
-                                                                </Button>
-                                                            </MenuItem>
-                                                        </Flex>
-                                                    </MenuList>
-                                                </Menu>
-                                            </Td>
-                                        </Tr>
-                                    );
-                                })}
-                                {events.filter(e => e.startDate.getMonth() === (currentMonth % 12)).length === 0 && (
-                                    <Tr>
-                                        <Td colSpan="8" textAlign="center">
-                                            Aucun événement ce mois-ci
-                                        </Td>
-                                    </Tr>
-                                )}
-                                <Tr>
-                                    <Td colSpan="8" textAlign="left" fontSize="2xl" fontWeight="bold" ml="24px">
-                                        {currentYear} - {(new Date(currentYear, (currentMonth % 12) + 1)).toLocaleString('fr-FR', { month: 'long' })}
-                                    </Td>
-                                </Tr>
-                                {events.filter(e => e.startDate.getMonth() === (currentMonth + 1) % 12).map((event, index, arr) => {
-                                    return (
-                                        <Tr key={index}>
-                                            <Td pl="0px" borderColor={borderColor} borderBottom={index === arr.length - 1 ? "none" : null}>
-                                                <Flex align="center" py=".8rem" minWidth="100%" flexWrap="nowrap">
-                                                    <Text fontSize="md" color={textColor} fontWeight="bold">
-                                                        {event.name}
-                                                    </Text>
-                                                </Flex>
-                                            </Td>
-                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Text>
-                                                    {event.description}
-                                                </Text>
-                                            </Td>
-                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Text>
-                                                    {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(event.referrerId)] : event.referrerId}
-                                                </Text>
-                                            </Td>
-                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Text>
-                                                    {event.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}
-                                                </Text>
-                                            </Td>
-                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Text>
-                                                    {event.numberOfParticipants} / {event.maxParticipants}
-                                                </Text>
-                                                <Flex direction="column">
-                                                    <Text
-                                                        fontSize="md"
-                                                        color={(event.numberOfParticipants / event.maxParticipants) * 100 < 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 < 85 ? "orange" : "red"}
-                                                        fontWeight="bold"
-                                                        pb=".2rem"
-                                                    >{`${(event.numberOfParticipants / event.maxParticipants * 100).toFixed(1)}%`}</Text>
-                                                    <Progress
-                                                        colorScheme={(event.numberOfParticipants / event.maxParticipants) * 100 > 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 > 85 ? "orange" : "red"}
-                                                        size="xs"
-                                                        value={event.numberOfParticipants / event.maxParticipants * 100}
-                                                        borderRadius="15px"
-                                                    />
-                                                </Flex>
-                                            </Td>
-                                            <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                                <Menu>
-                                                    <MenuButton>
-                                                        <Icon as={FaCog} />
-                                                    </MenuButton>
-                                                    <MenuList>
-                                                        <Flex direction="column">
-                                                            <MenuItem>
-                                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() => selectEventForModal(event, onOpenVisualizationModal)}>
-                                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
-                                                                        <Icon as={FaEye} mr="8px"/>
-                                                                        <Text fontSize="sm" fontWeight="semibold">
-                                                                            Consulter
-                                                                        </Text>
-                                                                    </Flex>
-                                                                </Button>
-                                                            </MenuItem>
-                                                            <MenuItem>
-                                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() => selectEventForModal(event, onOpenEditionModal)}>
-                                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
-                                                                        <Icon as={FaPencilAlt} mr="8px"/>
-                                                                        <Text fontSize="sm" fontWeight="semibold">
-                                                                            Modifier
-                                                                        </Text>
-                                                                    </Flex>
-                                                                </Button>
-                                                            </MenuItem>
-                                                            <MenuItem>
-                                                                <Button p="0px" variant="transparent" colorScheme="red" onClick={() => selectEventForModal(event, onOpenDeletionModal)} >
-                                                                    <Flex cursor="pointer" align="center" p="12px">
-                                                                        <Icon as={FaTrashAlt} mr="8px" />
-                                                                        <Text fontSize="sm" fontWeight="semibold">
-                                                                            Supprimer
-                                                                        </Text>
-                                                                    </Flex>
-                                                                </Button>
-                                                            </MenuItem>
-                                                        </Flex>
-                                                    </MenuList>
-                                                </Menu>
-                                            </Td>
-                                        </Tr>
-                                    );
-                                })}
-                                {events.filter(e => e.startDate.getMonth() === (currentMonth + 1) % 12).length === 0 && (
-                                    <Tr>
-                                        <Td colSpan="8" textAlign="center">
-                                            Aucun événement ce mois-ci
-                                        </Td>
-                                    </Tr>
-                                )}
+                                {getTableMonthBody(currentMonth - 1)}
+                                {getTableMonthBody(currentMonth)}
+                                {getTableMonthBody(currentMonth + 1)}
                             </Tbody>
                         </Table>
                     </CardBody>
