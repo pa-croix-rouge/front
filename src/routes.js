@@ -8,7 +8,7 @@ import {DocumentIcon, HomeIcon, RocketIcon,} from "components/Icons/Icons";
 import LocalUnit from "./views/Dashboard/LocalUnit";
 import {CalendarIcon, TimeIcon} from "@chakra-ui/icons";
 import ULDashboard from "./views/Dashboard/ULDashboard";
-import ManageEvents from "./views/Dashboard/ManageEvents";
+import ManageEvents from "./views/Dashboard/events/ManageEvents";
 import Stocks from "./views/Dashboard/Stocks";
 import Roles from "./views/Dashboard/roles/Roles";
 import Beneficiaries from "./views/Dashboard/Beneficiaries";
