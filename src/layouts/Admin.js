@@ -4,16 +4,14 @@ import {
   useDisclosure,
   Stack,
   Box,
-  useColorMode, Image,
+  Image,
 } from "@chakra-ui/react";
-import Configurator from "./../components/Configurator/Configurator";
 import Footer from "./../components/Footer/Footer.js";
 import AdminNavbar from "./../components/Navbars/AdminNavbar.js";
 import Sidebar from "./../components/Sidebar/Sidebar.js";
 import React, { useState } from "react";
 import { Redirect, Route, Switch } from "react-router-dom";
 import routes from "./../routes.js";
-import FixedPlugin from "./../components/FixedPlugin/FixedPlugin";
 import MainPanel from "./../components/Layout/MainPanel";
 import PanelContainer from "./../components/Layout/PanelContainer";
 import PanelContent from "./../components/Layout/PanelContent";

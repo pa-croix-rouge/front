@@ -6,7 +6,6 @@ import {
     FormControl,
     FormLabel,
     Input, InputGroup, InputRightElement,
-    Link,
     Progress,
     Spacer,
     Text,
@@ -17,6 +16,7 @@ import BgSignUp from "./../../assets/img/BgSignUp.jpg";
 import React, {useState} from "react";
 import {VolunteerRegistration} from "../../model/volunteer/VolunteerRegistration";
 import {register} from "../../controller/VolunteerController";
+import {useHistory} from "react-router-dom";
 
 function SignUp() {
     const bgForm = useColorModeValue("white", "navy.800");
@@ -38,6 +38,8 @@ function SignUp() {
     const [isError, setIsError] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [isSuccess, setIsSuccess] = useState(false);
+
+    const history = useHistory();
 
     const checkPasswordValidity = () => {
         if (password !== passwordConfirmation) {
@@ -81,6 +83,10 @@ function SignUp() {
             });
     }
 
+    const goToSignIn = () => {
+        history.push("/auth/sign-in");
+    }
+
     return (
         <Flex
             direction='column'
@@ -89,8 +95,8 @@ function SignUp() {
             overflow='hidden'>
             <Box
                 position='absolute'
-                minH={{base: "70vh", md: "50vh"}}
-                maxH={{base: "70vh", md: "50vh"}}
+                minH={{base: "70vh", md: "75vh"}}
+                maxH={{base: "70vh", md: "75vh"}}
                 w={{md: "calc(100vw - 50px)"}}
                 maxW={{md: "calc(100vw - 50px)"}}
                 left='0'
@@ -319,14 +325,9 @@ function SignUp() {
                         mt='0px'>
                         <Text color={textColor} fontWeight='medium'>
                             Vous avez déjà un compte?
-                            <Link
-                                color={titleColor}
-                                as='span'
-                                ms='5px'
-                                href='#'
-                                fontWeight='bold'>
+                            <Button variant="link" color={titleColor} ml="4px" onClick={goToSignIn}>
                                 Se connecter
-                            </Link>
+                            </Button>
                         </Text>
                     </Flex>
                 </Flex>

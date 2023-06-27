@@ -1,8 +1,18 @@
 import {
-  Button, Checkbox,
-  Flex, FormControl, FormLabel, HStack,
-  IconButton, Input,
-  Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select,
+  Button,
+  Checkbox,
+  Flex,
+  FormControl,
+  FormLabel,
+  HStack,
+  IconButton,
+  Input,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
   Spacer,
   Table,
   Tbody,
@@ -10,13 +20,12 @@ import {
   Th,
   Thead,
   Tr,
-  useDisclosure, VStack
+  useDisclosure,
+  VStack
 } from "@chakra-ui/react";
 import Card from "../../../components/Card/Card";
-import React, { useState } from "react";
-import { tablesTableData } from "../../../variables/general";
-import TablesTableRow from "../../../components/Tables/TablesTableRow";
-import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
+import React, {useState} from "react";
+import {AddIcon, DeleteIcon, EditIcon} from "@chakra-ui/icons";
 import {
   assignVolunteerToRole,
   deleteRole,

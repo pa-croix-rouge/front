@@ -1,6 +1,5 @@
-import { deleteWithToken, getWithToken, postWithToken, putWithToken } from "./Controller";
-import { Role, RoleAuth, RoleCreation } from "../model/Role";
-import { ShortVolunteer } from "../model/volunteer/ShortVolunteer";
+import {deleteWithToken, getWithToken, postWithToken, putWithToken} from "./Controller";
+import {Role, RoleAuth} from "../model/Role";
 
 export const getLocalUnitRoles = async (localUnitID: string) => {
   const response = await getWithToken(`role/localunit/${localUnitID}`);

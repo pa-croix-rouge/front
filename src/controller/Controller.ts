@@ -1,7 +1,3 @@
-import {Token} from "../model/Token";
-import {useContext} from "react";
-import TokenContext from "../contexts/TokenContext";
-
 const { API_URL } = require('env');
 
 const readToken = (): string => {

@@ -1,10 +1,10 @@
-import React, { useContext, useState } from "react";
-import { Button, Flex, ListItem, Progress, Spacer, Text, UnorderedList, useDisclosure, VStack } from "@chakra-ui/react";
+import React, {useContext, useState} from "react";
+import {Button, Progress, Text, useDisclosure, VStack} from "@chakra-ui/react";
 import VolunteerContext from "../../../contexts/VolunteerContext";
-import { getLocalUnitRoles, getRoleAuth, getRoleVolunteers } from "../../../controller/RoleController";
+import {getLocalUnitRoles, getRoleAuth} from "../../../controller/RoleController";
 import Role from "./Role";
 import RoleCreationModal from "./RoleCreationModal";
-import { getVolunteers } from "../../../controller/VolunteerController";
+import {getVolunteers} from "../../../controller/VolunteerController";
 
 export default function Roles(props) {
   const [rolesLoaded, setRolesLoaded] = useState(false);
