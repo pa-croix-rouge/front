@@ -327,7 +327,7 @@ export default function EventEdition(props) {
                                 {modifiedEvent?.recurring && (
                                     <Flex direction="column">
                                         <Text fontSize="sm" color="red.500" fontWeight="semibold">
-                                            Attention, cet événement est récurrent. Si vous le nom, la description ou le
+                                            Attention, cet événement est récurrent. Si vous modifiez le nom, la description ou le
                                             référent, tous les événements associés seront modifiés.
                                         </Text>
                                         {(modifiedEventMaxParticipants !== modifiedEvent.timeWindows[0].maxParticipants ||
@@ -338,7 +338,8 @@ export default function EventEdition(props) {
                                                     Si vous modifiez le nombre maximum de participants, la durée des
                                                     sessions ou le nombre de session, les événements associés ne seront
                                                     pas modifiés par défaut. Vous pouvez cependant demander à les
-                                                    modifier en cochant la case ci-dessous.
+                                                    modifier en cochant la case ci-dessous. Dans ce cas, seuls les
+                                                    événements futurs seront modifiés.
                                                 </Text>
                                                 <Flex direction="row" mt="4px" mb="4px" align="center">
                                                     <Switch size="md"
@@ -474,9 +475,8 @@ export default function EventEdition(props) {
                             {modifiedEvent?.referrerId !== initialEvent.referrerId && (
                                 <Text fontSize="sm" color="red.500">Mise à jour du référent de l'événement</Text>
                             )}
-                            {modifyAllSessions && modifiedEvent?.maxParticipants !== initialEvent.maxParticipants && (
-                                <Text fontSize="sm" color="red.500">Mise à jour demandé du nombre maximum de
-                                    participants pour tout les événements associés</Text>
+                            {modifyAllSessions && (modifiedEventMaxParticipants * modifiedEventNumberOfTimeWindow !== initialEvent.maxParticipants || modifiedEventNumberOfTimeWindow !== initialEvent.timeWindows.length) && (
+                                <Text fontSize="sm" color="red.500">Mise à jour demandé des sessions pour l'événement. Seuls les événements futurs seront impactées.</Text>
                             )}
                             {eventSessions.map((event, index, arr) => {
                                 return (
@@ -487,6 +487,7 @@ export default function EventEdition(props) {
                                         color={event.endDate.getTime() < Date.now() ? "green.500" : "blue.500"}
                                         index={index}
                                         arrLength={arr.length}
+                                        key={index}
                                     />
                                 )
                             })}
