@@ -115,7 +115,7 @@ export default function Events() {
     const getReferrerName = (id) => {
         const vol = localUnitVolunteer.find((vol) => vol.id === volunteer.localUnitId);
         if (vol === undefined) {
-            return vol.id;
+            return id;
         } else {
             return vol.firstName + ' ' + vol.lastName;
         }
