@@ -1,7 +1,14 @@
 import {
     Box,
     Button,
-    Flex, SimpleGrid, Stat, StatLabel, StatNumber,
+    Center,
+    CircularProgress,
+    Flex,
+    SimpleGrid,
+    Skeleton,
+    Stat,
+    StatLabel,
+    StatNumber,
     Table,
     Tbody,
     Td,
@@ -9,22 +16,24 @@ import {
     Th,
     Thead,
     Tr,
+    useColorModeValue,
+    useDisclosure,
     Wrap,
-    useColorModeValue, WrapItem, Center, Container, useDisclosure, CircularProgress, Skeleton,
+    WrapItem,
 } from "@chakra-ui/react";
 import Card from "../../../components/Card/Card.js";
-import React, {useContext, useEffect, useRef, useState} from "react";
+import React, {useContext, useState} from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
-import scrollGridPlugin from "@fullcalendar/scrollgrid";
 import VolunteerContext from "../../../contexts/VolunteerContext";
-import {getVolunteerById, getVolunteers} from "../../../controller/VolunteerController";
+import {getVolunteers} from "../../../controller/VolunteerController";
 import {getEventForSpecificMonth, getEventsStats} from "../../../controller/EventController";
 import IconBox from "../../../components/Icons/IconBox";
 import {CartIcon, DocumentIcon, GlobeIcon, WalletIcon} from "../../../components/Icons/Icons";
 import {EventsStats} from "../../../model/event/EventsStats";
 import {useHistory} from "react-router-dom";
 import EventViewer from "./EventViewer";
+import EventContext from "../../../contexts/EventContext";
 
 export default function Events() {
     const textColor = useColorModeValue("gray.700", "white");
@@ -35,11 +44,7 @@ export default function Events() {
     const iconBoxInside = useColorModeValue("white", "white");
     const history = useHistory();
     const [tableMaxHeight, setTableMaxHeight] = useState('320px');
-    const calendarContainerRef = useRef(null);
-    const [isInitialRender, setIsInitialRender] = useState(true);
 
-    const [loadedReferrers, setLoadedReferrers] = useState(false);
-    const [loadedStats, setLoadedStats] = useState(false);
     const {volunteer, setVolunteer} = useContext(VolunteerContext);
     const [stats, setStats] = useState(new EventsStats(0, 0, 0, 0));
 
@@ -53,31 +58,12 @@ export default function Events() {
     const [localUnitVolunteerLoaded, setLocalUnitVolunteerLoaded] = useState(false);
     const [localUnitVolunteerLoading, setLocalUnitVolunteerLoading] = useState(false);
 
-    const [selectedEvent, setSelectedEvent] = useState(undefined);
+    const [selectedEventSessionId, setSelectedEventSessionId] = useState(undefined);
     const {
         isOpen: isOpenVisualizationModal,
         onOpen: onOpenVisualizationModal,
         onClose: onCloseVisualizationModal
     } = useDisclosure();
-
-    const updateTableMaxHeight = () => {
-        // const calendarContainerHeight = calendarContainerRef.current.offsetHeight;
-        // const newTableMaxHeight = `${calendarContainerHeight}px`;
-        // setTableMaxHeight(newTableMaxHeight);
-    };
-
-    useEffect(() => {
-        // if (isInitialRender) {
-        //     setIsInitialRender(false);
-        //     updateTableMaxHeight();
-        // } else {
-        //     window.addEventListener('resize', updateTableMaxHeight);
-        //     return () => {
-        //         window.removeEventListener('resize', updateTableMaxHeight);
-        //     };
-        // }
-    }, [isInitialRender]);
-
 
     if (!localUnitVolunteerLoaded && !localUnitVolunteerLoading) {
         setLocalUnitVolunteerLoading(true);
@@ -118,6 +104,14 @@ export default function Events() {
             });
     }
 
+    if (events === undefined) {
+        return (
+            <Center w='100%' h='100%'>
+                <CircularProgress isIndeterminate color='green.300'/>
+            </Center>
+        );
+    }
+
     const getReferrerName = (id) => {
         const vol = localUnitVolunteer.find((vol) => vol.id === volunteer.localUnitId);
         if (vol === undefined) {
@@ -133,12 +127,7 @@ export default function Events() {
 
     const handleDateChange = (arg) => {
         const newDate = arg.view.currentStart;
-        console.log('handleDateChange');
-        console.log(selectedDate)
         if (newDate.getTime() !== selectedDate.getTime()) {
-            console.log('new date');
-            console.log(newDate)
-
             setSelectedDate(newDate);
             setLoadedEvents(false);
         }
@@ -156,15 +145,16 @@ export default function Events() {
     }
 
     const handleEventClick = (arg) => {
-        console.log('handleEventClick');
-        console.log(arg);
-        console.log(arg.event);
-        setSelectedEvent(events[arg.event.id]);
+        setSelectedEventSessionId(arg.event.id);
         onOpenVisualizationModal();
     }
 
+    const reloadEvents = () => {
+        setLoadedEvents(false);
+    }
+
     return (
-        <>
+        <EventContext.Provider value={{events, setEvents, reloadEvents}} >
             <Flex flexDirection='column' pt={{base: "120px", md: "75px"}} mr='32px'>
                 <SimpleGrid columns={{sm: 1, md: 2, xl: 4}} spacing='24px' mb='8px'>
                     <Card minH='100px'>
@@ -318,14 +308,14 @@ export default function Events() {
                                             right: ''
                                         }
                                     }
-                                    events={events !== [] ? events.map((el, index) => {
+                                    events={events.map((el, index) => {
                                         return {
-                                            id: index,
+                                            id: el.sessionId,
                                             title: el.name,
                                             start: el.startDate.toISOString().substring(0, 10),
                                             end: el.endDate.toISOString().substring(0, 10)
                                         }
-                                    }) : []}
+                                    })}
                                     eventClick={handleEventClick}
                                 />
                             </Skeleton>
@@ -418,7 +408,7 @@ export default function Events() {
                 <Box h="20px"/>
             </Flex>
             <EventViewer isOpen={isOpenVisualizationModal} onClose={onCloseVisualizationModal}
-                         event={selectedEvent}></EventViewer>
-        </>
+                         eventSessionId={selectedEventSessionId}></EventViewer>
+        </EventContext.Provider>
     );
 }

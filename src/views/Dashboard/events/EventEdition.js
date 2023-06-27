@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {
     Box,
     Button,
@@ -36,15 +36,20 @@ import {FaArrowRight, FaUser} from "react-icons/fa";
 import {getEventSessions, updateAllEventSessions, updateEventSession} from "../../../controller/EventController";
 import TimelineRow from "../../../components/Tables/TimelineRow";
 import {CalendarIcon, CheckIcon} from "@chakra-ui/icons";
+import EventContext from "../../../contexts/EventContext";
 
 export default function EventEdition(props) {
 
-    if (props.eventToEdit === undefined) {
+    if(props.eventSessionId === undefined){
         return null;
     }
 
+    const {events, setEvents, reloadEvents} = useContext(EventContext);
+    const initialEvent = events.find((event) => event.sessionId == props.eventSessionId);
+
+
     const [eventSessions, setEventSessions] = useState([]);
-    const [modifiedEvent, setModifiedEvent] = useState(props.eventToEdit);
+    const [modifiedEvent, setModifiedEvent] = useState(initialEvent);
 
     const [modifiedEventStartDate, setModifiedEventStartDate] = useState(new Date(0).toISOString().substring(0, 10));
     const [modifiedEventStartTime, setModifiedEventStartTime] = useState(new Date(0).toLocaleTimeString([], {
@@ -64,35 +69,31 @@ export default function EventEdition(props) {
     const [modifyEventError, setModifyEventError] = useState("");
 
     const [modifyAllSessions, setModifyAllSessions] = useState(false);
+    const [updateInProgress, setUpdateInProgress] = useState(false);
 
     const [eventMaxParticipants, setEventMaxParticipants] = useState(10);
     const [eventNumberOfTimeWindow, setEventNumberOfTimeWindow] = useState(3);
 
-    console.log('modifiedEvent');
-    console.log(props.eventToEdit);
-
     useEffect(() => {
-            setModifiedEvent(props.eventToEdit)
+            setModifiedEvent(initialEvent)
 
-            setModifiedEventStartDate(props.eventToEdit.startDate.toISOString().substring(0, 10));
-            setModifiedEventStartTime(props.eventToEdit.startDate.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}));
-            setModifiedEventEndDate(props.eventToEdit.endDate.toISOString().substring(0, 10));
-            setModifiedEventEndTime(props.eventToEdit.endDate.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}));
+            setModifiedEventStartDate(initialEvent.startDate.toISOString().substring(0, 10));
+            setModifiedEventStartTime(initialEvent.startDate.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}));
+            setModifiedEventEndDate(initialEvent.endDate.toISOString().substring(0, 10));
+            setModifiedEventEndTime(initialEvent.endDate.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}));
 
-            console.log('modifiedEvent');
-            console.log(props.eventToEdit);
-
-            setModifiedEventMaxParticipants(props.eventToEdit.timeWindows.length > 0 ? props.eventToEdit.timeWindows[0].maxParticipants : 10);
-            setModifiedEventTimeWindowDuration(props.eventToEdit.timeWindows.length > 0 ? (props.eventToEdit.timeWindows[0].endTime.getTime() - props.eventToEdit.timeWindows[0].startTime.getTime()) / (60 * 1000) : 20);
-            setModifiedEventNumberOfTimeWindow(props.eventToEdit.timeWindows.length > 0 ? props.eventToEdit.timeWindows.length : 3);
+            setModifiedEventMaxParticipants(initialEvent.timeWindows.length > 0 ? initialEvent.timeWindows[0].maxParticipants : 10);
+            setModifiedEventTimeWindowDuration(initialEvent.timeWindows.length > 0 ? (initialEvent.timeWindows[0].endTime.getTime() - initialEvent.timeWindows[0].startTime.getTime()) / (60 * 1000) : 20);
+            setModifiedEventNumberOfTimeWindow(initialEvent.timeWindows.length > 0 ? initialEvent.timeWindows.length : 3);
         }
-        ,[props.eventToEdit])
+        ,[props.eventSessionId])
 
     const {
         isOpen: isOpenModifyAllModal,
         onOpen: onOpenModifyAllModal,
         onClose: onCloseModifyAllModal
     } = useDisclosure();
+
 
     if ( modifiedEvent === undefined) {
         return null;
@@ -157,13 +158,17 @@ export default function EventEdition(props) {
         );
 
         if (modifiedEvent !== undefined) {
+            setUpdateInProgress(true);
             updateAllEventSessions(modifiedEvent, eventStart, eventEnd, modifiedEventTimeWindowDuration, modifiedEventNumberOfTimeWindow, modifiedEventMaxParticipants)
                 .then(() => {
+                    reloadEvents();
+                    setUpdateInProgress(false);
                     onCloseModifyAllModal();
                     props.onClose();
                     setModifyAllSessions(false);
                 })
                 .catch((_) => {
+                    setUpdateInProgress(false);
                 });
         }
     }
@@ -210,11 +215,15 @@ export default function EventEdition(props) {
         }
 
         if (!modifyAllSessions) {
+            setUpdateInProgress(true);
             updateEventSession(modifiedEvent, eventStart, eventEnd, modifiedEventTimeWindowDuration, modifiedEventNumberOfTimeWindow, modifiedEventMaxParticipants)
                 .then(() => {
+                    reloadEvents();
+                    setUpdateInProgress(false);
                     props.onClose();
                 })
                 .catch((_) => {
+                    setUpdateInProgress(false);
                 });
         } else {
             getAllSessions();
@@ -392,10 +401,10 @@ export default function EventEdition(props) {
                             <Box h="48px"/>
                             <Flex direction="row" justifyContent="space-between" alignItems="center">
                                 <Stat maxW="45%">
-                                    <StatLabel>{props.eventToEdit.name} du {props.eventToEdit.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")} au {props.eventToEdit.endDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}</StatLabel>
+                                    <StatLabel>{initialEvent.name} du {initialEvent.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")} au {initialEvent.endDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}</StatLabel>
                                     <StatNumber><Icon
-                                        as={FaUser}/> {props.eventToEdit.numberOfParticipants} / {props.eventToEdit.maxParticipants} participants</StatNumber>
-                                    <StatHelpText>{props.eventToEdit.description}<br/>Référent: {props.eventToEdit.referrerId}
+                                        as={FaUser}/> {initialEvent.numberOfParticipants} / {initialEvent.maxParticipants} participants</StatNumber>
+                                    <StatHelpText>{initialEvent.description}<br/>Référent: {initialEvent.referrerId}
                                     </StatHelpText>
                                 </Stat>
                                 <Icon as={FaArrowRight} h="8" w="8" mr="12px"/>
@@ -418,8 +427,8 @@ export default function EventEdition(props) {
                         <Button colorScheme="blue" mr={3} onClick={props.onClose}>
                             Annuler
                         </Button>
-                        <Button variant="outline" onClick={modifyEvent} isDisabled={
-                            modifiedEvent === props.eventToEdit &&
+                        <Button variant="outline" isLoading={updateInProgress} onClick={modifyEvent} isDisabled={
+                            modifiedEvent === initialEvent &&
                             modifiedEvent !== undefined &&
                             modifiedEventStartDate === modifiedEvent.startDate.toISOString().substring(0, 10) &&
                             modifiedEventStartTime === modifiedEvent.startDate.toLocaleTimeString([], {
@@ -451,16 +460,16 @@ export default function EventEdition(props) {
                                 Attention, vous êtes sur le point de modifier {eventSessions.length} événements pour la
                                 raison suivante:
                             </Text>
-                            {modifiedEvent?.name !== props.eventToEdit.name && (
+                            {modifiedEvent?.name !== initialEvent.name && (
                                 <Text fontSize="sm" color="red.500">Mise à jour du nom de l'événement</Text>
                             )}
-                            {modifiedEvent?.description !== props.eventToEdit.description && (
+                            {modifiedEvent?.description !== initialEvent.description && (
                                 <Text fontSize="sm" color="red.500">Mise à jour de la description de l'événement</Text>
                             )}
-                            {modifiedEvent?.referrerId !== props.eventToEdit.referrerId && (
+                            {modifiedEvent?.referrerId !== initialEvent.referrerId && (
                                 <Text fontSize="sm" color="red.500">Mise à jour du référent de l'événement</Text>
                             )}
-                            {modifyAllSessions && modifiedEvent?.maxParticipants !== props.eventToEdit.maxParticipants && (
+                            {modifyAllSessions && modifiedEvent?.maxParticipants !== initialEvent.maxParticipants && (
                                 <Text fontSize="sm" color="red.500">Mise à jour demandé du nombre maximum de
                                     participants pour tout les événements associés</Text>
                             )}
