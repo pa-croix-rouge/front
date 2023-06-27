@@ -290,12 +290,10 @@ export default function Events() {
                         </Flex>
                     </Card>
                 </SimpleGrid>
-                <Wrap>
-                    <WrapItem>
+                <Flex>
                         <Card m='24px' minWidth={'500'}>
                             <Skeleton isLoaded={loadedEvents}>
                                 <FullCalendar
-                                    aspectRatio={0.9}
                                     plugins={[dayGridPlugin]}
                                     datesSet={handleDateChange}
                                     initialDate={selectedDate}
@@ -320,8 +318,6 @@ export default function Events() {
                                 />
                             </Skeleton>
                         </Card>
-                    </WrapItem>
-                    <WrapItem>
                         <Card p='0px' maxW={{sm: "320px", md: "100%"}} m='24px'>
                             <Flex direction='column'>
                                 <Flex align='center' justify='space-between' p='22px'>
@@ -403,8 +399,7 @@ export default function Events() {
                                 </Box>
                             </Flex>
                         </Card>
-                    </WrapItem>
-                </Wrap>
+                </Flex>
                 <Box h="20px"/>
             </Flex>
             <EventViewer isOpen={isOpenVisualizationModal} onClose={onCloseVisualizationModal}
