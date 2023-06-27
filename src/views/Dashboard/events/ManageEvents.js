@@ -15,7 +15,7 @@ import {
     ModalFooter,
     ModalHeader,
     ModalOverlay,
-    Progress,
+    Progress, Skeleton, SkeletonText,
     Stat,
     StatHelpText,
     StatLabel,
@@ -50,6 +50,7 @@ export default function ManageEvents() {
     const borderColor = useColorModeValue("gray.200", "gray.600");
     // Data variables
     const [loadedEvents, setLoadedEvents] = useState(false);
+    const [loadingEvents, setLoadingEvents] = useState(false);
     const [loadedReferrers, setLoadedReferrers] = useState(false);
     const [referrersId, setReferrersId] = useState([]);
     const [referrersName, setReferrersName] = useState([]);
@@ -151,16 +152,18 @@ export default function ManageEvents() {
     }
 
     const loadEvents = () => {
-        setLoadedEvents(true);
-
+        setLoadingEvents(true);
         getEventForTrimester(volunteer.localUnitId, currentMonth, currentYear)
             .then((eventList) => {
+                setLoadingEvents(false);
                 setEvents(eventList);
+                setLoadedEvents(true);
                 const allReferrersId = eventList.map((el) => el.referrerId);
                 setReferrersId(Array.from(new Set(allReferrersId)));
             })
             .catch((err) => {
                 console.log(err);
+                setLoadingEvents(false);
                 setLoadedEvents(false);
             });
     }
@@ -373,7 +376,7 @@ export default function ManageEvents() {
     return (
         <EventContext.Provider value={{events, setEvents, reloadEvents}}>
             <Flex direction="column" pt={{base: "120px", md: "75px"}}>
-                {!loadedEvents && volunteer && loadEvents()}
+                {!loadedEvents && !loadingEvents && volunteer && loadEvents()}
                 {!loadedReferrers && referrersId.length > 0 && loadReferrersName()}
                 {!loadVolunteerList && loadVolunteers()}
                 {selectedEvent !== undefined && callDeleteEvent && deleteEvent()}
@@ -435,6 +438,7 @@ export default function ManageEvents() {
                         </Flex>
                     </CardHeader>
                     <CardBody>
+                        <Skeleton isLoaded={loadedEvents}>
                         <Table variant="simple" color={textColor}>
                             <Thead>
                                 <Tr my=".8rem" pl="0px" color="gray.400">
@@ -448,12 +452,13 @@ export default function ManageEvents() {
                                     <Th borderColor={borderColor}></Th>
                                 </Tr>
                             </Thead>
-                            <Tbody>
-                                {getTableMonthBody(currentMonth - 1)}
-                                {getTableMonthBody(currentMonth)}
-                                {getTableMonthBody(currentMonth + 1)}
-                            </Tbody>
+                                <Tbody>
+                                    {getTableMonthBody(currentMonth - 1)}
+                                    {getTableMonthBody(currentMonth)}
+                                    {getTableMonthBody(currentMonth + 1)}
+                                </Tbody>
                         </Table>
+                        </Skeleton>
                     </CardBody>
                 </Card>
             </Flex>
