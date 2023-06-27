@@ -1,12 +1,18 @@
 const { API_URL } = require('env');
 
 const readToken = (): string => {
-    // const {token}: Token = useContext(TokenContext) as unknown as Token;
-    // const localToken: Token = {token: localStorage.getItem('token')};
-    // if (token === undefined || token === null || token === '') {
-    //     return localToken.token as string;
-    // }
-    return localStorage.getItem('token') ;
+    const {token, setToken} = useContext(TokenContext);
+    const localToken =  localStorage.getItem('token');
+
+    if (token === undefined || token === null || token === '') {
+        setToken(localToken);
+    }
+
+    if (localToken === undefined || localToken === null || localToken === '') {
+        setToken('');
+    }
+
+    return token;
 }
 
 export const getWithToken = async (url: string): Promise<Response> => {

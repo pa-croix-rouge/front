@@ -17,11 +17,11 @@
 */
 import React from "react";
 import ReactDOM from "react-dom";
-import { HashRouter, Route, Switch, Redirect } from "react-router-dom";
+import {HashRouter, Route, Switch, Redirect} from "react-router-dom";
 
 import AuthLayout from "./layouts/Auth.js";
 import AdminLayout from "./layouts/Admin.js";
-import { ChakraProvider } from "@chakra-ui/react";
+import {ChakraProvider} from "@chakra-ui/react";
 // Custom Chakra theme
 import theme from "./theme/theme.js";
 import TokenProvider from "./providers/TokenProviders";
@@ -30,15 +30,13 @@ import VolunteerProvider from "./providers/VolunteerProviders";
 ReactDOM.render(
     <ChakraProvider theme={theme} resetCss={false} position="relative">
         <HashRouter>
-            <Switch>
-                <TokenProvider>
-                    <VolunteerProvider>
-                        <Route path={`/auth`} component={AuthLayout} />
-                        <Route path={`/admin`} component={AdminLayout} />
-                        <Redirect from={`/`} to="/admin/ul-dashboard" />
-                    </VolunteerProvider>
-                </TokenProvider>
-            </Switch>
+            <TokenProvider>
+                <VolunteerProvider>
+                    <Route path={`/auth`} component={AuthLayout}/>
+                    <Route path={`/admin`} component={AdminLayout}/>
+                    <Redirect from={`/`} to="/admin/ul-dashboard"/>
+                </VolunteerProvider>
+            </TokenProvider>
         </HashRouter>
     </ChakraProvider>,
     document.getElementById("root")
