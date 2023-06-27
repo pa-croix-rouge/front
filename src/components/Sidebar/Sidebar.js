@@ -22,7 +22,6 @@ import {
   renderView,
 } from "../Scrollbar/Scrollbar";
 import { HSeparator } from "../Separator/Separator";
-import { SidebarHelp } from "./SidebarHelp";
 import React from "react";
 import { Scrollbars } from "react-custom-scrollbars";
 import { NavLink, useLocation } from "react-router-dom";
@@ -35,7 +34,6 @@ function Sidebar(props) {
   const activeRoute = (routeName) => {
     return location.pathname === routeName ? "active" : "";
   };
-  const { sidebarVariant } = props;
   const createLinks = (routes) => {
     let activeBg = useColorModeValue("white", "navy.700");
     let inactiveBg = useColorModeValue("white", "navy.700");
@@ -43,7 +41,7 @@ function Sidebar(props) {
     let inactiveColor = useColorModeValue("gray.400", "gray.400");
     let sidebarActiveShadow = "0px 7px 11px rgba(0, 0, 0, 0.04)";
     const styleColor = "orange.500";
-    return routes.map((prop, key) => {
+    return routes.filter(prop => prop.name !== "Sign In" && prop.name !== "Sign Up").map((prop, key) => {
       if (prop.redirect) {
         return null;
       }
@@ -261,7 +259,7 @@ export function SidebarResponsive(props) {
 
   // this function creates the links and collapses that appear in the sidebar (left menu)
   const createLinks = (routes) => {
-    return routes.map((prop, key) => {
+    return routes.filter(prop => prop.name !== "Sign In" && prop.name !== "Sign Up").map((prop, key) => {
       if (prop.redirect) {
         return null;
       }

@@ -6,15 +6,13 @@ import {
   HStack, Image,
   Link, Stack, Text, useColorModeValue
 } from "@chakra-ui/react";
-import {
-  DocumentIcon,
-  RocketIcon
-} from "../Icons/Icons";
 import { SidebarResponsive } from "../Sidebar/Sidebar";
 import React from "react";
 import { NavLink } from "react-router-dom";
 import routes from "./../../routes.js";
 import croixRougeLogoHr from "../../assets/img/hr_Croix-Rouge_française_Logo.png";
+import {FaSignInAlt, FaUserPlus} from "react-icons/fa";
+
 export default function AuthNavbar(props) {
   const { logo, logoText, secondary, ...rest } = props;
   // Chakra color mode
@@ -61,7 +59,7 @@ export default function AuthNavbar(props) {
               color={navbarIcon}
               variant="no-effects"
               leftIcon={
-                <RocketIcon color={navbarIcon} w="12px" h="12px" me="0px"/>
+                <FaUserPlus color={navbarIcon} w="12px" h="12px" me="0px"/>
               }
           >
             <Text>Sign Up</Text>
@@ -76,7 +74,7 @@ export default function AuthNavbar(props) {
               color={navbarIcon}
               variant="no-effects"
               leftIcon={
-                <DocumentIcon color={navbarIcon} w="12px" h="12px" me="0px"/>
+                <FaSignInAlt color={navbarIcon} w="12px" h="12px" me="0px"/>
               }
           >
             <Text>Sign In</Text>

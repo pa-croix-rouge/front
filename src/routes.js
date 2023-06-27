@@ -1,11 +1,10 @@
 // import
 import React from 'react';
 import Events from "./views/Dashboard/Events";
-import Profile from "./views/Dashboard/Profile.js";
 import SignIn from "./views/Pages/SignIn.js";
 import SignUp from "./views/Pages/SignUp.js";
 
-import {DocumentIcon, HomeIcon, PersonIcon, RocketIcon,} from "components/Icons/Icons";
+import {DocumentIcon, HomeIcon, RocketIcon,} from "components/Icons/Icons";
 import LocalUnit from "./views/Dashboard/LocalUnit";
 import {CalendarIcon, TimeIcon} from "@chakra-ui/icons";
 import ULDashboard from "./views/Dashboard/ULDashboard";
@@ -66,33 +65,18 @@ var dashRoutes = [
     layout: "/admin",
   },
   {
-    name: "ACCOUNT PAGES",
-    category: "account",
-    state: "pageCollapse",
-    views: [
-      {
-        path: "/profile",
-        name: "Profile",
-        icon: <PersonIcon color='inherit' />,
-        secondaryNavbar: true,
-        component: Profile,
-        layout: "/admin",
-      },
-      {
-        path: "/signin",
-        name: "Sign In",
-        icon: <DocumentIcon color='inherit' />,
-        component: SignIn,
-        layout: "/auth",
-      },
-      {
-        path: "/signup",
-        name: "Sign Up",
-        icon: <RocketIcon color='inherit' />,
-        component: SignUp,
-        layout: "/auth",
-      },
-    ],
+    path: "/signin",
+    name: "Sign In",
+    icon: <DocumentIcon color='inherit' />,
+    component: SignIn,
+    layout: "/auth",
+  },
+  {
+    path: "/signup",
+    name: "Sign Up",
+    icon: <RocketIcon color='inherit' />,
+    component: SignUp,
+    layout: "/auth",
   },
 ];
 export default dashRoutes;

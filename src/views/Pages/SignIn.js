@@ -6,7 +6,6 @@ import {
     FormControl,
     FormLabel,
     Input,
-    Link,
     Progress,
     Text,
     useColorModeValue,
@@ -60,23 +59,25 @@ function SignIn() {
         }
     }, [loadTokenSuccess, token]);
 
+    const goToSignUp = () => {
+        history.push("/auth/signup");
+    }
+
     return (
-        <Flex position='relative' mb='40px'>
+        <Flex position='relative'>
             <Flex
                 minH={{md: "1000px"}}
-                h={{sm: "initial", md: "75vh", lg: "85vh"}}
+                h={{sm: "initial", md: "100vh", lg: "100vh"}}
                 w='100%'
                 maxW='1044px'
                 mx='auto'
                 justifyContent='space-between'
-                mb='30px'
                 pt={{md: "0px"}}>
                 <Flex
                     w='100%'
                     h='100%'
                     alignItems='center'
                     justifyContent='center'
-                    mb='60px'
                     mt={{base: "50px", md: "20px"}}>
                     <Flex
                         zIndex='2'
@@ -141,14 +142,9 @@ function SignIn() {
                             mt='0px'>
                             <Text color={textColor} fontWeight='medium'>
                                 Vous n'avez pas encore de compte?
-                                <Link
-                                    color={titleColor}
-                                    as='span'
-                                    ms='5px'
-                                    href='/sign-up'
-                                    fontWeight='bold'>
+                                <Button variant="link" color={titleColor} onClick={goToSignUp} ml="4px">
                                     S'enregistrer
-                                </Link>
+                                </Button>
                             </Text>
                         </Flex>
                         {loading && (
