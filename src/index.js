@@ -26,15 +26,18 @@ import {ChakraProvider} from "@chakra-ui/react";
 import theme from "./theme/theme.js";
 import TokenProvider from "./providers/TokenProviders";
 import VolunteerProvider from "./providers/VolunteerProviders";
+import LocalUnitProviders from "./providers/LocalUnitProviders";
 
 ReactDOM.render(
     <ChakraProvider theme={theme} resetCss={false} position="relative">
         <HashRouter>
             <TokenProvider>
                 <VolunteerProvider>
-                    <Route path={`/auth`} component={AuthLayout}/>
-                    <Route path={`/admin`} component={AdminLayout}/>
-                    <Redirect from={`/`} to="/admin/ul-dashboard"/>
+                    <LocalUnitProviders>
+                        <Route path={`/auth`} component={AuthLayout}/>
+                        <Route path={`/admin`} component={AdminLayout}/>
+                        <Redirect from={`/`} to="/admin/ul-dashboard"/>
+                    </LocalUnitProviders>
                 </VolunteerProvider>
             </TokenProvider>
         </HashRouter>
