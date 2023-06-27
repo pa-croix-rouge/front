@@ -146,7 +146,7 @@ export const updateEventSession = async (event: Event, start: Date, end: Date, e
 }
 
 export const updateAllEventSessions = async (event: Event, start: Date, end: Date, eventTimeWindowDuration: number, eventTimeWindowOccurrence: number, eventTimeWindowMaxParticipants: number): Promise<boolean> => {
-    console.log("updateAllEventSessions params: ", event, start, end, eventTimeWindowDuration, eventTimeWindowOccurrence, eventTimeWindowMaxParticipants);
+    // console.log("updateAllEventSessions params: ", event, start, end, eventTimeWindowDuration, eventTimeWindowOccurrence, eventTimeWindowMaxParticipants);
     const response = await postWithToken(`event/sessions/${event.eventId}/${event.sessionId}`, {
         name: event.name,
         description: event.description,
