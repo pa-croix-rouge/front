@@ -4,6 +4,7 @@ import {ProductList} from "../model/stock/ProductList";
 import {ClothStorageProduct} from "../model/stock/ClothStorageProduct";
 import {StorageProduct} from "../model/stock/StorageProduct";
 import {FoodStorageProduct} from "../model/stock/FoodStorageProduct";
+import {ProductsStats} from "../model/stock/ProductsStats";
 
 const mapJsonToClothStorageProduct = (data: any): ClothStorageProduct[] => {
     const cloths: ClothStorageProduct[] =  data.map((clothJson: any) => {
@@ -80,4 +81,16 @@ export const getAllProducts = async (): Promise<ProductList> => {
     const data = await response.json();
 
     return new ProductList(mapJsonToClothStorageProduct(data.clothProducts), mapJsonToFoodStorageProduct(data.foodProducts));
+}
+
+export const getProductsStats = async (): Promise<ProductsStats> => {
+    const response = await getWithToken(`storage/product/stats`);
+
+    if (!response.ok) {
+        throw new Error(`Fetching products stats failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    return new ProductsStats(data.totalFoodQuantity, data.totalClothesQuantity);
 }

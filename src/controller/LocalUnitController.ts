@@ -1,6 +1,7 @@
 import {LocalUnit} from "../model/LocalUnit";
 import {Address} from "../model/Address";
 import {getWithToken, postWithToken} from "./Controller";
+import {LocalUnitStats} from "../model/LocalUnitStats";
 
 export const getLocalUnit = async (id: string): Promise<LocalUnit> => {
     const response = await getWithToken(`localunit/${id}`);
@@ -24,4 +25,16 @@ export const regenerateLocalUnitCode = async (id: string): Promise<boolean> => {
     }
 
     return true;
+}
+
+export const getLocalUnitStats = async (): Promise<LocalUnitStats> => {
+    const response = await getWithToken(`localunit/stats`);
+
+    if (!response.ok) {
+        throw new Error(`Fetching local unit stats failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    return new LocalUnitStats(data.numberOfVolunteers, data.numberOfBeneficiaries);
 }

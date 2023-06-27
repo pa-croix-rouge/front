@@ -3,7 +3,6 @@ import {
   Button,
   Flex,
   Grid,
-  Link,
   Progress,
   SimpleGrid,
   Stat,
@@ -20,16 +19,21 @@ import {
 } from "@chakra-ui/react";
 import Card from "components/Card/Card.js";
 import IconBox from "components/Icons/IconBox";
-import {CartIcon, DocumentIcon, GlobeIcon, WalletIcon,} from "components/Icons/Icons.js";
+import {CartIcon} from "components/Icons/Icons.js";
+import {FaCalendar, FaMedkit, FaUsers} from "react-icons/fa";
 import React, {useContext, useEffect, useRef, useState} from "react";
 import {stockClothCategories, stockFoodCategories} from "variables/general";
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
-import {getLocalUnit} from "../../controller/LocalUnitController";
+import {getLocalUnit, getLocalUnitStats} from "../../controller/LocalUnitController";
 import VolunteerContext from "../../contexts/VolunteerContext";
-import {getEventForSpecificMonth} from "../../controller/EventController";
+import {getEventForSpecificMonth, getEventsStats} from "../../controller/EventController";
 import {getVolunteerById} from "../../controller/VolunteerController";
 import {useHistory} from "react-router-dom";
+import {LocalUnitStats} from "../../model/LocalUnitStats";
+import {EventsStats} from "../../model/event/EventsStats";
+import {getProductsStats} from "../../controller/StorageController";
+import {ProductsStats} from "../../model/stock/ProductsStats";
 
 export default function ULDashboard() {
   // Chakra Color Mode
@@ -40,17 +44,24 @@ export default function ULDashboard() {
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const textTableColor = useColorModeValue("gray.500", "white");
   const [loadedLocalUnit, setLoadedLocalUnit] = useState(false);
+  const [loadedLocalUnitStats, setLoadedLocalUnitStats] = useState(false);
+  const [loadedEventStats, setLoadedEventStats] = useState(false);
+  const [loadedProductStats, setLoadedProductStats] = useState(false);
   const {volunteer, setVolunteer} = useContext(VolunteerContext);
   const [tableMaxHeight, setTableMaxHeight] = useState('320px');
   const [isInitialRender, setIsInitialRender] = useState(true);
   const calendarContainerRef = useRef(null);
   const [loadedEvents, setLoadedEvents] = useState(false);
   const [loadedReferrers, setLoadedReferrers] = useState(false);
+  const [localUnit, setLocalUnit] = useState({});
   const [events, setEvents] = useState([]);
   const [referrersId, setReferrersId] = useState([]);
   const [referrersName, setReferrersName] = useState([]);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
+  const [localUnitStats, setLocalUnitStats] = useState(new LocalUnitStats(0, 0));
+  const [eventStats, setEventStats] = useState(new EventsStats(0, 0, 0, 0));
+  const [productStats, setProductStats] = useState(new ProductsStats(0, 0));
   const history = useHistory();
 
   useEffect(() => {
@@ -75,15 +86,23 @@ export default function ULDashboard() {
     }
   }, [isInitialRender]);
 
+  const goToLocalUnit = () => {
+    history.push("/admin/local-unit");
+  }
+
   const goToManageEvent = () => {
     history.push("/admin/manage-events");
+  }
+
+  const goToStocks = () => {
+    history.push("/admin/stocks");
   }
 
   const loadLocalUnit = () => {
     setLoadedLocalUnit(true);
     getLocalUnit(volunteer.localUnitId)
         .then((localUnit) => {
-          console.log(localUnit);
+          setLocalUnit(localUnit);
         })
         .catch((_) => {
           setLoadedLocalUnit(false);
@@ -121,11 +140,47 @@ export default function ULDashboard() {
     setCurrentMonth(newDate.getMonth() + 1);
   };
 
+  const loadLocalUnitStats = () => {
+    setLoadedLocalUnitStats(true);
+    getLocalUnitStats()
+        .then((stats) => {
+            setLocalUnitStats(stats);
+        })
+        .catch((_) => {
+            setLoadedLocalUnitStats(false);
+        });
+  }
+
+  const loadEventStats = () => {
+    setLoadedEventStats(true);
+    getEventsStats(localUnit.id)
+        .then((stats) => {
+          setEventStats(stats);
+        })
+        .catch((_) => {
+          setLoadedEventStats(false);
+        });
+  }
+
+  const loadProductStats = () => {
+    setLoadedProductStats(true);
+    getProductsStats()
+        .then((stats) => {
+            setProductStats(stats);
+        })
+        .catch((_) => {
+            setLoadedProductStats(false);
+        });
+  }
+
   return (
       <Flex flexDirection='column' pt={{ base: "120px", md: "75px" }}>
         {volunteer && !loadedLocalUnit && loadLocalUnit()}
         {!loadedEvents && volunteer && loadEvents()}
         {!loadedReferrers && referrersId.length > 0 && loadReferrersName()}
+        {!loadedLocalUnitStats && loadLocalUnitStats()}
+        {!loadedEventStats && loadEventStats()}
+        {!loadedProductStats && loadProductStats()}
         <SimpleGrid columns={{ sm: 1, md: 2, xl: 4 }} spacing='24px' mb='20px'>
           <Card minH='125px'>
             <Flex direction='column'>
@@ -145,7 +200,7 @@ export default function ULDashboard() {
                   </StatLabel>
                   <Flex>
                     <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
-                      50
+                      {localUnitStats.numberOfVolunteers}
                     </StatNumber>
                   </Flex>
                 </Stat>
@@ -155,12 +210,12 @@ export default function ULDashboard() {
                     h={"45px"}
                     w={"45px"}
                     bg={iconBlue}>
-                  <WalletIcon h={"24px"} w={"24px"} color={iconBoxInside} />
+                  <FaUsers h={"24px"} w={"24px"} color={iconBoxInside} />
                 </IconBox>
               </Flex>
-              <Link color='gray.400' fontSize='sm'>
+              <Button variant="link" color='gray.400' fontSize='sm' onClick={goToLocalUnit}>
                 Voir la liste
-              </Link>
+              </Button>
             </Flex>
           </Card>
           <Card minH='125px'>
@@ -180,8 +235,8 @@ export default function ULDashboard() {
                     Nombre de bénéficiaires
                   </StatLabel>
                   <Flex>
-                    <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
-                      300
+                    <StatNumber fontSize='lg' color={textColor} fontWeight='bold' href='/local-unit'>
+                        {localUnitStats.numberOfBeneficiaries}
                     </StatNumber>
                   </Flex>
                 </Stat>
@@ -191,12 +246,12 @@ export default function ULDashboard() {
                     h={"45px"}
                     w={"45px"}
                     bg={iconBlue}>
-                  <GlobeIcon h={"24px"} w={"24px"} color={iconBoxInside} />
+                  <FaMedkit h={"24px"} w={"24px"} color={iconBoxInside} />
                 </IconBox>
               </Flex>
-              <Link color='gray.400' fontSize='sm'>
+              <Button variant="link" color='gray.400' fontSize='sm' onClick={goToLocalUnit}>
                 Voir la liste
-              </Link>
+              </Button>
             </Flex>
           </Card>
           <Card minH='125px'>
@@ -216,8 +271,8 @@ export default function ULDashboard() {
                     Nombres d'événements ce mois
                   </StatLabel>
                   <Flex>
-                    <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
-                      8
+                    <StatNumber fontSize='lg' color={textColor} fontWeight='bold' href='/events'>
+                      {eventStats.numberOfEventsOverTheMonth}
                     </StatNumber>
                   </Flex>
                 </Stat>
@@ -227,12 +282,12 @@ export default function ULDashboard() {
                     h={"45px"}
                     w={"45px"}
                     bg={iconBlue}>
-                  <DocumentIcon h={"24px"} w={"24px"} color={iconBoxInside} />
+                  <FaCalendar h={"24px"} w={"24px"} color={iconBoxInside} />
                 </IconBox>
               </Flex>
-              <Text color='gray.400' fontSize='sm'>
-                Consulter le calendrier des événements
-              </Text>
+              <Button variant="link" color='gray.400' fontSize='sm' onClick={goToManageEvent}>
+                Gérer les événements
+              </Button>
             </Flex>
           </Card>
           <Card minH='125px'>
@@ -253,7 +308,7 @@ export default function ULDashboard() {
                   </StatLabel>
                   <Flex>
                     <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
-                      678 produits
+                      {productStats.totalFoodQuantity + productStats.totalClothesQuantity} produits
                     </StatNumber>
                   </Flex>
                 </Stat>
@@ -266,16 +321,9 @@ export default function ULDashboard() {
                   <CartIcon h={"24px"} w={"24px"} color={iconBoxInside} />
                 </IconBox>
               </Flex>
-              <Flex
-                  direction='row'
-                  justifyContent='space-between'>
-                <Link color='gray.400' fontSize='sm'>
-                  Consulter le stock alimentaires
-                </Link>
-                <Link color='gray.400' fontSize='sm'>
-                  Consulter le stock vestimentaire
-                </Link>
-              </Flex>
+                <Button variant="link" color='gray.400' fontSize='sm' onClick={goToStocks}>
+                  Consulter les stocks
+                </Button>
             </Flex>
           </Card>
         </SimpleGrid>
