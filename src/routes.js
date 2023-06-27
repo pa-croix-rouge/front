@@ -11,7 +11,7 @@ import ULDashboard from "./views/Dashboard/ULDashboard";
 import ManageEvents from "./views/Dashboard/events/ManageEvents";
 import Stocks from "./views/Dashboard/Stocks";
 import Roles from "./views/Dashboard/roles/Roles";
-import Beneficiaries from "./views/Dashboard/Beneficiaries";
+import Beneficiaries from "./views/Dashboard/Beneficiaries/Beneficiaries";
 import {FaChartBar, FaShoppingCart, FaUsers, FaWrench} from "react-icons/fa";
 
 var dashRoutes = [
