@@ -1,13 +1,13 @@
 // Assets
-import avatar1 from "assets/img/avatars/avatar1.png";
-import avatar2 from "assets/img/avatars/avatar2.png";
-import avatar3 from "assets/img/avatars/avatar3.png";
-import avatar4 from "assets/img/avatars/avatar4.png";
-import avatar5 from "assets/img/avatars/avatar5.png";
-import avatar7 from "assets/img/avatars/avatar7.png";
-import avatar8 from "assets/img/avatars/avatar8.png";
-import avatar9 from "assets/img/avatars/avatar9.png";
-import avatar10 from "assets/img/avatars/avatar10.png";
+import avatar1 from "./../assets/img/avatars/avatar1.png";
+import avatar2 from "./../assets/img/avatars/avatar2.png";
+import avatar3 from "./../assets/img/avatars/avatar3.png";
+import avatar4 from "./../assets/img/avatars/avatar4.png";
+import avatar5 from "./../assets/img/avatars/avatar5.png";
+import avatar7 from "./../assets/img/avatars/avatar7.png";
+import avatar8 from "./../assets/img/avatars/avatar8.png";
+import avatar9 from "./../assets/img/avatars/avatar9.png";
+import avatar10 from "./../assets/img/avatars/avatar10.png";
 // Custom icons
 import {
   AdobexdLogo,
@@ -16,7 +16,7 @@ import {
   JiraLogo,
   SlackLogo,
   SpotifyLogo,
-} from "components/Icons/Icons.js";
+} from "./../components/Icons/Icons.js";
 import { AiOutlineExclamation } from "react-icons/ai";
 import {
   FaArrowDown,
@@ -371,5 +371,137 @@ export const socialTraffic = [
     visitors: "2,645",
     percentage: 30,
     color: "orange",
+  }
+]
+
+export const eventTraffic = [
+  {
+    eventName: "Formation PSC1 S13",
+    eventParticipants: "12",
+    percentage: 80,
+    color: "green",
+  },
+  {
+    eventName: "Distribution vestimentaire S13",
+    eventParticipants: "29",
+    percentage: 95,
+    color: "green",
+  },
+  {
+    eventName: "Distribution alimentaire S13",
+    eventParticipants: "27",
+    percentage: 90,
+    color: "green",
+  },
+  {
+    eventName: "EPISOL S13",
+    eventParticipants: "21",
+    percentage: 75,
+    color: "green",
+  },
+  {
+    eventName: "Formation PSC1 S12",
+    eventParticipants: "7",
+    percentage: 65,
+    color: "green",
+  }
+]
+
+export const eventList = [
+  {
+    eventName: "EPISOL S14",
+    eventDate: "08/04/2023",
+    eventManager: "MOLERO Quentin",
+    eventParticipants: "22"
+  },
+  {
+      eventName: "Distribution alimentaire S14",
+    eventDate: "08/04/2023",
+    eventManager: "MOLERO Quentin",
+    eventParticipants: "29"
+  },
+  {
+    eventName: "Distribution vestimentaire S14",
+    eventDate: "08/04/2023",
+    eventManager: "MOLERO Quentin",
+    eventParticipants: "22"
+  },
+  {
+    eventName: "Formation PSC1 S14",
+    eventDate: "11/04/2023",
+    eventManager: "MOLERO Quentin",
+    eventParticipants: "12"
+  },
+  {
+    eventName: "EPISOL S15",
+    eventDate: "15/04/2023",
+    eventManager: "MOLERO Quentin",
+    eventParticipants: "14"
+  },
+]
+
+export const stockFoodCategories = [
+  {
+    name: "Legumes",
+    quantity: "760",
+    percentage: 25,
+    color: "green",
+  },
+  {
+    name: "Pates",
+    quantity: "590",
+    percentage: 18,
+    color: "green",
+  },
+  {
+    name: "Riz",
+    quantity: "560",
+    percentage: 17,
+    color: "green",
+  },
+  {
+    name: "Huiles",
+    quantity: "260",
+    percentage: 9,
+    color: "orange",
+  },
+  {
+    name: "Dentifrice",
+    quantity: "80",
+    percentage: 3,
+    color: "red",
+  }
+]
+
+export const stockClothCategories = [
+  {
+    name: "T-shirts",
+    quantity: "2145",
+    percentage: 31,
+    color: "green",
+  },
+  {
+    name: "Pantalons",
+    quantity: "980",
+    percentage: 16,
+    color: "green",
+  },
+  {
+    name: "Manteaux",
+    quantity: "705",
+    percentage: 14,
+    color: "orange",
+  },
+  {
+    name: "Chaussures",
+    quantity: "180",
+    percentage: 3,
+    color: "red",
+  },
+  {
+    name: "Chapeaux",
+    quantity: "20",
+    percentage: 1,
+    color: "red",
   }
 ]

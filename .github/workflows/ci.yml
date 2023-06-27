@@ -4,79 +4,71 @@ on:
   push:
     branches:
       - master
+      - dev
       - 'feature/**'
       - 'fix/**'
   pull_request:
     branches:
       - master
+      - dev
       - 'feature/**'
       - 'fix/**'
 
 jobs:
   checkout_code:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Archive code
-        uses: actions/upload-artifact@v2
-        with:
-          name: source-code
-          path: .
-
   install_dependencies:
     needs: checkout_code
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - name: Download code
-        uses: actions/download-artifact@v2
-        with:
-          name: source-code
-
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
           node-version: 16
 
-      - name: Cache npm dependencies
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+      - name: Check local npm cache
+        id: local-cache
+        run: |
+          if [ -f ~/.npm/node_modules.tgz ]; then
+            echo "::set-output name=cache_exists::true"
+          else
+            echo "::set-output name=cache_exists::false"
+          fi
+
+      - name: Restore local npm cache
+        if: steps.local-cache.outputs.cache_exists == 'true'
+        run: tar xzf ~/.npm/node_modules.tgz
 
       - name: Install dependencies
+#        if: steps.local-cache.outputs.cache_exists == 'false'
         run: npm i
 
-      - name: Archive node_modules
-        run: tar czvf node_modules.tgz node_modules
+      - name: Save local npm cache
+        if: steps.local-cache.outputs.cache_exists == 'false'
+        run: |
+          mkdir -p ~/.npm
+          tar czf ~/.npm/node_modules.tgz node_modules
 
-      - name: Upload node_modules artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: node-modules
-          path: ./node_modules.tgz
+      - name: Install env (prod)
+        if: github.ref == 'refs/heads/master'
+        run: cp ~/pa-cxr/env/prod/env.js ./src/env.js
+
+      - name: Install env (pr-prod)
+        if: github.ref == 'refs/heads/dev'
+        run: cp ~/pa-cxr/env/pre-prod/env.js ./src/env.js
+
+      - name: Install env
+        if: github.ref != 'refs/heads/master' && github.ref != 'refs/heads/dev'
+        run: cp ~/pa-cxr/env/no_deployment/env.js ./src/env.js
 
   sca_testing:
     needs: install_dependencies
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - name: Download code
-        uses: actions/download-artifact@v2
-        with:
-          name: source-code
-
-      - name: Download node_modules archive
-        uses: actions/download-artifact@v2
-        with:
-          name: node-modules
-          path: .
-
-      - name: Extract node_modules
-        run: tar xvf node_modules.tgz
-
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/node@master
         env:
@@ -85,21 +77,27 @@ jobs:
 
   build:
     needs: sca_testing
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - name: Download code
-        uses: actions/download-artifact@v2
-        with:
-          name: source-code
-
-      - name: Download node_modules archive
-        uses: actions/download-artifact@v2
-        with:
-          name: node-modules
-          path: .
-
-      - name: Extract node_modules
-        run: tar xvf node_modules.tgz
-
       - name: Build
         run: npm run build
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    steps:
+      - name: Copy built artifacts (pre-production)
+        if: github.ref == 'refs/heads/dev'
+        run: cp -r build/* /root/pa-cxr/pre-prod/front/.
+
+      - name: Run the application (pre-production)
+        if: github.ref == 'refs/heads/dev'
+        run: cd /root/pa-cxr/pre-prod/front/; sh run_front.sh
+
+      - name: Copy built artifacts (production)
+        if: github.ref == 'refs/heads/master'
+        run: cp -r build/* /root/pa-cxr/prod/front/.
+
+      - name: Run the application (production)
+        if: github.ref == 'refs/heads/master'
+        run: cd /root/pa-cxr/prod/front/; sh run_front.sh

@@ -1,6 +1,5 @@
 /*eslint-disable*/
 import { HamburgerIcon } from "@chakra-ui/icons";
-// chakra imports
 import {
   Box,
   Button,
@@ -12,49 +11,37 @@ import {
   Flex,
   Stack,
   Text,
-  useColorMode,
   useColorModeValue,
   useDisclosure
 } from "@chakra-ui/react";
-import IconBox from "components/Icons/IconBox";
+import IconBox from "./../Icons/IconBox";
 import {
   renderThumbDark,
   renderThumbLight,
   renderTrack,
   renderView,
-} from "components/Scrollbar/Scrollbar";
-import { HSeparator } from "components/Separator/Separator";
-import { SidebarHelp } from "components/Sidebar/SidebarHelp";
+} from "../Scrollbar/Scrollbar";
+import { HSeparator } from "../Separator/Separator";
 import React from "react";
 import { Scrollbars } from "react-custom-scrollbars";
 import { NavLink, useLocation } from "react-router-dom";
 
-
-
-// FUNCTIONS
-
 function Sidebar(props) {
-  // to check for active links and opened collapses
   let location = useLocation();
-  // this is for the rest of the collapses
   const [state, setState] = React.useState({});
   const mainPanel = React.useRef();
   let variantChange = "0.2s linear";
-  // verifies if routeName is the one active (in browser input)
   const activeRoute = (routeName) => {
     return location.pathname === routeName ? "active" : "";
   };
-  const { colorMode } = useColorMode;
-  // this function creates the links and collapses that appear in the sidebar (left menu)
-  const { sidebarVariant } = props;
   const createLinks = (routes) => {
-    // Chakra Color Mode
     let activeBg = useColorModeValue("white", "navy.700");
     let inactiveBg = useColorModeValue("white", "navy.700");
     let activeColor = useColorModeValue("gray.700", "white");
     let inactiveColor = useColorModeValue("gray.400", "gray.400");
     let sidebarActiveShadow = "0px 7px 11px rgba(0, 0, 0, 0.04)";
-    return routes.map((prop, key) => {
+    const styleColor = "orange.500";
+    return routes.filter(prop => prop.name !== "Sign In" && prop.name !== "Sign Up").map((prop, key) => {
       if (prop.redirect) {
         return null;
       }
@@ -62,7 +49,7 @@ function Sidebar(props) {
         var st = {};
         st[prop["state"]] = !state[prop.state];
         return (
-          <>
+          <div key={key}>
             <Text
               color={activeColor}
               fontWeight="bold"
@@ -79,7 +66,7 @@ function Sidebar(props) {
               {prop.name}
             </Text>
             {createLinks(prop.views)}
-          </>
+          </div>
         );
       }
       return (
@@ -120,7 +107,7 @@ function Sidebar(props) {
                   <Icon>{prop.icon}</Icon>
                 ) : (
                   <IconBox
-                    bg="blue.500"
+                    bg={styleColor}
                     color="white"
                     h="30px"
                     w="30px"
@@ -170,7 +157,7 @@ function Sidebar(props) {
                 ) : (
                   <IconBox
                     bg={inactiveBg}
-                    color="blue.500"
+                    color={styleColor}
                     h="30px"
                     w="30px"
                     me="12px"
@@ -239,15 +226,12 @@ function Sidebar(props) {
             <Stack direction="column" mb="40px">
               <Box>{links}</Box>
             </Stack>
-            <SidebarHelp sidebarVariant={sidebarVariant} />
           </Scrollbars>
         </Box>
       </Box>
     </Box>
   );
 }
-
-// FUNCTIONS
 
 export function SidebarResponsive(props) {
   // to check for active links and opened collapses
@@ -271,10 +255,11 @@ export function SidebarResponsive(props) {
     "none"
   );
   let sidebarBackgroundColor = useColorModeValue("white", "navy.800");
+  const styleColor = "orange.500";
 
   // this function creates the links and collapses that appear in the sidebar (left menu)
   const createLinks = (routes) => {
-    return routes.map((prop, key) => {
+    return routes.filter(prop => prop.name !== "Sign In" && prop.name !== "Sign Up").map((prop, key) => {
       if (prop.redirect) {
         return null;
       }
@@ -282,7 +267,7 @@ export function SidebarResponsive(props) {
         var st = {};
         st[prop["state"]] = !state[prop.state];
         return (
-          <>
+          <div key={key}>
             <Text
               color={activeColor}
               fontWeight="bold"
@@ -299,7 +284,7 @@ export function SidebarResponsive(props) {
               {prop.name}
             </Text>
             {createLinks(prop.views)}
-          </>
+          </div>
         );
       }
       return (
@@ -339,7 +324,7 @@ export function SidebarResponsive(props) {
                   <Icon>{prop.icon}</Icon>
                 ) : (
                   <IconBox
-                    bg="blue.500"
+                    bg={styleColor}
                     color="white"
                     h="30px"
                     w="30px"
@@ -388,7 +373,7 @@ export function SidebarResponsive(props) {
                 ) : (
                   <IconBox
                     bg={inactiveBg}
-                    color="blue.500"
+                    color={styleColor}
                     h="30px"
                     w="30px"
                     me="12px"
@@ -464,7 +449,6 @@ export function SidebarResponsive(props) {
               <Stack direction="column" mb="40px">
                 <Box>{links}</Box>
               </Stack>
-              <SidebarHelp />
             </Box>
           </DrawerBody>
         </DrawerContent>

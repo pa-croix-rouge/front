@@ -5,11 +5,11 @@ export const buttonStyles = {
       variants: {
         primary: {
           fontSize: "10px",
-          bg: "blue.400",
+          bg: "orange.400",
           color: "#fff",
-          _hover: { bg: "blue.300" },
-          _focus: { bg: "blue.300" },
-          _active: { bg: "blue.300" },
+          _hover: { bg: "orange.300" },
+          _focus: { bg: "orange.300" },
+          _active: { bg: "orange.300" },
         },
         navy: {
           fontSize: "10px",
@@ -33,14 +33,14 @@ export const buttonStyles = {
           _active: "red.400",
         }),
         outlined: (props) => ({
-          color: mode("blue.400", "white")(props),
+          color: mode("orange.400", "white")(props),
           bg: "transparent",
           fontSize: "10px",
           border: "1px solid",
-          borderColor: { bg: mode("blue.400", "white")(props)},
-          _hover: { bg: mode("blue.50", "transparent")(props) },
-          _focus: { bg: mode("blue.50", "transparent")(props) },
-          _active: { bg: mode("blue.50", "transparent")(props) },
+          borderColor: { bg: mode("orange.400", "white")(props)},
+          _hover: { bg: mode("orange.50", "transparent")(props) },
+          _focus: { bg: mode("orange.50", "transparent")(props) },
+          _active: { bg: mode("orange.50", "transparent")(props) },
         }),
         dark: (props) => ({
           color: "white",
