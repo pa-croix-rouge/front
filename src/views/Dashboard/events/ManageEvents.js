@@ -35,7 +35,12 @@ import CardBody from "../../../components/Card/CardBody";
 import React, {useContext, useEffect, useState} from "react";
 import VolunteerContext from "../../../contexts/VolunteerContext";
 import {getVolunteerById, getVolunteers} from "../../../controller/VolunteerController";
-import {deleteEventById, deleteEventSessions, getEventForTrimester} from "../../../controller/EventController";
+import {
+    deleteEventById,
+    deleteEventSessions,
+    getEventForTrimester,
+    getEventSessions
+} from "../../../controller/EventController";
 import {FaArrowLeft, FaArrowRight, FaCog, FaEye, FaPencilAlt, FaPlus, FaTrashAlt, FaUser} from "react-icons/fa";
 import TimelineRow from "../../../components/Tables/TimelineRow";
 import {CalendarIcon, CheckIcon} from "@chakra-ui/icons";
@@ -67,6 +72,7 @@ export default function ManageEvents() {
     const [selectedEventSessionId, setSelectedEventSessionId] = useState(undefined);
 
     const [eventSessions, setEventSessions] = useState([]);
+
     const {
         isOpen: isOpenVisualizationModal,
         onOpen: onOpenVisualizationModal,
@@ -373,6 +379,18 @@ export default function ManageEvents() {
         setLoadVolunteerList(false);
     }
 
+    const openDeleteEventModal = () => {
+        const eventId = selectedEvent.eventId;
+        getEventSessions(eventId)
+            .then((sessions) => {
+                setEventSessions(sessions);
+                onOpenDeletionAllModal();
+            })
+            .catch((e) => {
+                console.log(e);
+            });
+    }
+
     return (
         <EventContext.Provider value={{events, setEvents, reloadEvents}}>
             <Flex direction="column" pt={{base: "120px", md: "75px"}}>
@@ -508,7 +526,7 @@ export default function ManageEvents() {
                         </Button>
                         <Button variant="outline" colorScheme="red"
                                 onClick={() => {
-                                    deleteAllSessions ? onOpenDeletionAllModal() : setCallDeleteEvent(true);
+                                    deleteAllSessions ? openDeleteEventModal() : setCallDeleteEvent(true);
                                 }
                                 }>
                             Supprimer
