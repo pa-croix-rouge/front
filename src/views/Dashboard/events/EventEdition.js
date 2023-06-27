@@ -101,13 +101,6 @@ export default function EventEdition(props) {
         return null;
     }
 
-    // useEffect(() => {
-    //
-    //     setModifiedEventMaxParticipants(modifiedEvent.timeWindows.length > 0 ? modifiedEvent.timeWindows[0].maxParticipants : 10);
-    //     setModifiedEventTimeWindowDuration(modifiedEvent.timeWindows.length > 0 ? (modifiedEvent.timeWindows[0].endTime.getTime() - modifiedEvent.timeWindows[0].startTime.getTime()) / (60 * 1000) : 20);
-    //     setModifiedEventNumberOfTimeWindow(modifiedEvent.timeWindows.length > 0 ? modifiedEvent.timeWindows.length : 3);
-    // }, [modifiedEvent]);
-
     useEffect(() => {
         const [yearsStart, monthsStart, daysStart] = modifiedEventStartDate.split("-");
         const [hoursStart, minutesStart] = modifiedEventStartTime.split(":");
@@ -234,6 +227,15 @@ export default function EventEdition(props) {
         }
     }
 
+    const getReferrerName = (id) => {
+        const vol = props.volunteers.find((vol) => vol.id === id);
+        if (vol === undefined) {
+            return id;
+        } else {
+            return vol.firstName + ' ' + vol.lastName;
+        }
+    }
+
     const getAllSessions = () => {
         const eventId = modifiedEvent.eventId;
         getEventSessions(eventId)
@@ -351,7 +353,7 @@ export default function EventEdition(props) {
                                     </Flex>
                                 )}
                             </FormControl>
-                            <Text>Plage{modifiedEvent.timeWindows.length > 1 ? "s" : ""} horaire{modifiedEvent.timeWindows.length > 1 ? "s" : ""} avant
+                            <Text> Plage{modifiedEvent.timeWindows.length > 1 ? "s" : ""} horaire{modifiedEvent.timeWindows.length > 1 ? "s" : ""} avant
                                 modification</Text>
                             <SimpleGrid columns={{sm: 1, md: 2, xl: 3}} spacing='24px'>
                                 {modifiedEvent.timeWindows.map((timeWindow, index) => (
@@ -375,7 +377,7 @@ export default function EventEdition(props) {
                                     </Card>
                                 ))}
                             </SimpleGrid>
-                            <Text>Plage {modifiedEvent.timeWindows.length > 1 ? "s" : ""} horaire{modifiedEvent.timeWindows.length > 1 ? "s" : ""} après
+                            <Text>Plage{modifiedEvent.timeWindows.length > 1 ? "s" : ""} horaire{modifiedEvent.timeWindows.length > 1 ? "s" : ""} après
                                 modification</Text>
                             <SimpleGrid columns={{sm: 1, md: 2, xl: 3}} spacing='24px'>
                                 {[...Array(modifiedEventNumberOfTimeWindow)].map((e, i) => (
@@ -407,7 +409,7 @@ export default function EventEdition(props) {
                                     <StatLabel>{initialEvent.name} du {initialEvent.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")} au {initialEvent.endDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}</StatLabel>
                                     <StatNumber><Icon
                                         as={FaUser}/> {initialEvent.numberOfParticipants} / {initialEvent.maxParticipants} participants</StatNumber>
-                                    <StatHelpText>{initialEvent.description}<br/>Référent: {initialEvent.referrerId}
+                                    <StatHelpText>{initialEvent.description}<br/>Référent: {getReferrerName(initialEvent.referrerId)}
                                     </StatHelpText>
                                 </Stat>
                                 <Icon as={FaArrowRight} h="8" w="8" mr="12px"/>
@@ -415,7 +417,7 @@ export default function EventEdition(props) {
                                     <StatLabel>{modifiedEvent.name} le {modifiedEvent.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")} au {modifiedEvent.endDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}</StatLabel>
                                     <StatNumber><Icon
                                         as={FaUser}/> {modifiedEvent.numberOfParticipants} / {modifiedEventMaxParticipants * modifiedEventNumberOfTimeWindow} participants</StatNumber>
-                                    <StatHelpText>{modifiedEvent.description}<br/>Référent: {modifiedEvent.referrerId}
+                                    <StatHelpText>{modifiedEvent.description}<br/>Référent: { getReferrerName(modifiedEvent.referrerId)}
                                     </StatHelpText>
                                 </Stat>
                             </Flex>

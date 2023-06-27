@@ -244,6 +244,15 @@ export default function ManageEvents() {
         }
     }
 
+    const getReferrerName = (id) => {
+        const vol = volunteerList.find((vol) => vol.id === id);
+        if (vol === undefined) {
+            return id;
+        } else {
+            return vol.firstName + ' ' + vol.lastName;
+        }
+    }
+
     const getTableMonthBody = (month) => {
         const filteredEvent = events.filter(e => e.startDate.getMonth() === (month));
         return (
@@ -271,7 +280,7 @@ export default function ManageEvents() {
                             </Td>
                             <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
                                 <Text>
-                                    {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(event.referrerId)] : event.referrerId}
+                                    {getReferrerName(event.referrerId)}
                                 </Text>
                             </Td>
                             <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
