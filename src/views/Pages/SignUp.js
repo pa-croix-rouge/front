@@ -46,7 +46,6 @@ function SignUp() {
         history.push("/admin/ul-dashboard");
     }
 
-    const history = useHistory();
 
     const checkPasswordValidity = () => {
         if (password !== passwordConfirmation) {
