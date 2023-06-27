@@ -186,8 +186,8 @@ function Beneficiaries() {
 
     return (
         <BeneficiariesContext.Provider value={{beneficiaries, setBeneficiaries}}>
-            <VStack color={'green'} pt={{base: "120px", md: "75px"}} mr='32px' align={'stretch'}>
-                <HStack color={'bleu'}>
+            <VStack pt={{base: "120px", md: "75px"}} mr='32px' align={'stretch'}>
+                <HStack>
                     <Button onClick={onOpenCreationModal}>
                         ajouter nouveau bénéficiaire
                     </Button>
