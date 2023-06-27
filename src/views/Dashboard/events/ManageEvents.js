@@ -1,20 +1,21 @@
 import Card from "../../../components/Card/Card";
 import CardHeader from "../../../components/Card/CardHeader";
 import {
-    Box,
     Button,
     Flex,
-    FormControl,
-    FormLabel,
-    Icon, Input, Menu, MenuButton, MenuItem, MenuList,
+    Icon,
+    Menu,
+    MenuButton,
+    MenuItem,
+    MenuList,
     Modal,
     ModalBody,
     ModalCloseButton,
     ModalContent,
     ModalFooter,
     ModalHeader,
-    ModalOverlay, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper,
-    Progress, Radio, RadioGroup, Select, SimpleGrid,
+    ModalOverlay,
+    Progress,
     Stat,
     StatHelpText,
     StatLabel,
@@ -23,7 +24,7 @@ import {
     Table,
     Tbody,
     Td,
-    Text, Textarea,
+    Text,
     Th,
     Thead,
     Tr,
@@ -34,20 +35,10 @@ import CardBody from "../../../components/Card/CardBody";
 import React, {useContext, useEffect, useState} from "react";
 import VolunteerContext from "../../../contexts/VolunteerContext";
 import {getVolunteerById, getVolunteers} from "../../../controller/VolunteerController";
-import {
-    createRecurrentEvent,
-    createSingleEvent,
-    deleteEventById,
-    deleteEventSessions,
-    getEventForTrimester,
-    getEventSessions, updateAllEventSessions,
-    updateEventSession
-} from "../../../controller/EventController";
-import {FaArrowRight, FaPencilAlt, FaPlus, FaTrashAlt, FaUser, FaEye, FaArrowLeft, FaCog} from "react-icons/fa";
+import {deleteEventById, deleteEventSessions, getEventForTrimester} from "../../../controller/EventController";
+import {FaArrowLeft, FaArrowRight, FaCog, FaEye, FaPencilAlt, FaPlus, FaTrashAlt, FaUser} from "react-icons/fa";
 import TimelineRow from "../../../components/Tables/TimelineRow";
 import {CalendarIcon, CheckIcon} from "@chakra-ui/icons";
-import {SingleEventCreation} from "../../../model/event/SingleEventCreation";
-import {RecurrentEventCreation} from "../../../model/event/RecurrentEventCreation";
 import EventCreation from "./EventCreation";
 import EventViewer from "./EventViewer";
 import EventEdition from "./EventEdition";
@@ -71,16 +62,14 @@ export default function ManageEvents() {
 
     // Modal variables
     const [selectedEvent, setSelectedEvent] = useState(undefined);
-    const [callGetEventSessions, setCallGetEventSessions] = useState(false);
+
     const [eventSessions, setEventSessions] = useState([]);
     const { isOpen: isOpenVisualizationModal, onOpen: onOpenVisualizationModal, onClose: onCloseVisualizationModal } = useDisclosure();
     const { isOpen: isOpenCreationModal, onOpen: onOpenCreationModal, onClose: onCloseCreationModal } = useDisclosure();
 
     const { isOpen: isOpenEditionModal, onOpen: onOpenEditionModal, onClose: onCloseEditionModal } = useDisclosure();
     const [modifiedEvent, setModifiedEvent] = useState(undefined);
-    const [callModifyEvent, setCallModifyEvent] = useState(false);
 
-    const [callModifyAllSessions, setCallModifyAllSessions] = useState(false);
     const { isOpen: isOpenDeletionModal, onOpen: onOpenDeletionModal, onClose: onCloseDeletionModal } = useDisclosure();
     const [callDeleteEvent, setCallDeleteEvent] = useState(false);
     const { isOpen: isOpenDeletionAllModal, onOpen: onOpenDeletionAllModal, onClose: onCloseDeletionAllModal } = useDisclosure();

@@ -1,6 +1,6 @@
 // import
 import React from 'react';
-import Events from "./views/Dashboard/Events";
+import Events from "./views/Dashboard/events/Events";
 import SignIn from "./views/Pages/SignIn.js";
 import SignUp from "./views/Pages/SignUp.js";
 
