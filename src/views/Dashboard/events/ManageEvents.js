@@ -42,6 +42,7 @@ import {CalendarIcon, CheckIcon} from "@chakra-ui/icons";
 import EventCreation from "./EventCreation";
 import EventViewer from "./EventViewer";
 import EventEdition from "./EventEdition";
+import EventContext from "../../../contexts/EventContext";
 
 export default function ManageEvents() {
     // Component variables
@@ -62,17 +63,26 @@ export default function ManageEvents() {
 
     // Modal variables
     const [selectedEvent, setSelectedEvent] = useState(undefined);
+    const [selectedEventSessionId, setSelectedEventSessionId] = useState(undefined);
 
     const [eventSessions, setEventSessions] = useState([]);
-    const { isOpen: isOpenVisualizationModal, onOpen: onOpenVisualizationModal, onClose: onCloseVisualizationModal } = useDisclosure();
-    const { isOpen: isOpenCreationModal, onOpen: onOpenCreationModal, onClose: onCloseCreationModal } = useDisclosure();
+    const {
+        isOpen: isOpenVisualizationModal,
+        onOpen: onOpenVisualizationModal,
+        onClose: onCloseVisualizationModal
+    } = useDisclosure();
+    const {isOpen: isOpenCreationModal, onOpen: onOpenCreationModal, onClose: onCloseCreationModal} = useDisclosure();
 
-    const { isOpen: isOpenEditionModal, onOpen: onOpenEditionModal, onClose: onCloseEditionModal } = useDisclosure();
+    const {isOpen: isOpenEditionModal, onOpen: onOpenEditionModal, onClose: onCloseEditionModal} = useDisclosure();
     const [modifiedEvent, setModifiedEvent] = useState(undefined);
 
-    const { isOpen: isOpenDeletionModal, onOpen: onOpenDeletionModal, onClose: onCloseDeletionModal } = useDisclosure();
+    const {isOpen: isOpenDeletionModal, onOpen: onOpenDeletionModal, onClose: onCloseDeletionModal} = useDisclosure();
     const [callDeleteEvent, setCallDeleteEvent] = useState(false);
-    const { isOpen: isOpenDeletionAllModal, onOpen: onOpenDeletionAllModal, onClose: onCloseDeletionAllModal } = useDisclosure();
+    const {
+        isOpen: isOpenDeletionAllModal,
+        onOpen: onOpenDeletionAllModal,
+        onClose: onCloseDeletionAllModal
+    } = useDisclosure();
     const [deleteAllSessions, setDeleteAllSessions] = useState(false);
     const [callDeleteAllSessions, setCallDeleteAllSessions] = useState(false);
 
@@ -179,7 +189,8 @@ export default function ManageEvents() {
     }
 
     const selectEventForModal = (event, onOpenModal) => {
-        setSelectedEvent(event);
+        setSelectedEventSessionId(event);
+        setSelectedEvent(events.find((el) => el.sessionId == event));
         onOpenModal();
     }
 
@@ -230,13 +241,14 @@ export default function ManageEvents() {
             <>
                 <Tr>
                     <Td colSpan="8" textAlign="left" fontSize="2xl" fontWeight="bold" ml="24px">
-                        {currentYear} - {(new Date(currentYear, (month) % 12)).toLocaleString('fr-FR', { month: 'long' })}
+                        {currentYear} - {(new Date(currentYear, (month) % 12)).toLocaleString('fr-FR', {month: 'long'})}
                     </Td>
                 </Tr>
                 {filteredEvent.map((event, index, arr) => {
                     return (
                         <Tr key={index}>
-                            <Td pl="0px" borderColor={borderColor} borderBottom={index === arr.length - 1 ? "none" : null}>
+                            <Td pl="0px" borderColor={borderColor}
+                                borderBottom={index === arr.length - 1 ? "none" : null}>
                                 <Flex align="center" py=".8rem" minWidth="100%" flexWrap="nowrap">
                                     <Text fontSize="md" color={textColor} fontWeight="bold">
                                         {event.name}
@@ -298,12 +310,13 @@ export default function ManageEvents() {
                             <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
                                 <Menu>
                                     <MenuButton>
-                                        <Icon as={FaCog} />
+                                        <Icon as={FaCog}/>
                                     </MenuButton>
                                     <MenuList>
                                         <Flex direction="column">
                                             <MenuItem>
-                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() => selectEventForModal(event, onOpenVisualizationModal)}>
+                                                <Button p="0px" bg="transparent" variant="no-effects"
+                                                        onClick={() => selectEventForModal(event.sessionId, onOpenVisualizationModal)}>
                                                     <Flex color={textColor} cursor="pointer" align="center" p="12px">
                                                         <Icon as={FaEye} mr="8px"/>
                                                         <Text fontSize="sm" fontWeight="semibold">
@@ -313,7 +326,8 @@ export default function ManageEvents() {
                                                 </Button>
                                             </MenuItem>
                                             <MenuItem>
-                                                <Button p="0px" bg="transparent" variant="no-effects" onClick={() =>selectEventForModal(event, onOpenEditionModal)}>
+                                                <Button p="0px" bg="transparent" variant="no-effects"
+                                                        onClick={() => selectEventForModal(event.sessionId, onOpenEditionModal)}>
                                                     <Flex color={textColor} cursor="pointer" align="center" p="12px">
                                                         <Icon as={FaPencilAlt} mr="8px"/>
                                                         <Text fontSize="sm" fontWeight="semibold">
@@ -323,9 +337,10 @@ export default function ManageEvents() {
                                                 </Button>
                                             </MenuItem>
                                             <MenuItem>
-                                                <Button p="0px" variant="transparent" colorScheme="red" onClick={() => selectEventForModal(event, onOpenDeletionModal)} >
+                                                <Button p="0px" variant="transparent" colorScheme="red"
+                                                        onClick={() => selectEventForModal(event.sessionId, onOpenDeletionModal)}>
                                                     <Flex cursor="pointer" align="center" p="12px">
-                                                        <Icon as={FaTrashAlt} mr="8px" />
+                                                        <Icon as={FaTrashAlt} mr="8px"/>
                                                         <Text fontSize="sm" fontWeight="semibold">
                                                             Supprimer
                                                         </Text>
@@ -349,22 +364,28 @@ export default function ManageEvents() {
             </>
         );
     }
+    const reloadEvents = () => {
+        setLoadedEvents(false);
+        setLoadedReferrers(false);
+        setLoadVolunteerList(false);
+    }
 
     return (
-        <>
-            <Flex direction="column" pt={{ base: "120px", md: "75px" }}>
+        <EventContext.Provider value={{events, setEvents, reloadEvents}}>
+            <Flex direction="column" pt={{base: "120px", md: "75px"}}>
                 {!loadedEvents && volunteer && loadEvents()}
                 {!loadedReferrers && referrersId.length > 0 && loadReferrersName()}
                 {!loadVolunteerList && loadVolunteers()}
                 {selectedEvent !== undefined && callDeleteEvent && deleteEvent()}
                 {selectedEvent !== undefined && callDeleteAllSessions && deleteAllEventSessions()}
-                <Card overflowX={{ sm: "scroll", xl: "hidden" }} pb="0px">
+                <Card overflowX={{sm: "scroll", xl: "hidden"}} pb="0px">
                     <CardHeader p="6px 0px 22px 0px">
                         <Flex direction='row' justifyContent="space-between">
                             <Text fontSize="xl" color={textColor} fontWeight="bold">
                                 Gestion des événements
                             </Text>
-                            <Button p="0px" variant="outline" colorScheme="green" mr="10%" onClick={onOpenCreationModal}>
+                            <Button p="0px" variant="outline" colorScheme="green" mr="10%"
+                                    onClick={onOpenCreationModal}>
                                 <Flex cursor="pointer" align="center" p="12px">
                                     <Icon as={FaPlus} mr="8px"/>
                                     <Text fontSize="sm" fontWeight="semibold">
@@ -416,14 +437,14 @@ export default function ManageEvents() {
                     <CardBody>
                         <Table variant="simple" color={textColor}>
                             <Thead>
-                                <Tr my=".8rem" pl="0px" color="gray.400" >
-                                    <Th pl="0px" borderColor={borderColor} color="gray.400" >
+                                <Tr my=".8rem" pl="0px" color="gray.400">
+                                    <Th pl="0px" borderColor={borderColor} color="gray.400">
                                         Nom
                                     </Th>
-                                    <Th borderColor={borderColor} color="gray.400" >Description</Th>
-                                    <Th borderColor={borderColor} color="gray.400" >Référent</Th>
-                                    <Th borderColor={borderColor} color="gray.400" >Date</Th>
-                                    <Th borderColor={borderColor} color="gray.400" >Inscriptions</Th>
+                                    <Th borderColor={borderColor} color="gray.400">Description</Th>
+                                    <Th borderColor={borderColor} color="gray.400">Référent</Th>
+                                    <Th borderColor={borderColor} color="gray.400">Date</Th>
+                                    <Th borderColor={borderColor} color="gray.400">Inscriptions</Th>
                                     <Th borderColor={borderColor}></Th>
                                 </Tr>
                             </Thead>
@@ -437,31 +458,37 @@ export default function ManageEvents() {
                 </Card>
             </Flex>
 
-            <EventCreation isOpen={isOpenCreationModal} onClose={onCloseCreationModal} volunteers={volunteerList} onNewEvent={onNewEvent}> </EventCreation>
+            <EventCreation isOpen={isOpenCreationModal} onClose={onCloseCreationModal} volunteers={volunteerList}
+                           onNewEvent={onNewEvent}> </EventCreation>
 
-            <EventViewer isOpen={isOpenVisualizationModal} onClose={onCloseVisualizationModal} event={selectedEvent} ></EventViewer>
+            <EventViewer isOpen={isOpenVisualizationModal} onClose={onCloseVisualizationModal}
+                         volunteers={volunteerList} eventSessionId={selectedEventSessionId}></EventViewer>
 
-            <EventEdition isOpen={isOpenEditionModal} onClose={onCloseEditionModal} volunteers={volunteerList} eventToEdit={selectedEvent} ></EventEdition>
+            <EventEdition isOpen={isOpenEditionModal} onClose={onCloseEditionModal} volunteers={volunteerList}
+                          eventSessionId={selectedEventSessionId}></EventEdition>
 
             <Modal isOpen={isOpenDeletionModal} onClose={onCloseDeletionModal} size="xl" isCentered>
-                <ModalOverlay />
+                <ModalOverlay/>
                 <ModalContent>
                     <ModalHeader>Confirmer la suppression de l'événement</ModalHeader>
-                    <ModalCloseButton />
+                    <ModalCloseButton/>
                     <ModalBody>
                         <Flex direction="column">
                             {selectedEvent !== undefined && (
                                 <Stat>
                                     <StatLabel>{selectedEvent.name} le {selectedEvent.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}</StatLabel>
-                                    <StatNumber><Icon as={FaUser}/> {selectedEvent.numberOfParticipants} / {selectedEvent.maxParticipants} participants</StatNumber>
-                                    <StatHelpText>{selectedEvent.description}<br />Référent: {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(selectedEvent.referrerId)] : selectedEvent.referrerId}</StatHelpText>
+                                    <StatNumber><Icon
+                                        as={FaUser}/> {selectedEvent.numberOfParticipants} / {selectedEvent.maxParticipants} participants</StatNumber>
+                                    <StatHelpText>{selectedEvent.description}<br/>Référent: {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(selectedEvent.referrerId)] : selectedEvent.referrerId}
+                                    </StatHelpText>
                                 </Stat>
                             )}
                             {selectedEvent !== undefined && selectedEvent.recurring && (
                                 <Flex direction="column" mt="4px" mb="4px">
                                     <Text>Supprimer la suite d'événements ?</Text>
                                     <Flex direction="row" mt="4px" mb="4px" align="center">
-                                        <Switch size="md" onChange={() => setDeleteAllSessions(!deleteAllSessions)} mr="8px" isChecked={deleteAllSessions}/>
+                                        <Switch size="md" onChange={() => setDeleteAllSessions(!deleteAllSessions)}
+                                                mr="8px" isChecked={deleteAllSessions}/>
                                         <Text>
                                             {deleteAllSessions ? "Oui supprimer tout les événements récurrent associés" : "Non supprimer cet événement uniquement"}
                                         </Text>
@@ -474,7 +501,11 @@ export default function ManageEvents() {
                         <Button colorScheme="blue" mr={3} onClick={onCloseDeletionModal}>
                             Annuler
                         </Button>
-                        <Button variant="outline" colorScheme="red" onClick={() => {deleteAllSessions ? onOpenDeletionAllModal() : setCallDeleteEvent(true); deleteAllSessions ? setCallGetEventSessions(true) : setCallGetEventSessions(false)}}>
+                        <Button variant="outline" colorScheme="red"
+                                onClick={() => {
+                                    deleteAllSessions ? onOpenDeletionAllModal() : setCallDeleteEvent(true);
+                                }
+                                }>
                             Supprimer
                         </Button>
                     </ModalFooter>
@@ -482,10 +513,10 @@ export default function ManageEvents() {
             </Modal>
 
             <Modal isOpen={isOpenDeletionAllModal} onClose={onCloseDeletionAllModal} size="xl" scrollBehavior="outside">
-                <ModalOverlay />
+                <ModalOverlay/>
                 <ModalContent>
                     <ModalHeader>Confirmer la suppression de {eventSessions.length} événements</ModalHeader>
-                    <ModalCloseButton />
+                    <ModalCloseButton/>
                     <ModalBody>
                         {eventSessions.map((event, index, arr) => {
                             return (
@@ -510,6 +541,6 @@ export default function ManageEvents() {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-        </>
+        </EventContext.Provider>
     )
 }

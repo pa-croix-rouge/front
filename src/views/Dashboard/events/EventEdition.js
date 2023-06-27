@@ -46,7 +46,9 @@ export default function EventEdition(props) {
 
     const {events, setEvents, reloadEvents} = useContext(EventContext);
     const initialEvent = events.find((event) => event.sessionId == props.eventSessionId);
-
+    if(initialEvent === undefined){
+        return null;
+    }
 
     const [eventSessions, setEventSessions] = useState([]);
     const [modifiedEvent, setModifiedEvent] = useState(initialEvent);

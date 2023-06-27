@@ -25,7 +25,9 @@ export default function EventViewer(props) {
     }
     const {events} = useContext(EventContext);
     const event = events.find((ev) => ev.sessionId == props.eventSessionId);
-
+    if(event === undefined){
+        return null;
+    }
     const {isOpen: isOpenEditionModal, onOpen: onOpenEditionModal, onClose: onCloseEditionModal} = useDisclosure();
 
     return (
