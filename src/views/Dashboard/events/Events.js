@@ -408,7 +408,9 @@ export default function Events() {
                 <Box h="20px"/>
             </Flex>
             <EventViewer isOpen={isOpenVisualizationModal} onClose={onCloseVisualizationModal}
-                         eventSessionId={selectedEventSessionId}></EventViewer>
+                         eventSessionId={selectedEventSessionId}
+                         volunteers={localUnitVolunteer}
+            ></EventViewer>
         </EventContext.Provider>
     );
 }

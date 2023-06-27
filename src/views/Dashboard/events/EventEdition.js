@@ -222,7 +222,8 @@ export default function EventEdition(props) {
                     setUpdateInProgress(false);
                     props.onClose();
                 })
-                .catch((_) => {
+                .catch((e) => {
+                    console.log(e)
                     setUpdateInProgress(false);
                 });
         } else {

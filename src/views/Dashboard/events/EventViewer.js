@@ -81,7 +81,7 @@ export default function EventViewer(props) {
                 </ModalContent>
             </Modal>
 
-            <EventEdition isOpen={isOpenEditionModal} onClose={onCloseEditionModal} volunteers={[]}
+            <EventEdition isOpen={isOpenEditionModal} onClose={onCloseEditionModal} volunteers={props.volunteers}
                           eventSessionId={props.eventSessionId}></EventEdition>
         </>
     );
