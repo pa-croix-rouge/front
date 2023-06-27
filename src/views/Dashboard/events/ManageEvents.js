@@ -15,7 +15,7 @@ import {
     ModalFooter,
     ModalHeader,
     ModalOverlay,
-    Progress, Skeleton, SkeletonText,
+    Progress, Skeleton,
     Stat,
     StatHelpText,
     StatLabel,
@@ -345,7 +345,7 @@ export default function ManageEvents() {
                                             </MenuItem>
                                             <MenuItem>
                                                 <Button p="0px" bg="transparent" variant="no-effects"
-                                                        onClick={() => selectEventForModal(event.sessionId, onOpenEditionModal)}>
+                                                        onClick={() => selectEventForModal(event.sessionId, onOpenEditionModal)} disabled={event.startDate.getTime() < Date.now()}>
                                                     <Flex color={textColor} cursor="pointer" align="center" p="12px">
                                                         <Icon as={FaPencilAlt} mr="8px"/>
                                                         <Text fontSize="sm" fontWeight="semibold">
@@ -356,7 +356,7 @@ export default function ManageEvents() {
                                             </MenuItem>
                                             <MenuItem>
                                                 <Button p="0px" variant="transparent" colorScheme="red"
-                                                        onClick={() => selectEventForModal(event.sessionId, onOpenDeletionModal)}>
+                                                        onClick={() => selectEventForModal(event.sessionId, onOpenDeletionModal)} disabled={event.startDate.getTime() < Date.now()}>
                                                     <Flex cursor="pointer" align="center" p="12px">
                                                         <Icon as={FaTrashAlt} mr="8px"/>
                                                         <Text fontSize="sm" fontWeight="semibold">
