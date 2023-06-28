@@ -176,11 +176,11 @@ export default function ULDashboard() {
   return (
       <Flex flexDirection='column' pt={{ base: "120px", md: "75px" }}>
         {volunteer && !loadedLocalUnit && loadLocalUnit()}
-        {!loadedEvents && volunteer && loadEvents()}
+        {!loadedLocalUnit && !loadedEvents && volunteer && loadEvents()}
         {!loadedReferrers && referrersId.length > 0 && loadReferrersName()}
-        {!loadedLocalUnitStats && loadLocalUnitStats()}
-        {!loadedEventStats && loadEventStats()}
-        {!loadedProductStats && loadProductStats()}
+        {!loadedLocalUnit && !loadedLocalUnitStats && loadLocalUnitStats()}
+        {!loadedLocalUnit && !loadedEventStats  && loadEventStats()}
+        {!loadedLocalUnit && !loadedProductStats && loadProductStats()}
         <SimpleGrid columns={{ sm: 1, md: 2, xl: 4 }} spacing='24px' mb='20px'>
           <Card minH='125px'>
             <Flex direction='column'>

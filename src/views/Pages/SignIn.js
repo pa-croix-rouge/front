@@ -53,11 +53,11 @@ function SignIn() {
     }
 
     useEffect(() => {
-        if (loadTokenSuccess && token) {
+        if (token) {
             localStorage.setItem('token', token);
             history.push("/admin/ul-dashboard");
         }
-    }, [loadTokenSuccess, token]);
+    }, [token]);
 
     const goToSignUp = () => {
         history.push("/auth/signup");
