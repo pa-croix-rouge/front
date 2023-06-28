@@ -1,4 +1,4 @@
-const { API_URL } = require('env');
+const {API_URL} = require('env');
 
 const readToken = (): string => {
     // const {token, setToken} = useContext(TokenContext);
@@ -23,6 +23,11 @@ export const getWithToken = async (url: string): Promise<Response> => {
             'Authorization': 'Bearer ' + readToken(),
         },
         redirect: 'follow',
+    }).then((response) => {
+        if (response.status === 401) {
+            localStorage.setItem('token', '');
+        }
+        return response;
     });
 }
 
@@ -33,7 +38,7 @@ export const postWithoutToken = async (url: string, body: any): Promise<Response
             'Content-Type': 'application/json',
         },
         body: JSON.stringify(body),
-    });
+    })
 }
 
 export const postWithToken = async (url: string, body: any): Promise<Response> => {
@@ -44,6 +49,11 @@ export const postWithToken = async (url: string, body: any): Promise<Response> =
             'Authorization': 'Bearer ' + readToken(),
         },
         body: JSON.stringify(body),
+    }).then((response) => {
+        if (response.status === 401) {
+            localStorage.setItem('token', '');
+        }
+        return response;
     });
 }
 
@@ -55,6 +65,11 @@ export const putWithToken = async (url: string, body: any): Promise<Response> =>
             'Authorization': 'Bearer ' + readToken(),
         },
         body: JSON.stringify(body),
+    }).then((response) => {
+        if (response.status === 401) {
+            localStorage.setItem('token', '');
+        }
+        return response;
     });
 }
 
@@ -65,5 +80,10 @@ export const deleteWithToken = async (url: string): Promise<Response> => {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + readToken(),
         },
+    }).then((response) => {
+        if (response.status === 401) {
+            localStorage.setItem('token', '');
+        }
+        return response;
     });
 }
