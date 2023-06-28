@@ -94,7 +94,7 @@ export default function RoleCreationModal(props) {
                     </Th>
                     {props.roleAuth.operations.map((op, index) => {
                       return (
-                        <Th color="gray.400">{op}</Th>
+                        <Th key={index} color="gray.400">{op}</Th>
                       );
                     })}
                   </Tr>
@@ -102,11 +102,11 @@ export default function RoleCreationModal(props) {
                 <Tbody>
                   {props.roleAuth.resources.map((resource, index) => {
                     return (
-                      <Tr>
+                      <Tr key={index}>
                         <Th>{resource}</Th>
-                        {props.roleAuth.operations.map((opt, index) => {
+                        {props.roleAuth.operations.map((opt, idx) => {
                           return (
-                            <Th>
+                            <Th key={idx}>
                               <Checkbox
                                 isChecked={role.authorizations[resource]?.find(v => v === opt) !== undefined}
                                 onChange={(e) => onAuthNewRole(resource, opt, e.target.checked)} />

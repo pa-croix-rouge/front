@@ -71,7 +71,7 @@ export default function Roles(props) {
                   align="stretch">
             {roles.map((role, index) => (
               <Role localUnitID={volunteer.localUnitId} localUnitVolunteer={localUnitVolunteer} role={role}
-                    roleAuth={roleAuth} onDelete={onDeleteRole}></Role>
+                    roleAuth={roleAuth} onDelete={onDeleteRole} key={index}></Role>
             ))}
           </VStack>
           <Button onClick={onOpenAddModal}> Add New Role </Button>

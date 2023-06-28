@@ -112,7 +112,7 @@ export default function Role(props) {
                 </Th>
                 {props.roleAuth.operations.map((op, index) => {
                   return (
-                    <Th color="gray.400">{op}</Th>
+                    <Th key={index} color="gray.400">{op}</Th>
                   );
                 })}
               </Tr>
@@ -120,11 +120,11 @@ export default function Role(props) {
             <Tbody>
               {props.roleAuth.resources.map((resource, index) => {
                 return (
-                  <Tr>
+                  <Tr key={index}>
                     <Th>{resource}</Th>
-                    {props.roleAuth.operations.map((opt, index) => {
+                    {props.roleAuth.operations.map((opt, idx) => {
                       return (
-                        <Th>
+                        <Th key={idx}>
                           <Checkbox isReadOnly={true}
                                     isChecked={role.authorizations[resource]?.find(v => v === opt) !== undefined} />
                         </Th>
@@ -163,7 +163,7 @@ export default function Role(props) {
                       && (luv.firstName.search(searchVolunteer) !== -1 || luv.lastName.search(searchVolunteer) !== -1))
                     .map((volunteer, index) => {
                       return (
-                        <Flex direction="row">
+                        <Flex direction="row" key={index}>
                           <Text>{volunteer.id} {volunteer.firstName} {volunteer.lastName}</Text>
                           <Spacer grow={"10"} />
                           <IconButton colorScheme="green" aria-label="assign" icon={<AddIcon />}
@@ -179,7 +179,7 @@ export default function Role(props) {
                     // ?.filter( rv => rv.firstName.search(searchVolunteer) !== -1 || rv.lastName.search(searchVolunteer) !== -1 )
                     ?.map((volunteer, index) => {
                       return (
-                        <Flex direction="row">
+                        <Flex direction="row" key={index}>
                           <Text>{volunteer.id} {volunteer.firstName} {volunteer.lastName}</Text>
                           <Spacer grow={"10"} />
                           <IconButton colorScheme="red" aria-label="unassign" icon={<DeleteIcon />}

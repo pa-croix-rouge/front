@@ -206,7 +206,6 @@ export default function ULDashboard() {
                 </Stat>
                 <IconBox
                     borderRadius='50%'
-                    as='box'
                     h={"45px"}
                     w={"45px"}
                     bg={iconBlue}>
@@ -242,7 +241,6 @@ export default function ULDashboard() {
                 </Stat>
                 <IconBox
                     borderRadius='50%'
-                    as='box'
                     h={"45px"}
                     w={"45px"}
                     bg={iconBlue}>
@@ -278,7 +276,6 @@ export default function ULDashboard() {
                 </Stat>
                 <IconBox
                     borderRadius='50%'
-                    as='box'
                     h={"45px"}
                     w={"45px"}
                     bg={iconBlue}>
@@ -314,7 +311,6 @@ export default function ULDashboard() {
                 </Stat>
                 <IconBox
                     borderRadius='50%'
-                    as='box'
                     h={"45px"}
                     w={"45px"}
                     bg={iconBlue}>
