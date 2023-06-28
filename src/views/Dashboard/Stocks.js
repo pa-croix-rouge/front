@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from "react";
+import React, {useContext, useEffect, useRef, useState} from "react";
 import {
     Badge,
     Button,
@@ -38,6 +38,8 @@ import {
     getMeasurementUnits, getSizes, updateClothProduct, updateFoodProduct
 } from "../../controller/ProductController";
 import {FaEdit, FaTrash} from "react-icons/fa";
+import Quagga from "quagga";
+import {readFromBarCode} from "../../controller/OpenFoodFactController";
 
 export default function Stocks() {
     const {volunteer, setVolunteer} = useContext(VolunteerContext);
@@ -99,6 +101,82 @@ export default function Stocks() {
     const [updatedProductError, setUpdatedProductError] = useState("");
     //Delete product
     const { isOpen: isOpenDeleteProductModal, onOpen: onOpenDeleteProductModal, onClose: onCloseDeleteProductModal } = useDisclosure();
+    //Quagga scanner
+    const { isOpen: isOpenScannerModal, onOpen: onOpenScannerModal, onClose: onCloseScannerModal } = useDisclosure();
+    const scannerRef = useRef(null);
+    const [barcodeScanned, setBarcodeScanned] = useState(false);
+
+    const openScannerModal = () => {
+        onOpenScannerModal();
+        setBarcodeScanned(false);
+
+        setTimeout(() => {
+            Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: scannerRef.current
+                },
+                decoder: {
+                    readers: ["ean_reader"]
+                }
+            }, function (err) {
+                if (err) {
+                    console.log(err);
+                    return;
+                }
+                Quagga.start();
+            });
+
+            Quagga.onDetected((data) => {
+                if (!barcodeScanned) {
+                    setBarcodeScanned(true);
+                    readFromBarCode(data.codeResult.code)
+                        .then((product) => {
+                            // Quagga.offDetected();
+                            Quagga.stop();
+                            setAddProductName(product.name);
+                            setAddProductExpirationDate(product.expirationDate.toISOString().substring(0, 10));
+                            setAddProductQuantity(product.quantityQuantifier);
+                            setAddProductUnit(units.flatMap((item) => item.units.filter((unit) => unit !== "")).filter((unit) => unit.substring(0, product.quantifierName.length).toUpperCase() === product.quantifierName.toUpperCase()));
+                            onCloseScannerModal();
+                        })
+                        .catch((err) => {
+                            console.log("Error reading barcode: " + err);
+                            setBarcodeScanned(false);
+                        });
+                }
+            });
+        }, 1000);
+    };
+
+    useEffect(() => {
+        Quagga.onDetected((data) => {
+            if (!barcodeScanned) {
+                setBarcodeScanned(true);
+                readFromBarCode(data.codeResult.code)
+                    .then((product) => {
+                        // Quagga.offDetected();
+                        Quagga.stop();
+                        setAddProductName(product.name);
+                        setAddProductExpirationDate(product.expirationDate.toISOString().substring(0, 10));
+                        setAddProductQuantity(product.quantityQuantifier);
+                        setAddProductUnit(units.flatMap((item) => item.units.filter((unit) => unit !== "")).filter((unit) => unit.substring(0, product.quantifierName.length).toUpperCase() === product.quantifierName.toUpperCase()));
+                        onCloseScannerModal();
+                    })
+                    .catch((err) => {
+                        console.log("Error reading barcode: " + err);
+                        setBarcodeScanned(false);
+                    });
+            }
+        });
+    }, []);
+
+    const closeScannerModal = () => {
+        onCloseScannerModal();
+        // Quagga.offDetected();
+        Quagga.stop();
+    };
 
     useEffect(() => {
         if (storageDepartment !== '' && departments.length > 0) {
@@ -437,7 +515,6 @@ export default function Stocks() {
                             Nourriture
                         </Text>
                         <SimpleGrid columns={{ sm: 2, md: 3, lg: 4, xl: 5 }} spacing="24px" m="12px">
-                            {console.log(allProducts)}
                             {allProducts.foods.map((foodStorageProduct, key) => (
                                 <Card key={key}>
                                     <CardHeader>
@@ -556,6 +633,11 @@ export default function Stocks() {
                         {(isNaN(addProductPrice) || addProductPrice < 0) && setAddProductPrice(0)}
                         {(isNaN(addProductAmount) || addProductAmount <= 0) && setAddProductAmount(1)}
                         <FormControl>
+                            {addProductType === "food" && (
+                                <Flex justify="space-around">
+                                    <Button onClick={openScannerModal} colorScheme="orange">Scanner un produit</Button>
+                                </Flex>
+                            )}
                             <FormLabel>Nom du produit</FormLabel>
                             <Input type="text" placeholder="Nom du produit" value={addProductName} onChange={(e) => setAddProductName(e.target.value)}/>
                             <Text size="md" mt="8px" fontWeight="semibold">Espace de stockage</Text>
@@ -648,6 +730,23 @@ export default function Stocks() {
                         </Button>
                         <Button colorScheme="green" mr={3} onClick={() => addProduct()}>
                             Ajouter
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+            <Modal isOpen={isOpenScannerModal} onClose={onCloseScannerModal} size="3xl" scrollBehavior="outside">
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>Scanner un produit</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                        <Flex justify="space-around" maxH="480px" maxW="640px" overflow="hidden" m="auto">
+                            <div id="scanner" ref={scannerRef} />
+                        </Flex>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button colorScheme="blue" mr={3} onClick={closeScannerModal}>
+                            Fermer
                         </Button>
                     </ModalFooter>
                 </ModalContent>
