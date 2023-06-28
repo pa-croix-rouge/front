@@ -18,7 +18,8 @@ const mapJsonToClothStorageProduct = (data: any): ClothStorageProduct[] => {
                 clothJson.quantity,
                 clothJson.quantifierQuantity,
                 clothJson.quantifierName),
-            clothJson.size);
+            clothJson.size,
+            clothJson.gender);
     });
     return cloths;
 }

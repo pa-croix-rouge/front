@@ -34,7 +34,7 @@ import {ProductList} from "../../model/stock/ProductList";
 import {
     createClothProduct,
     createFoodProduct, deleteClothProduct, deleteFoodProduct,
-    getConservations,
+    getConservations, getGenders,
     getMeasurementUnits, getSizes, updateClothProduct, updateFoodProduct
 } from "../../controller/ProductController";
 import {FaEdit, FaTrash} from "react-icons/fa";
@@ -47,12 +47,14 @@ export default function Stocks() {
     const [loadedAllProducts, setLoadedAllProducts] = useState(false);
     const [loadedUnits, setLoadedUnits] = useState(false);
     const [loadedConservations, setLoadedConservations] = useState(false);
+    const [loadedGenders, setLoadedGenders] = useState(false);
     const [storages, setStorages] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [sizes, setSizes] = useState([]);
     const [allProducts, setAllProducts] = useState(new ProductList([], []));
     const [units, setUnits] = useState([]);
     const [conservations, setConservations] = useState([]);
+    const [genders, setGenders] = useState([]);
     const { isOpen: isOpenAddStorageModal, onOpen: onOpenAddStorageModal, onClose: onCloseAddStorageModal } = useDisclosure();
     const { isOpen: isOpenViewStorageModal, onOpen: onOpenViewStorageModal, onClose: onCloseViewStorageModal } = useDisclosure();
     const [storageName, setStorageName] = useState("");
@@ -77,6 +79,7 @@ export default function Stocks() {
     const [addProductStorageId, setAddProductStorageId] = useState("");
     const [addProductAmount, setAddProductAmount] = useState(1);
     const [addProductSize, setAddProductSize] = useState("");
+    const [addProductGender, setAddProductGender] = useState("");
     const [addProductError, setAddProductError] = useState("");
     //Update product
     const { isOpen: isOpenUpdateProductModal, onOpen: onOpenUpdateProductModal, onClose: onCloseUpdateProductModal } = useDisclosure();
@@ -92,6 +95,7 @@ export default function Stocks() {
     const [updatedProductStorageId, setUpdatedProductStorageId] = useState("");
     const [updatedProductAmount, setUpdatedProductAmount] = useState(1);
     const [updatedProductSize, setUpdatedProductSize] = useState("");
+    const [updatedProductGender, setUpdatedProductGender] = useState("");
     const [updatedProductError, setUpdatedProductError] = useState("");
     //Delete product
     const { isOpen: isOpenDeleteProductModal, onOpen: onOpenDeleteProductModal, onClose: onCloseDeleteProductModal } = useDisclosure();
@@ -168,6 +172,17 @@ export default function Stocks() {
             });
     }
 
+    const loadGenders = () => {
+        setLoadedGenders(true);
+        getGenders()
+            .then((genders) => {
+                setGenders(genders);
+            })
+            .catch((_) => {
+                setLoadedGenders(false);
+            });
+    }
+
     const addStorage = () => {
         setCallAddStockage(false);
         setCreateEventLoading(true);
@@ -224,6 +239,7 @@ export default function Stocks() {
         }
         if (type === "cloth") {
             setUpdatedProductSize(product.size);
+            setUpdatedProductGender(product.gender);
         }
         onOpenModal();
     }
@@ -291,7 +307,11 @@ export default function Stocks() {
             setAddProductError("Veuillez renseigner une taille pour le produit");
             return;
         }
-        createClothProduct(addProductName, addProductQuantity, addProductSize, addProductStorageId, addProductAmount)
+        if (addProductGender === "") {
+            setAddProductError("Veuillez renseigner un genre pour le produit");
+            return;
+        }
+        createClothProduct(addProductName, addProductQuantity, addProductSize, addProductStorageId, addProductAmount, addProductGender)
             .then((_) => {
                 onCloseAddProductModal();
                 setLoadedAllProducts(false);
@@ -359,7 +379,11 @@ export default function Stocks() {
             setUpdatedProductError("Veuillez renseigner une taille pour le produit");
             return;
         }
-        updateClothProduct(selectedProduct.id, updatedProductName, updatedProductQuantity, updatedProductSize, updatedProductStorageId, updatedProductAmount)
+        if (updatedProductGender === "") {
+            setUpdatedProductError("Veuillez renseigner un genre pour le produit");
+            return;
+        }
+        updateClothProduct(selectedProduct.id, updatedProductName, updatedProductQuantity, updatedProductSize, updatedProductStorageId, updatedProductAmount, updatedProductGender)
             .then((_) => {
                 onCloseUpdateProductModal();
                 setLoadedAllProducts(false);
@@ -397,6 +421,7 @@ export default function Stocks() {
             {!loadedUnits && loadUnits()}
             {!loadedConservations && loadConservations()}
             {!loadedSizes && loadSizes()}
+            {!loadedGenders && loadGenders()}
             {!loadedAllProducts && loadProducts()}
             {callAddStockage && addStorage()}
             <Flex direction="column" pt={{ base: "120px", md: "75px" }}>
@@ -467,6 +492,7 @@ export default function Stocks() {
                                     <CardBody>
                                         <Text>{clothStorageProduct.product.quantity} * {clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Text>
                                         <Badge colorScheme="teal" m="4px">{clothStorageProduct.size}</Badge>
+                                        <Badge colorScheme="blue" mr="4px">{clothStorageProduct.gender}</Badge>
                                         <Badge colorScheme="purple">{clothStorageProduct.product.quantity * clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Badge>
                                     </CardBody>
                                 </Card>
@@ -603,6 +629,12 @@ export default function Stocks() {
                                             <option key={key} value={size}>{size}</option>
                                         ))}
                                     </Select>
+                                    <Text size="md" mt="8px" fontWeight="semibold">Genre du vêtement</Text>
+                                    <Select placeholder="Genre du vêtement" value={addProductGender} onChange={(e) => setAddProductGender(e.target.value)}>
+                                        {genders.map((size, key) => (
+                                            <option key={key} value={size}>{size}</option>
+                                        ))}
+                                    </Select>
                                 </>
                             )}
                         </FormControl>
@@ -697,6 +729,12 @@ export default function Stocks() {
                                     <Text size="md" mt="8px" fontWeight="semibold">Taille du vêtement</Text>
                                     <Select placeholder="Taille du vêtement" value={updatedProductSize} onChange={(e) => setUpdatedProductSize(e.target.value)}>
                                         {sizes.map((size, key) => (
+                                            <option key={key} value={size}>{size}</option>
+                                        ))}
+                                    </Select>
+                                    <Text size="md" mt="8px" fontWeight="semibold">Genre du vêtement</Text>
+                                    <Select placeholder="Genre du vêtement" value={updatedProductGender} onChange={(e) => setUpdatedProductGender(e.target.value)}>
+                                        {genders.map((size, key) => (
                                             <option key={key} value={size}>{size}</option>
                                         ))}
                                     </Select>
@@ -847,6 +885,7 @@ export default function Stocks() {
                                             <CardBody>
                                                 <Text>{clothStorageProduct.product.quantity} * {clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Text>
                                                 <Badge colorScheme="teal" m="4px">{clothStorageProduct.size}</Badge>
+                                                <Badge colorScheme="blue" mr="4px">{clothStorageProduct.gender}</Badge>
                                                 <Badge colorScheme="purple">{clothStorageProduct.product.quantity * clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Badge>
                                             </CardBody>
                                         </Card>
