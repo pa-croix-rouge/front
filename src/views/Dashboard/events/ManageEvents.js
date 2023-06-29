@@ -15,7 +15,8 @@ import {
     ModalFooter,
     ModalHeader,
     ModalOverlay,
-    Progress, Skeleton,
+    Progress,
+    Skeleton,
     Stat,
     StatHelpText,
     StatLabel,
@@ -350,8 +351,8 @@ export default function ManageEvents() {
                                             </MenuItem>
                                             <MenuItem onClick={() => selectEventForModal(event.sessionId, onOpenDeletionModal)} isDisabled={event.startDate.getTime() < Date.now()}>
                                                 <Flex cursor="pointer" align="center" p="12px">
-                                                    <Icon as={FaTrashAlt} mr="8px"/>
-                                                    <Text fontSize="sm" fontWeight="semibold">
+                                                    <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                                    <Text fontSize="sm" fontWeight="semibold" color="red.500">
                                                         Supprimer
                                                     </Text>
                                                 </Flex>

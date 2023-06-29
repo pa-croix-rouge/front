@@ -112,19 +112,19 @@ export default function Role(props) {
                   <MenuItem onClick={onOpenManageModal}>
                     <Flex direction="row" cursor="pointer" p="12px">
                       <Icon as={FaUserPlus} mr="8px"/>
-                      <Text>Gérer les utilisateurs</Text>
+                      <Text fontSize="sm" fontWeight="semibold">Gérer les utilisateurs</Text>
                     </Flex>
                   </MenuItem>
                   <MenuItem onClick={onOpenAddModal}>
                     <Flex direction="row" cursor="pointer" p="12px">
                       <Icon as={FaPencilAlt} mr="8px"/>
-                      <Text>Modifier</Text>
+                      <Text fontSize="sm" fontWeight="semibold">Modifier</Text>
                     </Flex>
                   </MenuItem>
                   <MenuItem onClick={onDelete}>
                     <Flex direction="row" cursor="pointer" p="12px">
                       <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
-                      <Text color="red.500">Supprimer</Text>
+                      <Text color="red.500" fontSize="sm" fontWeight="semibold">Supprimer</Text>
                     </Flex>
                   </MenuItem>
                 </Flex>

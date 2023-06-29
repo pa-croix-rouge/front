@@ -4,8 +4,14 @@ import {
     Button,
     Flex,
     FormControl,
-    FormLabel, IconButton,
+    FormLabel,
+    Icon,
+    IconButton,
     Input,
+    Menu,
+    MenuButton,
+    MenuItem,
+    MenuList,
     Modal,
     ModalBody,
     ModalCloseButton,
@@ -14,7 +20,8 @@ import {
     ModalHeader,
     ModalOverlay,
     NumberDecrementStepper,
-    NumberIncrementStepper, NumberInput,
+    NumberIncrementStepper,
+    NumberInput,
     NumberInputField,
     NumberInputStepper,
     Radio,
@@ -33,11 +40,17 @@ import VolunteerContext from "../../contexts/VolunteerContext";
 import {ProductList} from "../../model/stock/ProductList";
 import {
     createClothProduct,
-    createFoodProduct, deleteClothProduct, deleteFoodProduct,
-    getConservations, getGenders,
-    getMeasurementUnits, getSizes, updateClothProduct, updateFoodProduct
+    createFoodProduct,
+    deleteClothProduct,
+    deleteFoodProduct,
+    getConservations,
+    getGenders,
+    getMeasurementUnits,
+    getSizes,
+    updateClothProduct,
+    updateFoodProduct
 } from "../../controller/ProductController";
-import {FaEdit, FaTrash} from "react-icons/fa";
+import {FaCog, FaEdit, FaEye, FaPencilAlt, FaTrash, FaTrashAlt} from "react-icons/fa";
 import Quagga from "quagga";
 import {readFromBarCode} from "../../controller/OpenFoodFactController";
 import {getCitiesFromPostalCode} from "../../controller/IGNController";
@@ -614,7 +627,36 @@ export default function Stocks() {
                             {storages.map((storage) => (
                                 <Card key={storage.id}>
                                     <CardHeader>
-                                        <Text fontSize="xl" textAlign="center">{storage.name}</Text>
+                                        <Flex justify="space-between">
+                                            <Text fontSize="xl">{storage.name}</Text>
+                                            <Menu>
+                                                <MenuButton>
+                                                    <Icon as={FaCog} />
+                                                </MenuButton>
+                                                <MenuList>
+                                                    <Flex direction="column">
+                                                        <MenuItem onClick={() => selectStorageForModal(storage, onOpenViewStorageModal)}>
+                                                            <Flex direction="row" p="12px">
+                                                                <Icon as={FaEye} mr="8px" />
+                                                                <Text fontSize="sm" fontWeight="semibold">Voir le contenu</Text>
+                                                            </Flex>
+                                                        </MenuItem>
+                                                        <MenuItem onClick={() => selectStorageForModal(storage, onOpenUpdateStorageModal)}>
+                                                            <Flex direction="row" p="12px">
+                                                                <Icon as={FaPencilAlt} mr="8px" />
+                                                                <Text fontSize="sm" fontWeight="semibold">Modifier</Text>
+                                                            </Flex>
+                                                        </MenuItem>
+                                                        <MenuItem onClick={() => selectStorageForModal(storage, onOpenUpdateStorageModal)}>
+                                                            <Flex direction="row" p="12px">
+                                                                <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                                                <Text color="red.500" fontSize="sm" fontWeight="semibold">Supprimer</Text>
+                                                            </Flex>
+                                                        </MenuItem>
+                                                    </Flex>
+                                                </MenuList>
+                                            </Menu>
+                                        </Flex>
                                     </CardHeader>
                                     <CardBody>
                                         <Flex direction="row">
@@ -622,9 +664,10 @@ export default function Stocks() {
                                                 <Text fontSize="sm">Quantité de nourriture: {allProducts.foods.filter(f => f.product.storageId === storage.id).reduce((acc, f) => acc + f.product.quantity, 0)}</Text>
                                                 <Text fontSize="sm">Quantité de vêtements: {allProducts.clothes.filter(c => c.product.storageId === storage.id).reduce((acc, c) => acc + c.product.quantity, 0)}</Text>
                                             </Flex>
-                                            <Button colorScheme="orange" size="sm" onClick={() => selectStorageForModal(storage, onOpenViewStorageModal)} w="50%">
-                                                VOIR LE CONTENU
-                                            </Button>
+                                            <Flex direction="column" w="50%">
+                                                <Text fontSize="sm" textAlign="end">{storage.address.city} - {storage.address.postalCode}</Text>
+                                                <Text fontSize="sm" textAlign="end">{storage.address.streetNumberAndName}</Text>
+                                            </Flex>
                                         </Flex>
                                     </CardBody>
                                 </Card>
@@ -949,9 +992,10 @@ export default function Stocks() {
                     <ModalBody>
                         {selectedStorage !== null && (
                             <Flex direction="column">
-                                <Text>{selectedStorage.name}</Text>
-                                <Text>{selectedStorage.address.city} ({selectedStorage.address.departmentCode} - {departments.filter(d => d.code === selectedStorage.address.departmentCode)[0].name})</Text>
-                                <Text>{selectedStorage.address.streetNumberAndName} - {selectedStorage.address.postalCode}</Text>
+                                <Text fontWeight="bold" fontSize="lg">{selectedStorage.name}</Text>
+                                <Text>{selectedStorage.address.city} - {selectedStorage.address.postalCode}</Text>
+                                <Text>{departments.filter(d => d.code === selectedStorage.address.departmentCode)[0].name} ({selectedStorage.address.departmentCode})</Text>
+                                <Text>{selectedStorage.address.streetNumberAndName}</Text>
                                 <Text fontSize="xl" fontWeight="semibold">
                                     Nourriture
                                 </Text>
