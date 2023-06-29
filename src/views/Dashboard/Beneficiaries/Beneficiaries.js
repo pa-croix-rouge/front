@@ -226,11 +226,12 @@ function Beneficiaries() {
     return (
         <BeneficiariesContext.Provider value={{beneficiaries, setBeneficiaries}}>
             <VStack pt={{base: "120px", md: "75px"}} mr='32px' align={'stretch'}>
-                <HStack>
-                    <Button onClick={onOpenCreationModal}>
-                        ajouter nouveau bénéficiaire
-                    </Button>
-                </HStack>
+                <Card>
+                    <Flex justify="space-between">
+                        <Text fontSize="xl" fontWeight="bold">Gestion des rôles</Text>
+                        <Button onClick={onOpenCreationModal} colorScheme="green">Ajouter un bénéficiaire</Button>
+                    </Flex>
+                </Card>
                 <Wrap>
                     {beneficiaries.map((beneficiary) => getBeneficiariesCards(beneficiary))}
                 </Wrap>
