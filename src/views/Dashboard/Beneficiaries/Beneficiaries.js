@@ -143,8 +143,6 @@ function Beneficiaries() {
     }
 
     const deleteBeneficiaries = (beneficiary) => {
-        console.log('deleteBeneficiaries')
-        console.log(beneficiary)
         deleteBeneficiary(beneficiary.id)
             .then((res) => {
                 setLoadedBeneficiaries(false);
