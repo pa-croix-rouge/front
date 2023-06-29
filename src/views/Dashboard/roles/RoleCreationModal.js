@@ -2,6 +2,7 @@ import React, {useState} from "react";
 import {
   Button,
   Checkbox,
+  Flex,
   FormControl,
   FormLabel,
   Input,
@@ -15,6 +16,7 @@ import {
   Table,
   Tbody,
   Text,
+  Textarea,
   Th,
   Thead,
   Tr,
@@ -71,7 +73,7 @@ export default function RoleCreationModal(props) {
   };
 
   return (
-    <Modal isOpen={props.isOpen} onClose={props.onClose} size="xl" scrollBehavior="outside">
+    <Modal isOpen={props.isOpen} onClose={props.onClose} size="2xl" scrollBehavior="outside">
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>Ajouter un role</ModalHeader>
@@ -82,10 +84,13 @@ export default function RoleCreationModal(props) {
                 <FormLabel >Nom du role</FormLabel>
                 <Input type="text" placeholder="Nom du role" value={role.name}
                        onChange={(e) => setRole({ ...role, name: e.target.value })} />
-                <FormLabel>Description du role</FormLabel>
-                <Input flex={1} type="text" placeholder="description du role" value={role.description}
-                       onChange={(e) => setRole({ ...role, description: e.target.value })} />
               </SimpleGrid >
+              <Flex direction="column">
+                <FormLabel>Description du role</FormLabel>
+                <Textarea flex={1} type="text" placeholder="description du role" value={role.description}
+                          onChange={(e) => setRole({ ...role, description: e.target.value })}
+                          resize="none"/>
+              </Flex>
               <Table variant="simple">
                 <Thead>
                   <Tr color="gray.400">
