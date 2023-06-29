@@ -72,6 +72,25 @@ export const createStockage = async (name: string, localUnitID: string, departme
     return true;
 }
 
+export const updateStockage = async (id: string, name: string, localUnitID: string, departmentCode: string, postalCode: string, city: string, streetNumberAndName: string): Promise<boolean> => {
+    const response = await postWithToken(`storage/${id}`, {
+        name: name,
+        localUnitID: localUnitID,
+        address: {
+            departmentCode: departmentCode,
+            postalCode: postalCode,
+            city: city,
+            streetNumberAndName: streetNumberAndName,
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error(`Updating storage failed with status ${response.status}`);
+    }
+
+    return true;
+}
+
 export const deleteStockage = async (id: string): Promise<boolean> => {
     const response = await deleteWithToken(`storage/${id}`);
 

@@ -36,7 +36,7 @@ import {
     deleteStockage,
     getAllProducts,
     getProductsByStorage,
-    getStockages
+    getStockages, updateStockage
 } from "../../controller/StorageController";
 import CardHeader from "../../components/Card/CardHeader";
 import CardBody from "../../components/Card/CardBody";
@@ -80,6 +80,7 @@ export default function Stocks() {
     const [genders, setGenders] = useState([]);
     const { isOpen: isOpenAddStorageModal, onOpen: onOpenAddStorageModal, onClose: onCloseAddStorageModal } = useDisclosure();
     const { isOpen: isOpenDeleteStorageModal, onOpen: onOpenDeleteStorageModal, onClose: onCloseDeleteStorageModal } = useDisclosure();
+    const { isOpen: isOpenUpdateStorageModal, onOpen: onOpenUpdateStorageModal, onClose: onCloseUpdateStorageModal } = useDisclosure();
     const { isOpen: isOpenViewStorageModal, onOpen: onOpenViewStorageModal, onClose: onCloseViewStorageModal } = useDisclosure();
     const [storageName, setStorageName] = useState("");
     const [storageDepartment, setStorageDepartment] = useState("");
@@ -91,9 +92,16 @@ export default function Stocks() {
     const [selectedStorage, setSelectedStorage] = useState(null);
     const [selectedStorageProducts, setSelectedStorageProducts] = useState(new ProductList([], []));
     const [addStorageCityList, setAddStorageCityList] = useState([]);
+    const [updatedStorageName, setUpdatedStorageName] = useState("");
+    const [updatedStorageDepartment, setUpdatedStorageDepartment] = useState("");
+    const [updatedStoragePostalCode, setUpdatedStoragePostalCode] = useState("");
+    const [updatedStorageCity, setUpdatedStorageCity] = useState("");
+    const [updatedStorageAddress, setUpdatedStorageAddress] = useState("");
+    const [errorUpdatingStorage, setErrorUpdatingStorage] = useState("");
     //Add new product
     const { isOpen: isOpenAddProductModal, onOpen: onOpenAddProductModal, onClose: onCloseAddProductModal } = useDisclosure();
     const [callAddStockage, setCallAddStockage] = useState(false);
+    const [callUpdateStockage, setCallUpdateStockage] = useState(false);
     const [addProductType, setAddProductType] = useState("food");
     const [addProductName, setAddProductName] = useState("");
     const [addProductQuantity, setAddProductQuantity] = useState(1);
@@ -203,10 +211,16 @@ export default function Stocks() {
     };
 
     useEffect(() => {
-        if (storageDepartment !== '' && departments.length > 0) {
+        if (storageDepartment !== '' && storageDepartment !== undefined && departments.length > 0) {
             setStoragePostalCode(departments[storageDepartment].code);
         }
     }, [storageDepartment]);
+
+    useEffect(() => {
+        if (updatedStorageDepartment !== '' && updatedStorageDepartment !== undefined && departments.length > 0 && isOpenUpdateStorageModal) {
+            setUpdatedStoragePostalCode(departments[updatedStorageDepartment].code);
+        }
+    }, [updatedStorageDepartment]);
 
     useEffect(() => {
         if (storagePostalCode.length === 5) {
@@ -220,6 +234,19 @@ export default function Stocks() {
                 });
         }
     }, [storagePostalCode]);
+
+    useEffect(() => {
+        if (storagePostalCode.length === 5) {
+            getCitiesFromPostalCode(storagePostalCode)
+                .then((cities) => {
+                    console.log(cities);
+                    setAddStorageCityList(cities);
+                })
+                .catch((err) => {
+                    console.log(err);
+                });
+        }
+    }, [updatedStoragePostalCode]);
 
     const loadStorages = () => {
         setLoadedStorages(true);
@@ -354,6 +381,43 @@ export default function Stocks() {
             });
     }
 
+    const updateStorage = () => {
+        setCallUpdateStockage(false);
+        setErrorUpdatingStorage("");
+        if (updatedStorageName === "") {
+            setErrorUpdatingStorage("Veuillez renseigner un nom pour l'espace de stockage");
+            return;
+        }
+
+        if (updatedStorageDepartment === "") {
+            setErrorUpdatingStorage("Veuillez renseigner un département pour l'espace de stockage");
+            return;
+        }
+
+        if (updatedStoragePostalCode === "" || updatedStoragePostalCode.length !== 5) {
+            setErrorUpdatingStorage("Veuillez renseigner un code postale valide pour l'espace de stockage");
+            return;
+        }
+
+        if (updatedStorageCity === "") {
+            setErrorUpdatingStorage("Veuillez renseigner une ville pour l'espace de stockage");
+            return;
+        }
+
+        if (updatedStorageAddress === "") {
+            setErrorUpdatingStorage("Veuillez renseigner une adresse pour l'espace de stockage");
+            return;
+        }
+
+        updateStockage(selectedStorage.id, updatedStorageName, selectedStorage.localUnitId, departments[updatedStorageDepartment].code, updatedStoragePostalCode, updatedStorageCity, updatedStorageAddress)
+            .then(() => {
+                onCloseUpdateStorageModal();
+                setLoadedStorages(false);
+            })
+            .catch((_) => {
+            });
+    }
+
     const deleteStorage = () => {
         deleteStockage(selectedStorage.id)
             .then((_) => {
@@ -386,9 +450,23 @@ export default function Stocks() {
     }
 
     const selectStorageForModal = (storage, onOpenModal) => {
+        console.log(storage)
         setSelectedStorage(storage);
         setLoadedProductsByStorage(false);
-        onOpenModal();
+        setUpdatedStorageDepartment(Number(storage.address.departmentCode) - 2);
+        setUpdatedStorageName(storage.name);
+        setUpdatedStorageAddress(storage.address.streetNumberAndName);
+        setUpdatedStoragePostalCode(storage.address.postalCode);
+        setUpdatedStorageCity(storage.address.city);
+        getCitiesFromPostalCode(storage.address.postalCode)
+            .then((cities) => {
+                console.log(cities);
+                setAddStorageCityList(cities);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+        setTimeout(() => onOpenModal(), 500);
     }
 
     const addProduct = () => {
@@ -566,6 +644,7 @@ export default function Stocks() {
             {!loadedGenders && loadGenders()}
             {!loadedAllProducts && loadProducts()}
             {callAddStockage && addStorage()}
+            {callUpdateStockage && updateStorage()}
             {!loadedProductsByStorage && selectedStorage !== null && loadProductsFromStorage()}
             <Flex direction="column" pt={{ base: "120px", md: "75px" }}>
                 <Card pb="0px">
@@ -1101,6 +1180,51 @@ export default function Stocks() {
                     <ModalFooter>
                         <Button colorScheme="blue" mr={3} onClick={onCloseViewStorageModal}>
                             Fermer
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+            <Modal isOpen={isOpenUpdateStorageModal} onClose={onCloseUpdateStorageModal} size="xl" scrollBehavior="outside">
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>Modifier un espace de stockage</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                        <FormControl>
+                            <FormLabel>Nom de l'espace de stockage</FormLabel>
+                            <Input type="text" placeholder="Nom de l'espace de stockage" value={updatedStorageName} onChange={(e) => setUpdatedStorageName(e.target.value)}/>
+                            <Text size="md" mt="8px" fontWeight="semibold">Emplacement de l'espace de stockage</Text>
+                            <FormLabel>Département</FormLabel>
+                            <Select placeholder="Sélectionnez un département" value={updatedStorageDepartment} onChange={(e) => setUpdatedStorageDepartment(e.target.value)}>
+                                {departments.map((department, index) => {
+                                    return (
+                                        <option key={index} value={index}>{department.code} - {department.name}</option>
+                                    );
+                                })}
+                            </Select>
+                            <FormLabel>Code postale</FormLabel>
+                            <Input type="text" placeholder="Code postale" value={updatedStoragePostalCode} onChange={(e) => setUpdatedStoragePostalCode(e.target.value)}/>
+                            <FormLabel>Ville</FormLabel>
+                            <Select placeholder="Sélectionnez une ville" value={updatedStorageCity} onChange={(e) => setUpdatedStorageCity(e.target.value)}>
+                                {addStorageCityList.map((city, index) => {
+                                    return (
+                                        <option key={index} value={city}>{city}</option>
+                                    );
+                                })}
+                            </Select>
+                            <FormLabel>Adresse</FormLabel>
+                            <Input type="text" placeholder="Adresse" value={updatedStorageAddress} onChange={(e) => setUpdatedStorageAddress(e.target.value)}/>
+                        </FormControl>
+                        {errorUpdatingStorage !== "" && (
+                            <Text color="red" mt="8px">{errorUpdatingStorage}</Text>
+                        )}
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button colorScheme="blue" mr={3} onClick={onCloseUpdateStorageModal}>
+                            Annuler
+                        </Button>
+                        <Button variant="outline" colorScheme="green" onClick={() => setCallUpdateStockage(true)} isDisabled={createEventLoading}>
+                            Ajouter
                         </Button>
                     </ModalFooter>
                 </ModalContent>
