@@ -656,7 +656,7 @@ export default function Stocks() {
                     </CardHeader>
                     <CardBody>
                         <Text fontSize="xl" fontWeight="semibold">
-                            Nourriture
+                            Produits alimentaires
                         </Text>
                         <SimpleGrid columns={{ sm: 2, md: 3, lg: 4, xl: 5 }} spacing="24px" m="12px">
                             {allProducts.foods.map((foodStorageProduct, key) => (
@@ -772,7 +772,7 @@ export default function Stocks() {
                                     <CardBody>
                                         <Flex direction="row">
                                             <Flex direction="column" w="50%">
-                                                <Text fontSize="sm">Quantité de nourriture: {allProducts.foods.filter(f => f.product.storageId === storage.id).reduce((acc, f) => acc + f.product.quantity, 0)}</Text>
+                                                <Text fontSize="sm">Quantité de produtis alimentaire: {allProducts.foods.filter(f => f.product.storageId === storage.id).reduce((acc, f) => acc + f.product.quantity, 0)}</Text>
                                                 <Text fontSize="sm">Quantité de vêtements: {allProducts.clothes.filter(c => c.product.storageId === storage.id).reduce((acc, c) => acc + c.product.quantity, 0)}</Text>
                                             </Flex>
                                             <Flex direction="column" w="50%">
@@ -800,7 +800,7 @@ export default function Stocks() {
                             Type de produit à ajouter
                         </Text>
                         <RadioGroup value={addProductType} onChange={(e) => setAddProductType(e)}>
-                            <Radio value="food" margin="8px 64px">Nourriture</Radio>
+                            <Radio value="food" margin="8px 64px">Produit alimentaire</Radio>
                             <Radio value="cloth" margin="8px 64px">Vêtement</Radio>
                         </RadioGroup>
                         {(isNaN(addProductQuantity) || addProductQuantity <= 0) && setAddProductQuantity(1)}
@@ -1108,7 +1108,7 @@ export default function Stocks() {
                                 <Text>{departments.filter(d => d.code === selectedStorage.address.departmentCode)[0].name} ({selectedStorage.address.departmentCode})</Text>
                                 <Text>{selectedStorage.address.streetNumberAndName}</Text>
                                 <Text fontSize="xl" fontWeight="semibold">
-                                    Nourriture
+                                    Produits alimentaires
                                 </Text>
                                 <SimpleGrid columns={{ sm: 2, md: 3, lg: 3, xl: 4 }} spacing="24px" m="12px">
                                     {selectedStorageProducts.foods.map((foodStorageProduct, key) => (
@@ -1229,15 +1229,52 @@ export default function Stocks() {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-            <Modal isOpen={isOpenDeleteStorageModal} onClose={onOpenDeleteStorageModal} size="lg" scrollBehavior="outside">
+            <Modal isOpen={isOpenDeleteStorageModal} onClose={onCloseDeleteStorageModal} size="3xl" scrollBehavior="outside">
                 <ModalOverlay />
                 <ModalContent>
                     <ModalHeader>Supprimer un espace de stockage</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
                         <FormControl>
-                            {selectedStorage !== null && (
+                            {selectedStorage !== null && selectedStorageProducts.foods.length === 0 && selectedStorageProducts.clothes.length === 0 && (
                                 <Text>Etes-vous sur de vouloir supprimer {selectedStorage?.name} ?</Text>
+                            )}
+                            {selectedStorage !== null && (selectedStorageProducts.foods.length > 0 || selectedStorageProducts.clothes.length > 0) && (
+                                <Text fontWeight="semibold" color="red">Vous ne pouvez pas supprimer {selectedStorage?.name} car il contient les produits suivants: </Text>
+                            )}
+                            {selectedStorageProducts.foods.length > 0 && (
+                                <Flex direction="column">
+                                    <Text mt="16px" fontWeight="semibold">
+                                        Produits alimentaires
+                                    </Text>
+                                    <SimpleGrid columns={{ sm: 1, md: 1, lg: 2, xl: 3 }} spacing="24px" m="12px 2px">
+                                        {selectedStorageProducts.foods.map((foodStorageProduct, key) => (
+                                            <Card key={key}>
+                                                <Flex direction="row" justify="space-between">
+                                                    <Text fontSize="sm" mr="4px">{foodStorageProduct.product.name}</Text>
+                                                    <Badge colorScheme="purple" m="auto 0 auto auto">{foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Badge>
+                                                </Flex>
+                                            </Card>
+                                        ))}
+                                    </SimpleGrid>
+                                </Flex>
+                            )}
+                            {selectedStorageProducts.clothes.length > 0 && (
+                                <Flex direction="column">
+                                    <Text mt="16px" fontWeight="semibold">
+                                        Vêtements
+                                    </Text>
+                                    <SimpleGrid columns={{ sm: 1, md: 1, lg: 2, xl: 3 }} spacing="24px" m="12px 2px">
+                                        {selectedStorageProducts.clothes.map((clothStorageProduct, key) => (
+                                            <Card key={key}>
+                                                <Flex direction="row" justify="space-between">
+                                                    <Text fontSize="sm" mr="4px">{clothStorageProduct.product.name}</Text>
+                                                    <Badge colorScheme="purple" m="auto 0 auto auto">{clothStorageProduct.product.quantity * clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Badge>
+                                                </Flex>
+                                            </Card>
+                                        ))}
+                                    </SimpleGrid>
+                                </Flex>
                             )}
                         </FormControl>
                     </ModalBody>
@@ -1245,7 +1282,7 @@ export default function Stocks() {
                         <Button colorScheme="blue" mr={3} onClick={onCloseDeleteStorageModal}>
                             Annuler
                         </Button>
-                        <Button colorScheme="red" variant="outline" mr={3} onClick={() => deleteStorage()}>
+                        <Button colorScheme="red" variant="outline" mr={3} onClick={() => deleteStorage()} disabled={selectedStorageProducts.foods.length > 0 || selectedStorageProducts.clothes.length > 0}>
                             Supprimer
                         </Button>
                     </ModalFooter>
