@@ -437,8 +437,8 @@ export default function Stocks() {
         setUpdatedProductAmount(product.product.quantity);
         if (type === "food") {
             setUpdatedProductConservation(product.conservation);
-            setUpdatedProductExpirationDate(new Date(product.expirationDate.split('[')[0]).toISOString().substring(0, 10));
-            setUpdatedProductOptimalDate(new Date(product.optimalConsumptionDate.split('[')[0]).toISOString().substring(0, 10));
+            setUpdatedProductExpirationDate(product.expirationDate.toISOString().substring(0, 10));
+            setUpdatedProductOptimalDate(product.optimalConsumptionDate.toISOString().substring(0, 10));
             setUpdatedProductPrice(product.product.price);
         }
         if (type === "cloth") {
@@ -695,20 +695,20 @@ export default function Stocks() {
                                         {foodStorageProduct.expirationDate && new Date(foodStorageProduct.expirationDate.split('[')[0]).getTime() < Date.now() && (
                                             <Badge m="2px" colorScheme="red">DLC {new Date(foodStorageProduct.expirationDate.split('[')[0]).toLocaleDateString()}</Badge>
                                         )}
-                                        {foodStorageProduct.expirationDate && new Date(foodStorageProduct.expirationDate.split('[')[0]).getTime() > Date.now() && new Date(foodStorageProduct.expirationDate.split('[')[0]).getTime() < (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
-                                            <Badge m="2px" colorScheme="orange">DLC {new Date(foodStorageProduct.expirationDate.split('[')[0]).toLocaleDateString()}</Badge>
+                                        {foodStorageProduct.expirationDate.getTime() > Date.now() && foodStorageProduct.expirationDate.getTime() < (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
+                                            <Badge m="2px" colorScheme="orange">DLC {foodStorageProduct.expirationDate.toLocaleDateString()}</Badge>
                                         )}
-                                        {foodStorageProduct.expirationDate && new Date(foodStorageProduct.expirationDate.split('[')[0]).getTime() > (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
-                                            <Badge m="2px" colorScheme="green">DLC {new Date(foodStorageProduct.expirationDate.split('[')[0]).toLocaleDateString()}</Badge>
+                                        {foodStorageProduct.expirationDate.getTime() > (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
+                                            <Badge m="2px" colorScheme="green">DLC {foodStorageProduct.expirationDate.toLocaleDateString()}</Badge>
                                         )}
-                                        {foodStorageProduct.optimalConsumptionDate && new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).getTime() < Date.now() && (
-                                            <Badge m="2px" colorScheme="red">DLUO {new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).toLocaleDateString()}</Badge>
+                                        {foodStorageProduct.optimalConsumptionDate.getTime() < Date.now() && (
+                                            <Badge m="2px" colorScheme="red">DLUO {foodStorageProduct.optimalConsumptionDate.toLocaleDateString()}</Badge>
                                         )}
-                                        {foodStorageProduct.optimalConsumptionDate && new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).getTime() > Date.now() && new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).getTime() < (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
-                                            <Badge m="2px" colorScheme="orange">DLUO {new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).toLocaleDateString()}</Badge>
+                                        {foodStorageProduct.optimalConsumptionDate.getTime() > Date.now() && foodStorageProduct.optimalConsumptionDate.getTime() < (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
+                                            <Badge m="2px" colorScheme="orange">DLUO {foodStorageProduct.optimalConsumptionDate.toLocaleDateString()}</Badge>
                                         )}
-                                        {foodStorageProduct.optimalConsumptionDate && new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).getTime() > (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
-                                            <Badge m="2px" colorScheme="green">DLUO {new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).toLocaleDateString()}</Badge>
+                                        {foodStorageProduct.optimalConsumptionDate .getTime() > (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
+                                            <Badge m="2px" colorScheme="green">DLUO {foodStorageProduct.optimalConsumptionDate.toLocaleDateString()}</Badge>
                                         )}
                                         <Badge colorScheme="teal" mr="4px">{foodStorageProduct.price / 100} €</Badge>
                                         <Badge colorScheme="purple">{foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Badge>

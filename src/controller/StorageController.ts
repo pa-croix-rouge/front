@@ -6,6 +6,17 @@ import {StorageProduct} from "../model/stock/StorageProduct";
 import {FoodStorageProduct} from "../model/stock/FoodStorageProduct";
 import {ProductsStats} from "../model/stock/ProductsStats";
 
+const convertDate = (date: string): Date => {
+    const startDateParts = date.split(/[\-\+:\[\]]/);
+    const yearStartDate = parseInt(startDateParts[0]);
+    const monthStartDate = parseInt(startDateParts[1]) - 1;
+    const dayStartDate = parseInt(startDateParts[2].split("T")[0]);
+    const hourStartDate = parseInt(startDateParts[2].split("T")[1]);
+    const minuteStartDate = parseInt(startDateParts[3]);
+    const timeZoneOffsetStartDate = parseInt(startDateParts[4]);
+    return new Date(Date.UTC(yearStartDate, monthStartDate, dayStartDate, hourStartDate, minuteStartDate) - timeZoneOffsetStartDate * 60 * 60 * 1000);
+}
+
 const mapJsonToClothStorageProduct = (data: any): ClothStorageProduct[] => {
     const cloths: ClothStorageProduct[] =  data.map((clothJson: any) => {
         return new ClothStorageProduct(
@@ -37,8 +48,8 @@ const mapJsonToFoodStorageProduct = (data: any): FoodStorageProduct[] => {
                 foodJson.quantifierQuantity,
                 foodJson.quantifierName),
             foodJson.foodConservation,
-            foodJson.expirationDate,
-            foodJson.optimalConsumptionDate,
+            convertDate(foodJson.expirationDate),
+            convertDate(foodJson.optimalConsumptionDate),
             foodJson.price);
     });
 }
