@@ -15,7 +15,8 @@ import {
     ModalFooter,
     ModalHeader,
     ModalOverlay,
-    Progress, Skeleton,
+    Progress,
+    Skeleton,
     Stat,
     StatHelpText,
     StatLabel,
@@ -332,38 +333,29 @@ export default function ManageEvents() {
                                     </MenuButton>
                                     <MenuList>
                                         <Flex direction="column">
-                                            <MenuItem>
-                                                <Button p="0px" bg="transparent" variant="no-effects"
-                                                        onClick={() => selectEventForModal(event.sessionId, onOpenVisualizationModal)}>
-                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
-                                                        <Icon as={FaEye} mr="8px"/>
-                                                        <Text fontSize="sm" fontWeight="semibold">
-                                                            Consulter
-                                                        </Text>
-                                                    </Flex>
-                                                </Button>
+                                            <MenuItem onClick={() => selectEventForModal(event.sessionId, onOpenVisualizationModal)}>
+                                                <Flex color={textColor} cursor="pointer" align="center" p="12px">
+                                                    <Icon as={FaEye} mr="8px"/>
+                                                    <Text fontSize="sm" fontWeight="semibold">
+                                                        Consulter
+                                                    </Text>
+                                                </Flex>
                                             </MenuItem>
-                                            <MenuItem>
-                                                <Button p="0px" bg="transparent" variant="no-effects"
-                                                        onClick={() => selectEventForModal(event.sessionId, onOpenEditionModal)} disabled={event.startDate.getTime() < Date.now()}>
-                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
-                                                        <Icon as={FaPencilAlt} mr="8px"/>
-                                                        <Text fontSize="sm" fontWeight="semibold">
-                                                            Modifier
-                                                        </Text>
-                                                    </Flex>
-                                                </Button>
+                                            <MenuItem onClick={() => selectEventForModal(event.sessionId, onOpenEditionModal)} isDisabled={event.startDate.getTime() < Date.now()}>
+                                                <Flex color={textColor} cursor="pointer" align="center" p="12px">
+                                                    <Icon as={FaPencilAlt} mr="8px"/>
+                                                    <Text fontSize="sm" fontWeight="semibold">
+                                                        Modifier
+                                                    </Text>
+                                                </Flex>
                                             </MenuItem>
-                                            <MenuItem>
-                                                <Button p="0px" variant="transparent" colorScheme="red"
-                                                        onClick={() => selectEventForModal(event.sessionId, onOpenDeletionModal)} disabled={event.startDate.getTime() < Date.now()}>
-                                                    <Flex cursor="pointer" align="center" p="12px">
-                                                        <Icon as={FaTrashAlt} mr="8px"/>
-                                                        <Text fontSize="sm" fontWeight="semibold">
-                                                            Supprimer
-                                                        </Text>
-                                                    </Flex>
-                                                </Button>
+                                            <MenuItem onClick={() => selectEventForModal(event.sessionId, onOpenDeletionModal)} isDisabled={event.startDate.getTime() < Date.now()}>
+                                                <Flex cursor="pointer" align="center" p="12px">
+                                                    <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                                    <Text fontSize="sm" fontWeight="semibold" color="red.500">
+                                                        Supprimer
+                                                    </Text>
+                                                </Flex>
                                             </MenuItem>
                                         </Flex>
                                     </MenuList>

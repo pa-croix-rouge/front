@@ -1,11 +1,17 @@
-import React, {useContext, useEffect, useState} from "react";
+import React, {useContext, useEffect, useRef, useState} from "react";
 import {
     Badge,
     Button,
     Flex,
     FormControl,
-    FormLabel, IconButton,
+    FormLabel,
+    Icon,
+    IconButton,
     Input,
+    Menu,
+    MenuButton,
+    MenuItem,
+    MenuList,
     Modal,
     ModalBody,
     ModalCloseButton,
@@ -14,7 +20,8 @@ import {
     ModalHeader,
     ModalOverlay,
     NumberDecrementStepper,
-    NumberIncrementStepper, NumberInput,
+    NumberIncrementStepper,
+    NumberInput,
     NumberInputField,
     NumberInputStepper,
     Radio,
@@ -33,11 +40,20 @@ import VolunteerContext from "../../contexts/VolunteerContext";
 import {ProductList} from "../../model/stock/ProductList";
 import {
     createClothProduct,
-    createFoodProduct, deleteClothProduct, deleteFoodProduct,
+    createFoodProduct,
+    deleteClothProduct,
+    deleteFoodProduct,
     getConservations,
-    getMeasurementUnits, getSizes, updateClothProduct, updateFoodProduct
+    getGenders,
+    getMeasurementUnits,
+    getSizes,
+    updateClothProduct,
+    updateFoodProduct
 } from "../../controller/ProductController";
-import {FaEdit, FaTrash} from "react-icons/fa";
+import {FaCog, FaEdit, FaEye, FaPencilAlt, FaTrash, FaTrashAlt} from "react-icons/fa";
+import Quagga from "quagga";
+import {readFromBarCode} from "../../controller/OpenFoodFactController";
+import {getCitiesFromPostalCode} from "../../controller/IGNController";
 
 export default function Stocks() {
     const {volunteer, setVolunteer} = useContext(VolunteerContext);
@@ -47,12 +63,14 @@ export default function Stocks() {
     const [loadedAllProducts, setLoadedAllProducts] = useState(false);
     const [loadedUnits, setLoadedUnits] = useState(false);
     const [loadedConservations, setLoadedConservations] = useState(false);
+    const [loadedGenders, setLoadedGenders] = useState(false);
     const [storages, setStorages] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [sizes, setSizes] = useState([]);
     const [allProducts, setAllProducts] = useState(new ProductList([], []));
     const [units, setUnits] = useState([]);
     const [conservations, setConservations] = useState([]);
+    const [genders, setGenders] = useState([]);
     const { isOpen: isOpenAddStorageModal, onOpen: onOpenAddStorageModal, onClose: onCloseAddStorageModal } = useDisclosure();
     const { isOpen: isOpenViewStorageModal, onOpen: onOpenViewStorageModal, onClose: onCloseViewStorageModal } = useDisclosure();
     const [storageName, setStorageName] = useState("");
@@ -63,6 +81,7 @@ export default function Stocks() {
     const [errorAddingStorage, setErrorAddingStorage] = useState("");
     const [createEventLoading, setCreateEventLoading] = useState(false);
     const [selectedStorage, setSelectedStorage] = useState(null);
+    const [addStorageCityList, setAddStorageCityList] = useState([]);
     //Add new product
     const { isOpen: isOpenAddProductModal, onOpen: onOpenAddProductModal, onClose: onCloseAddProductModal } = useDisclosure();
     const [callAddStockage, setCallAddStockage] = useState(false);
@@ -77,6 +96,7 @@ export default function Stocks() {
     const [addProductStorageId, setAddProductStorageId] = useState("");
     const [addProductAmount, setAddProductAmount] = useState(1);
     const [addProductSize, setAddProductSize] = useState("");
+    const [addProductGender, setAddProductGender] = useState("");
     const [addProductError, setAddProductError] = useState("");
     //Update product
     const { isOpen: isOpenUpdateProductModal, onOpen: onOpenUpdateProductModal, onClose: onCloseUpdateProductModal } = useDisclosure();
@@ -92,15 +112,105 @@ export default function Stocks() {
     const [updatedProductStorageId, setUpdatedProductStorageId] = useState("");
     const [updatedProductAmount, setUpdatedProductAmount] = useState(1);
     const [updatedProductSize, setUpdatedProductSize] = useState("");
+    const [updatedProductGender, setUpdatedProductGender] = useState("");
     const [updatedProductError, setUpdatedProductError] = useState("");
     //Delete product
     const { isOpen: isOpenDeleteProductModal, onOpen: onOpenDeleteProductModal, onClose: onCloseDeleteProductModal } = useDisclosure();
+    //Quagga scanner
+    const { isOpen: isOpenScannerModal, onOpen: onOpenScannerModal, onClose: onCloseScannerModal } = useDisclosure();
+    const scannerRef = useRef(null);
+    const [barcodeScanned, setBarcodeScanned] = useState(false);
+
+    const openScannerModal = () => {
+        onOpenScannerModal();
+        setBarcodeScanned(false);
+
+        setTimeout(() => {
+            Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: scannerRef.current
+                },
+                decoder: {
+                    readers: ["ean_reader"]
+                }
+            }, function (err) {
+                if (err) {
+                    console.log(err);
+                    return;
+                }
+                Quagga.start();
+            });
+
+            Quagga.onDetected((data) => {
+                if (!barcodeScanned) {
+                    setBarcodeScanned(true);
+                    readFromBarCode(data.codeResult.code)
+                        .then((product) => {
+                            // Quagga.offDetected();
+                            Quagga.stop();
+                            setAddProductName(product.name);
+                            setAddProductExpirationDate(product.expirationDate.toISOString().substring(0, 10));
+                            setAddProductQuantity(product.quantityQuantifier);
+                            setAddProductUnit(units.flatMap((item) => item.units.filter((unit) => unit !== "")).filter((unit) => unit.substring(0, product.quantifierName.length).toUpperCase() === product.quantifierName.toUpperCase()));
+                            onCloseScannerModal();
+                        })
+                        .catch((err) => {
+                            console.log("Error reading barcode: " + err);
+                            setBarcodeScanned(false);
+                        });
+                }
+            });
+        }, 1000);
+    };
+
+    useEffect(() => {
+        Quagga.onDetected((data) => {
+            if (!barcodeScanned) {
+                setBarcodeScanned(true);
+                readFromBarCode(data.codeResult.code)
+                    .then((product) => {
+                        // Quagga.offDetected();
+                        Quagga.stop();
+                        setAddProductName(product.name);
+                        setAddProductExpirationDate(product.expirationDate.toISOString().substring(0, 10));
+                        setAddProductQuantity(product.quantityQuantifier);
+                        setAddProductUnit(units.flatMap((item) => item.units.filter((unit) => unit !== "")).filter((unit) => unit.substring(0, product.quantifierName.length).toUpperCase() === product.quantifierName.toUpperCase()));
+                        onCloseScannerModal();
+                    })
+                    .catch((err) => {
+                        console.log("Error reading barcode: " + err);
+                        setBarcodeScanned(false);
+                    });
+            }
+        });
+    }, []);
+
+    const closeScannerModal = () => {
+        onCloseScannerModal();
+        // Quagga.offDetected();
+        Quagga.stop();
+    };
 
     useEffect(() => {
         if (storageDepartment !== '' && departments.length > 0) {
             setStoragePostalCode(departments[storageDepartment].code);
         }
     }, [storageDepartment]);
+
+    useEffect(() => {
+        if (storagePostalCode.length === 5) {
+            getCitiesFromPostalCode(storagePostalCode)
+                .then((cities) => {
+                    console.log(cities);
+                    setAddStorageCityList(cities);
+                })
+                .catch((err) => {
+                    console.log(err);
+                });
+        }
+    }, [storagePostalCode]);
 
     const loadStorages = () => {
         setLoadedStorages(true);
@@ -168,32 +278,48 @@ export default function Stocks() {
             });
     }
 
+    const loadGenders = () => {
+        setLoadedGenders(true);
+        getGenders()
+            .then((genders) => {
+                setGenders(genders);
+            })
+            .catch((_) => {
+                setLoadedGenders(false);
+            });
+    }
+
     const addStorage = () => {
         setCallAddStockage(false);
         setCreateEventLoading(true);
         setErrorAddingStorage("");
         if (storageName === "") {
             setErrorAddingStorage("Veuillez renseigner un nom pour l'espace de stockage");
+            setCreateEventLoading(false);
             return;
         }
 
         if (storageDepartment === "") {
             setErrorAddingStorage("Veuillez renseigner un département pour l'espace de stockage");
+            setCreateEventLoading(false);
             return;
         }
 
-        if (storagePostalCode === "") {
-            setErrorAddingStorage("Veuillez renseigner un code postale pour l'espace de stockage");
+        if (storagePostalCode === "" || storagePostalCode.length !== 5) {
+            setErrorAddingStorage("Veuillez renseigner un code postale valide pour l'espace de stockage");
+            setCreateEventLoading(false);
             return;
         }
 
         if (storageCity === "") {
             setErrorAddingStorage("Veuillez renseigner une ville pour l'espace de stockage");
+            setCreateEventLoading(false);
             return;
         }
 
         if (storageAddress === "") {
             setErrorAddingStorage("Veuillez renseigner une adresse pour l'espace de stockage");
+            setCreateEventLoading(false);
             return;
         }
 
@@ -224,6 +350,7 @@ export default function Stocks() {
         }
         if (type === "cloth") {
             setUpdatedProductSize(product.size);
+            setUpdatedProductGender(product.gender);
         }
         onOpenModal();
     }
@@ -291,7 +418,11 @@ export default function Stocks() {
             setAddProductError("Veuillez renseigner une taille pour le produit");
             return;
         }
-        createClothProduct(addProductName, addProductQuantity, addProductSize, addProductStorageId, addProductAmount)
+        if (addProductGender === "") {
+            setAddProductError("Veuillez renseigner un genre pour le produit");
+            return;
+        }
+        createClothProduct(addProductName, addProductQuantity, addProductSize, addProductStorageId, addProductAmount, addProductGender)
             .then((_) => {
                 onCloseAddProductModal();
                 setLoadedAllProducts(false);
@@ -359,7 +490,11 @@ export default function Stocks() {
             setUpdatedProductError("Veuillez renseigner une taille pour le produit");
             return;
         }
-        updateClothProduct(selectedProduct.id, updatedProductName, updatedProductQuantity, updatedProductSize, updatedProductStorageId, updatedProductAmount)
+        if (updatedProductGender === "") {
+            setUpdatedProductError("Veuillez renseigner un genre pour le produit");
+            return;
+        }
+        updateClothProduct(selectedProduct.id, updatedProductName, updatedProductQuantity, updatedProductSize, updatedProductStorageId, updatedProductAmount, updatedProductGender)
             .then((_) => {
                 onCloseUpdateProductModal();
                 setLoadedAllProducts(false);
@@ -397,6 +532,7 @@ export default function Stocks() {
             {!loadedUnits && loadUnits()}
             {!loadedConservations && loadConservations()}
             {!loadedSizes && loadSizes()}
+            {!loadedGenders && loadGenders()}
             {!loadedAllProducts && loadProducts()}
             {callAddStockage && addStorage()}
             <Flex direction="column" pt={{ base: "120px", md: "75px" }}>
@@ -412,7 +548,6 @@ export default function Stocks() {
                             Nourriture
                         </Text>
                         <SimpleGrid columns={{ sm: 2, md: 3, lg: 4, xl: 5 }} spacing="24px" m="12px">
-                            {console.log(allProducts)}
                             {allProducts.foods.map((foodStorageProduct, key) => (
                                 <Card key={key}>
                                     <CardHeader>
@@ -467,6 +602,7 @@ export default function Stocks() {
                                     <CardBody>
                                         <Text>{clothStorageProduct.product.quantity} * {clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Text>
                                         <Badge colorScheme="teal" m="4px">{clothStorageProduct.size}</Badge>
+                                        <Badge colorScheme="blue" mr="4px">{clothStorageProduct.gender}</Badge>
                                         <Badge colorScheme="purple">{clothStorageProduct.product.quantity * clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Badge>
                                     </CardBody>
                                 </Card>
@@ -491,7 +627,36 @@ export default function Stocks() {
                             {storages.map((storage) => (
                                 <Card key={storage.id}>
                                     <CardHeader>
-                                        <Text fontSize="xl" textAlign="center">{storage.name}</Text>
+                                        <Flex justify="space-between">
+                                            <Text fontSize="xl">{storage.name}</Text>
+                                            <Menu>
+                                                <MenuButton>
+                                                    <Icon as={FaCog} />
+                                                </MenuButton>
+                                                <MenuList>
+                                                    <Flex direction="column">
+                                                        <MenuItem onClick={() => selectStorageForModal(storage, onOpenViewStorageModal)}>
+                                                            <Flex direction="row" p="12px">
+                                                                <Icon as={FaEye} mr="8px" />
+                                                                <Text fontSize="sm" fontWeight="semibold">Voir le contenu</Text>
+                                                            </Flex>
+                                                        </MenuItem>
+                                                        <MenuItem onClick={() => selectStorageForModal(storage, onOpenUpdateStorageModal)}>
+                                                            <Flex direction="row" p="12px">
+                                                                <Icon as={FaPencilAlt} mr="8px" />
+                                                                <Text fontSize="sm" fontWeight="semibold">Modifier</Text>
+                                                            </Flex>
+                                                        </MenuItem>
+                                                        <MenuItem onClick={() => selectStorageForModal(storage, onOpenUpdateStorageModal)}>
+                                                            <Flex direction="row" p="12px">
+                                                                <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                                                <Text color="red.500" fontSize="sm" fontWeight="semibold">Supprimer</Text>
+                                                            </Flex>
+                                                        </MenuItem>
+                                                    </Flex>
+                                                </MenuList>
+                                            </Menu>
+                                        </Flex>
                                     </CardHeader>
                                     <CardBody>
                                         <Flex direction="row">
@@ -499,9 +664,10 @@ export default function Stocks() {
                                                 <Text fontSize="sm">Quantité de nourriture: {allProducts.foods.filter(f => f.product.storageId === storage.id).reduce((acc, f) => acc + f.product.quantity, 0)}</Text>
                                                 <Text fontSize="sm">Quantité de vêtements: {allProducts.clothes.filter(c => c.product.storageId === storage.id).reduce((acc, c) => acc + c.product.quantity, 0)}</Text>
                                             </Flex>
-                                            <Button colorScheme="orange" size="sm" onClick={() => selectStorageForModal(storage, onOpenViewStorageModal)} w="50%">
-                                                VOIR LE CONTENU
-                                            </Button>
+                                            <Flex direction="column" w="50%">
+                                                <Text fontSize="sm" textAlign="end">{storage.address.city} - {storage.address.postalCode}</Text>
+                                                <Text fontSize="sm" textAlign="end">{storage.address.streetNumberAndName}</Text>
+                                            </Flex>
                                         </Flex>
                                     </CardBody>
                                 </Card>
@@ -530,6 +696,11 @@ export default function Stocks() {
                         {(isNaN(addProductPrice) || addProductPrice < 0) && setAddProductPrice(0)}
                         {(isNaN(addProductAmount) || addProductAmount <= 0) && setAddProductAmount(1)}
                         <FormControl>
+                            {addProductType === "food" && (
+                                <Flex justify="space-around">
+                                    <Button onClick={openScannerModal} colorScheme="orange">Scanner un produit</Button>
+                                </Flex>
+                            )}
                             <FormLabel>Nom du produit</FormLabel>
                             <Input type="text" placeholder="Nom du produit" value={addProductName} onChange={(e) => setAddProductName(e.target.value)}/>
                             <Text size="md" mt="8px" fontWeight="semibold">Espace de stockage</Text>
@@ -603,6 +774,12 @@ export default function Stocks() {
                                             <option key={key} value={size}>{size}</option>
                                         ))}
                                     </Select>
+                                    <Text size="md" mt="8px" fontWeight="semibold">Genre du vêtement</Text>
+                                    <Select placeholder="Genre du vêtement" value={addProductGender} onChange={(e) => setAddProductGender(e.target.value)}>
+                                        {genders.map((size, key) => (
+                                            <option key={key} value={size}>{size}</option>
+                                        ))}
+                                    </Select>
                                 </>
                             )}
                         </FormControl>
@@ -616,6 +793,23 @@ export default function Stocks() {
                         </Button>
                         <Button colorScheme="green" mr={3} onClick={() => addProduct()}>
                             Ajouter
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+            <Modal isOpen={isOpenScannerModal} onClose={onCloseScannerModal} size="3xl" scrollBehavior="outside">
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>Scanner un produit</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                        <Flex justify="space-around" maxH="480px" maxW="640px" overflow="hidden" m="auto">
+                            <div id="scanner" ref={scannerRef} />
+                        </Flex>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button colorScheme="blue" mr={3} onClick={closeScannerModal}>
+                            Fermer
                         </Button>
                     </ModalFooter>
                 </ModalContent>
@@ -700,6 +894,12 @@ export default function Stocks() {
                                             <option key={key} value={size}>{size}</option>
                                         ))}
                                     </Select>
+                                    <Text size="md" mt="8px" fontWeight="semibold">Genre du vêtement</Text>
+                                    <Select placeholder="Genre du vêtement" value={updatedProductGender} onChange={(e) => setUpdatedProductGender(e.target.value)}>
+                                        {genders.map((size, key) => (
+                                            <option key={key} value={size}>{size}</option>
+                                        ))}
+                                    </Select>
                                 </>
                             )}
                         </FormControl>
@@ -760,7 +960,13 @@ export default function Stocks() {
                             <FormLabel>Code postale</FormLabel>
                             <Input type="text" placeholder="Code postale" value={storagePostalCode} onChange={(e) => setStoragePostalCode(e.target.value)}/>
                             <FormLabel>Ville</FormLabel>
-                            <Input type="text" placeholder="Ville" value={storageCity} onChange={(e) => setStorageCity(e.target.value)}/>
+                            <Select placeholder="Sélectionnez une ville" value={storageCity} onChange={(e) => setStorageCity(e.target.value)}>
+                                {addStorageCityList.map((city, index) => {
+                                    return (
+                                        <option key={index} value={city}>{city}</option>
+                                    );
+                                })}
+                            </Select>
                             <FormLabel>Adresse</FormLabel>
                             <Input type="text" placeholder="Adresse" value={storageAddress} onChange={(e) => setStorageAddress(e.target.value)}/>
                         </FormControl>
@@ -786,9 +992,10 @@ export default function Stocks() {
                     <ModalBody>
                         {selectedStorage !== null && (
                             <Flex direction="column">
-                                <Text>{selectedStorage.name}</Text>
-                                <Text>{selectedStorage.address.city} ({selectedStorage.address.departmentCode} - {departments.filter(d => d.code === selectedStorage.address.departmentCode)[0].name})</Text>
-                                <Text>{selectedStorage.address.streetNumberAndName} - {selectedStorage.address.postalCode}</Text>
+                                <Text fontWeight="bold" fontSize="lg">{selectedStorage.name}</Text>
+                                <Text>{selectedStorage.address.city} - {selectedStorage.address.postalCode}</Text>
+                                <Text>{departments.filter(d => d.code === selectedStorage.address.departmentCode)[0].name} ({selectedStorage.address.departmentCode})</Text>
+                                <Text>{selectedStorage.address.streetNumberAndName}</Text>
                                 <Text fontSize="xl" fontWeight="semibold">
                                     Nourriture
                                 </Text>
@@ -847,6 +1054,7 @@ export default function Stocks() {
                                             <CardBody>
                                                 <Text>{clothStorageProduct.product.quantity} * {clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Text>
                                                 <Badge colorScheme="teal" m="4px">{clothStorageProduct.size}</Badge>
+                                                <Badge colorScheme="blue" mr="4px">{clothStorageProduct.gender}</Badge>
                                                 <Badge colorScheme="purple">{clothStorageProduct.product.quantity * clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Badge>
                                             </CardBody>
                                         </Card>

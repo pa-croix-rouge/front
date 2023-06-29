@@ -25,7 +25,7 @@ function SignIn() {
     const [loading, setLoading] = useState(false);
     const [isError, setIsError] = useState(false);
     const [loadTokenSuccess, setLoadTokenSuccess] = useState(false);
-    const {token, setToken} = useContext(TokenContext);
+    // const {token, setToken} = useContext(TokenContext);
     const history = useHistory();
 
     const handleUsernameChange = (event) => {
@@ -43,8 +43,11 @@ function SignIn() {
         login(user)
             .then((jwtToken) => {
                 setLoading(false);
-                setToken(jwtToken.token);
+                console.log(jwtToken.token)
+                localStorage.setItem('token', jwtToken.token);
+                // setToken(jwtToken.token);
                 setLoadTokenSuccess(true);
+                history.push("/admin/ul-dashboard");
             })
             .catch((_) => {
                 setLoading(false);
@@ -52,16 +55,17 @@ function SignIn() {
             });
     }
 
-    useEffect(() => {
-        if (token) {
-            localStorage.setItem('token', token);
-            history.push("/admin/ul-dashboard");
-        }
-    }, [token]);
+    // useEffect(() => {
+    //
+    // }, [token]);
 
     const goToSignUp = () => {
         history.push("/auth/signup");
     }
+
+    console.log("signin");
+
+
 
     return (
         <Flex position='relative'>

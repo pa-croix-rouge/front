@@ -45,6 +45,16 @@ export const getSizes = async (): Promise<string[]> => {
     return await response.json();
 }
 
+export const getGenders = async (): Promise<string[]> => {
+    const response = await getWithToken(`product/genders`);
+
+    if (!response.ok) {
+        throw new Error(`Fetching sizes failed with status ${response.status}`);
+    }
+
+    return await response.json();
+}
+
 export const createFoodProduct = async (name: string, quantity: number, measurementUnit: string, foodConservation: string, expirationDate: Date, optimalConsumptionDate: Date, price: number, storageId: string, amount: number): Promise<void> => {
     const response = await postWithToken(`product/food`, new CreateFoodProduct(name, quantity, measurementUnit, foodConservation, expirationDate, optimalConsumptionDate, price, storageId, amount));
 
@@ -55,8 +65,8 @@ export const createFoodProduct = async (name: string, quantity: number, measurem
     return await response.json();
 }
 
-export const createClothProduct = async (name: string, quantity: number, size: string, storageId: string, amount: number): Promise<void> => {
-    const response = await postWithToken(`product/cloth`, new CreateClothProduct(name, quantity, size, storageId, amount));
+export const createClothProduct = async (name: string, quantity: number, size: string, storageId: string, amount: number, gender: string): Promise<void> => {
+    const response = await postWithToken(`product/cloth`, new CreateClothProduct(name, quantity, size, storageId, amount, gender));
 
     if (!response.ok) {
         throw new Error(`Adding cloth product failed with status ${response.status}`);
@@ -75,8 +85,8 @@ export const updateFoodProduct = async (id: string, name: string, quantity: numb
     return await response.json();
 }
 
-export const updateClothProduct = async (id: string, name: string, quantity: number, size: string, storageId: string, amount: number): Promise<void> => {
-    const response = await postWithToken(`product/cloth/${id}`, new CreateClothProduct(name, quantity, size, storageId, amount));
+export const updateClothProduct = async (id: string, name: string, quantity: number, size: string, storageId: string, amount: number, gender: string): Promise<void> => {
+    const response = await postWithToken(`product/cloth/${id}`, new CreateClothProduct(name, quantity, size, storageId, amount, gender));
 
     if (!response.ok) {
         throw new Error(`Updating cloth product failed with status ${response.status}`);
