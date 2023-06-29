@@ -40,6 +40,7 @@ import {
 import {FaEdit, FaTrash} from "react-icons/fa";
 import Quagga from "quagga";
 import {readFromBarCode} from "../../controller/OpenFoodFactController";
+import {getCitiesFromPostalCode} from "../../controller/IGNController";
 
 export default function Stocks() {
     const {volunteer, setVolunteer} = useContext(VolunteerContext);
@@ -67,6 +68,7 @@ export default function Stocks() {
     const [errorAddingStorage, setErrorAddingStorage] = useState("");
     const [createEventLoading, setCreateEventLoading] = useState(false);
     const [selectedStorage, setSelectedStorage] = useState(null);
+    const [addStorageCityList, setAddStorageCityList] = useState([]);
     //Add new product
     const { isOpen: isOpenAddProductModal, onOpen: onOpenAddProductModal, onClose: onCloseAddProductModal } = useDisclosure();
     const [callAddStockage, setCallAddStockage] = useState(false);
@@ -184,6 +186,19 @@ export default function Stocks() {
         }
     }, [storageDepartment]);
 
+    useEffect(() => {
+        if (storagePostalCode.length === 5) {
+            getCitiesFromPostalCode(storagePostalCode)
+                .then((cities) => {
+                    console.log(cities);
+                    setAddStorageCityList(cities);
+                })
+                .catch((err) => {
+                    console.log(err);
+                });
+        }
+    }, [storagePostalCode]);
+
     const loadStorages = () => {
         setLoadedStorages(true);
         getStockages()
@@ -267,26 +282,31 @@ export default function Stocks() {
         setErrorAddingStorage("");
         if (storageName === "") {
             setErrorAddingStorage("Veuillez renseigner un nom pour l'espace de stockage");
+            setCreateEventLoading(false);
             return;
         }
 
         if (storageDepartment === "") {
             setErrorAddingStorage("Veuillez renseigner un département pour l'espace de stockage");
+            setCreateEventLoading(false);
             return;
         }
 
-        if (storagePostalCode === "") {
-            setErrorAddingStorage("Veuillez renseigner un code postale pour l'espace de stockage");
+        if (storagePostalCode === "" || storagePostalCode.length !== 5) {
+            setErrorAddingStorage("Veuillez renseigner un code postale valide pour l'espace de stockage");
+            setCreateEventLoading(false);
             return;
         }
 
         if (storageCity === "") {
             setErrorAddingStorage("Veuillez renseigner une ville pour l'espace de stockage");
+            setCreateEventLoading(false);
             return;
         }
 
         if (storageAddress === "") {
             setErrorAddingStorage("Veuillez renseigner une adresse pour l'espace de stockage");
+            setCreateEventLoading(false);
             return;
         }
 
@@ -897,7 +917,13 @@ export default function Stocks() {
                             <FormLabel>Code postale</FormLabel>
                             <Input type="text" placeholder="Code postale" value={storagePostalCode} onChange={(e) => setStoragePostalCode(e.target.value)}/>
                             <FormLabel>Ville</FormLabel>
-                            <Input type="text" placeholder="Ville" value={storageCity} onChange={(e) => setStorageCity(e.target.value)}/>
+                            <Select placeholder="Sélectionnez une ville" value={storageCity} onChange={(e) => setStorageCity(e.target.value)}>
+                                {addStorageCityList.map((city, index) => {
+                                    return (
+                                        <option key={index} value={city}>{city}</option>
+                                    );
+                                })}
+                            </Select>
                             <FormLabel>Adresse</FormLabel>
                             <Input type="text" placeholder="Adresse" value={storageAddress} onChange={(e) => setStorageAddress(e.target.value)}/>
                         </FormControl>
