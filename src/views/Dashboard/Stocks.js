@@ -6,7 +6,6 @@ import {
     FormControl,
     FormLabel,
     Icon,
-    IconButton,
     Input,
     Menu,
     MenuButton,
@@ -56,7 +55,7 @@ import {
     updateClothProduct,
     updateFoodProduct
 } from "../../controller/ProductController";
-import {FaCog, FaEdit, FaEye, FaPencilAlt, FaTrash, FaTrashAlt} from "react-icons/fa";
+import {FaCog, FaEdit, FaEllipsisV, FaEye, FaPencilAlt, FaTrashAlt} from "react-icons/fa";
 import Quagga from "quagga";
 import {readFromBarCode} from "../../controller/OpenFoodFactController";
 import {getCitiesFromPostalCode} from "../../controller/IGNController";
@@ -662,13 +661,37 @@ export default function Stocks() {
                             {allProducts.foods.map((foodStorageProduct, key) => (
                                 <Card key={key}>
                                     <CardHeader>
-                                        <Flex direction="row">
-                                            <IconButton aria-label="Editer le produit" icon={<FaEdit />} size="sm" onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenUpdateProductModal)} mr="4px"/>
-                                            <IconButton aria-label="Supprimer le produit" icon={<FaTrash />} size="sm" onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenDeleteProductModal)}/>
-                                            <Text m="auto 0 auto 12px">{foodStorageProduct.product.name}</Text>
+                                        <Flex direction="row" justify="space-between">
+                                            <Text m="auto 0">{foodStorageProduct.product.name}</Text>
+                                            <Menu>
+                                                <MenuButton>
+                                                    <Icon as={FaEllipsisV} />
+                                                </MenuButton>
+                                                <MenuList>
+                                                    <Flex direction="column">
+                                                        <MenuItem onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenUpdateProductModal)}>
+                                                            <Flex cursor="pointer" align="center" p="12px">
+                                                                <Icon as={FaEdit} mr="8px"/>
+                                                                <Text fontSize="sm" fontWeight="semibold">
+                                                                    Modifier
+                                                                </Text>
+                                                            </Flex>
+                                                        </MenuItem>
+                                                        <MenuItem onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenDeleteProductModal)}>
+                                                            <Flex cursor="pointer" align="center" p="12px">
+                                                                <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                                                <Text fontSize="sm" fontWeight="semibold" color="red.500">
+                                                                    Supprimer
+                                                                </Text>
+                                                            </Flex>
+                                                        </MenuItem>
+                                                    </Flex>
+                                                </MenuList>
+                                            </Menu>
                                         </Flex>
                                     </CardHeader>
                                     <CardBody>
+                                        <Text>{foodStorageProduct.product.quantity} * {foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Text>
                                         {foodStorageProduct.expirationDate && new Date(foodStorageProduct.expirationDate.split('[')[0]).getTime() < Date.now() && (
                                             <Badge m="2px" colorScheme="red">DLC {new Date(foodStorageProduct.expirationDate.split('[')[0]).toLocaleDateString()}</Badge>
                                         )}
@@ -687,7 +710,6 @@ export default function Stocks() {
                                         {foodStorageProduct.optimalConsumptionDate && new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).getTime() > (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
                                             <Badge m="2px" colorScheme="green">DLUO {new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).toLocaleDateString()}</Badge>
                                         )}
-                                        <Text>{foodStorageProduct.product.quantity} * {foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Text>
                                         <Badge colorScheme="teal" mr="4px">{foodStorageProduct.price / 100} €</Badge>
                                         <Badge colorScheme="purple">{foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Badge>
                                     </CardBody>
@@ -704,10 +726,33 @@ export default function Stocks() {
                             {allProducts.clothes.map((clothStorageProduct, key) => (
                                 <Card key={key}>
                                     <CardHeader>
-                                        <Flex direction="row">
-                                            <IconButton aria-label="Editer le produit" icon={<FaEdit />} size="sm" onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenUpdateProductModal)} mr="4px"/>
-                                            <IconButton aria-label="Supprimer le produit" icon={<FaTrash />} size="sm" onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenDeleteProductModal)}/>
-                                            <Text m="auto 0 auto 12px">{clothStorageProduct.product.name}</Text>
+                                        <Flex direction="row" justify="space-between">
+                                            <Text m="auto 0">{clothStorageProduct.product.name}</Text>
+                                            <Menu>
+                                                <MenuButton>
+                                                    <Icon as={FaEllipsisV} />
+                                                </MenuButton>
+                                                <MenuList>
+                                                    <Flex direction="column">
+                                                        <MenuItem onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenUpdateProductModal)}>
+                                                            <Flex cursor="pointer" align="center" p="12px">
+                                                                <Icon as={FaEdit} mr="8px"/>
+                                                                <Text fontSize="sm" fontWeight="semibold">
+                                                                    Modifier
+                                                                </Text>
+                                                            </Flex>
+                                                        </MenuItem>
+                                                        <MenuItem onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenDeleteProductModal)}>
+                                                            <Flex cursor="pointer" align="center" p="12px">
+                                                                <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                                                <Text fontSize="sm" fontWeight="semibold" color="red.500">
+                                                                    Supprimer
+                                                                </Text>
+                                                            </Flex>
+                                                        </MenuItem>
+                                                    </Flex>
+                                                </MenuList>
+                                            </Menu>
                                         </Flex>
                                     </CardHeader>
                                     <CardBody>
@@ -1114,13 +1159,37 @@ export default function Stocks() {
                                     {selectedStorageProducts.foods.map((foodStorageProduct, key) => (
                                         <Card key={key}>
                                             <CardHeader>
-                                                <Flex direction="row">
-                                                    <IconButton aria-label="Editer le produit" icon={<FaEdit />} size="sm" onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenUpdateProductModal)} mr="4px"/>
-                                                    <IconButton aria-label="Supprimer le produit" icon={<FaTrash />} size="sm" onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenDeleteProductModal)}/>
-                                                    <Text m="auto 0 auto 12px">{foodStorageProduct.product.name}</Text>
+                                                <Flex direction="row" justify="space-between">
+                                                    <Text m="auto 0">{foodStorageProduct.product.name}</Text>
+                                                    <Menu>
+                                                        <MenuButton>
+                                                            <Icon as={FaEllipsisV} />
+                                                        </MenuButton>
+                                                        <MenuList>
+                                                            <Flex direction="column">
+                                                                <MenuItem onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenUpdateProductModal)}>
+                                                                    <Flex cursor="pointer" align="center" p="12px">
+                                                                        <Icon as={FaEdit} mr="8px"/>
+                                                                        <Text fontSize="sm" fontWeight="semibold">
+                                                                            Modifier
+                                                                        </Text>
+                                                                    </Flex>
+                                                                </MenuItem>
+                                                                <MenuItem onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenDeleteProductModal)}>
+                                                                    <Flex cursor="pointer" align="center" p="12px">
+                                                                        <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                                                        <Text fontSize="sm" fontWeight="semibold" color="red.500">
+                                                                            Supprimer
+                                                                        </Text>
+                                                                    </Flex>
+                                                                </MenuItem>
+                                                            </Flex>
+                                                        </MenuList>
+                                                    </Menu>
                                                 </Flex>
                                             </CardHeader>
                                             <CardBody>
+                                                <Text>{foodStorageProduct.product.quantity} * {foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Text>
                                                 {foodStorageProduct.expirationDate && new Date(foodStorageProduct.expirationDate.split('[')[0]).getTime() < Date.now() && (
                                                     <Badge m="2px" colorScheme="red">DLC {new Date(foodStorageProduct.expirationDate.split('[')[0]).toLocaleDateString()}</Badge>
                                                 )}
@@ -1139,7 +1208,6 @@ export default function Stocks() {
                                                 {foodStorageProduct.optimalConsumptionDate && new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).getTime() > (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
                                                     <Badge m="2px" colorScheme="green">DLUO {new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).toLocaleDateString()}</Badge>
                                                 )}
-                                                <Text>{foodStorageProduct.product.quantity} * {foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Text>
                                                 <Badge colorScheme="teal" mr="4px">{foodStorageProduct.price / 100} €</Badge>
                                                 <Badge colorScheme="purple">{foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Badge>
                                             </CardBody>
@@ -1156,10 +1224,33 @@ export default function Stocks() {
                                     {selectedStorageProducts.clothes.map((clothStorageProduct, key) => (
                                         <Card key={key}>
                                             <CardHeader>
-                                                <Flex direction="row">
-                                                    <IconButton aria-label="Editer le produit" icon={<FaEdit />} size="sm" onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenUpdateProductModal)} mr="4px"/>
-                                                    <IconButton aria-label="Supprimer le produit" icon={<FaTrash />} size="sm" onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenDeleteProductModal)}/>
-                                                    <Text m="auto 0 auto 12px">{clothStorageProduct.product.name}</Text>
+                                                <Flex direction="row" justify="space-between">
+                                                    <Text m="auto 0">{clothStorageProduct.product.name}</Text>
+                                                    <Menu>
+                                                        <MenuButton>
+                                                            <Icon as={FaEllipsisV} />
+                                                        </MenuButton>
+                                                        <MenuList>
+                                                            <Flex direction="column">
+                                                                <MenuItem onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenUpdateProductModal)}>
+                                                                    <Flex cursor="pointer" align="center" p="12px">
+                                                                        <Icon as={FaEdit} mr="8px"/>
+                                                                        <Text fontSize="sm" fontWeight="semibold">
+                                                                            Modifier
+                                                                        </Text>
+                                                                    </Flex>
+                                                                </MenuItem>
+                                                                <MenuItem onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenDeleteProductModal)}>
+                                                                    <Flex cursor="pointer" align="center" p="12px">
+                                                                        <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                                                        <Text fontSize="sm" fontWeight="semibold" color="red.500">
+                                                                            Supprimer
+                                                                        </Text>
+                                                                    </Flex>
+                                                                </MenuItem>
+                                                            </Flex>
+                                                        </MenuList>
+                                                    </Menu>
                                                 </Flex>
                                             </CardHeader>
                                             <CardBody>
