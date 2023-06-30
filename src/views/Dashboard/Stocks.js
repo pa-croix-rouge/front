@@ -368,7 +368,8 @@ export default function Stocks() {
             .then((products) => {
                 setAllProducts(products);
             })
-            .catch((_) => {
+            .catch((e) => {
+                console.log(e);
                 setLoadedAllProducts(false);
             })
     }
@@ -379,7 +380,8 @@ export default function Stocks() {
             .then((products) => {
                 setSelectedStorageProducts(products);
             })
-            .catch((_) => {
+            .catch((e) => {
+                console.log(e);
                 setLoadedProductsByStorage(false);
             });
     }
@@ -528,6 +530,11 @@ export default function Stocks() {
 
     const selectProductForModal = (product, type, onOpenModal) => {
         setSelectedProduct(product);
+        if(product.product.productLimit !== null) {
+            setSelectedProductLimit(product.product.productLimit.id)
+        }else{
+            setSelectedProductLimit(undefined)
+        }
         setSelectedProductType(type);
         setUpdatedProductName(product.product.name);
         setUpdatedProductQuantity(product.product.quantityQuantifier);
