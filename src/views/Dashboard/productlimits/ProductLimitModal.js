@@ -48,6 +48,8 @@ export default function ProductLimitModal(props) {
     const [products, setProducts] = useState({first:[], second: []});
 
     useEffect(() => {
+        setProducts({first:[], second: []});
+        setLoadedProducts(false);
         if (props.productLimit === undefined && props.edit === true) {
             setProductLimit(new ProductLimit(undefined, '', 1, new Quantifier('', 1)));
         } else {
@@ -150,7 +152,20 @@ export default function ProductLimitModal(props) {
     }
 
     const getClothProductCard = (clothProduct) => {
-        return null;
+        return (
+            <Card key={clothProduct.productId}>
+                <CardHeader>
+                    <Flex direction="row" justify="space-between">
+                        <Text m="auto 0">{clothProduct.name}</Text>
+                    </Flex>
+                </CardHeader>
+                <CardBody>
+                    <Text>{clothProduct.quantity.value} {clothProduct.quantity.quantityQuantifier} </Text>
+                    <Badge colorScheme="teal" m="4px">{clothProduct.size}</Badge>
+                    <Badge colorScheme="blue" mr="4px">{clothProduct.gender}</Badge>
+                </CardBody>
+            </Card>
+        );
     }
 
     const getFoodProductCard = (foodProduct) => {
@@ -167,8 +182,6 @@ export default function ProductLimitModal(props) {
                            colorScheme={getDateColor(foodProduct.optimalConsumptionDate)}>DLUO {convertDate(foodProduct.optimalConsumptionDate).toLocaleDateString()}</Badge>
                     <Badge colorScheme="teal" mr="4px">{foodProduct.price / 100} €</Badge>
                     <Badge colorScheme="cyan" mr="4px">{foodProduct.conservation}</Badge>
-                    <Badge
-                        colorScheme="purple">{foodProduct.quantity.value} {foodProduct.quantity.measurementUnit} </Badge>
                 </CardBody>
             </Card>
         )
