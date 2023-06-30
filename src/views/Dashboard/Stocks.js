@@ -692,8 +692,8 @@ export default function Stocks() {
                                     </CardHeader>
                                     <CardBody>
                                         <Text>{foodStorageProduct.product.quantity} * {foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Text>
-                                        {foodStorageProduct.expirationDate && new Date(foodStorageProduct.expirationDate.split('[')[0]).getTime() < Date.now() && (
-                                            <Badge m="2px" colorScheme="red">DLC {new Date(foodStorageProduct.expirationDate.split('[')[0]).toLocaleDateString()}</Badge>
+                                        {foodStorageProduct.expirationDate && foodStorageProduct.expirationDate.getTime() < Date.now() && (
+                                            <Badge m="2px" colorScheme="red">DLC {foodStorageProduct.expirationDate.toLocaleDateString()}</Badge>
                                         )}
                                         {foodStorageProduct.expirationDate.getTime() > Date.now() && foodStorageProduct.expirationDate.getTime() < (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
                                             <Badge m="2px" colorScheme="orange">DLC {foodStorageProduct.expirationDate.toLocaleDateString()}</Badge>
