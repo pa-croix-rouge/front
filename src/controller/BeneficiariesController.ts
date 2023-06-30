@@ -1,4 +1,4 @@
-import {deleteWithToken, getWithToken, postWithoutToken, putWithToken} from "./Controller";
+import {deleteWithToken, getWithToken, postWithoutToken, postWithToken, putWithToken} from "./Controller";
 import {Beneficiary} from "../model/Beneficiaries/Beneficiary";
 import {VolunteerRegistration} from "../model/volunteer/VolunteerRegistration";
 import {BeneficiaryRegistration} from "../model/Beneficiaries/BeneficiaryRegistration";
@@ -24,6 +24,14 @@ export const registerBeneficiary = async (beneficiaryRegistration: BeneficiaryRe
     }
 
     return;
+}
+
+export const setBeneficiaryValidationStatus = async (beneficiaryId: string, valid: boolean)  => {
+    const response = await postWithToken(`beneficiaries/${valid?'validate':'invalidate'}/${beneficiaryId}`, null);
+
+    if (!response.ok) {
+        throw new Error(`Deleting beneficiary failed with status ${response.status}`);
+    }
 }
 
 export const updateBeneficiary = async (beneficiaryId: string, beneficiary: Beneficiary)  => {
