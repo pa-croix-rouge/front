@@ -19,6 +19,6 @@ export class CreateClothProduct {
         this.storageId = storageId;
         this.amount = amount;
         this.gender = gender;
-        this.limitID = limitID;
+        this.limitID = limitID === "" ? null : limitID;
     }
 }

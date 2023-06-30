@@ -23,6 +23,6 @@ export class CreateFoodProduct {
         this.price = price;
         this.storageId = storageId;
         this.amount = amount;
-        this.limitID = limitID;
+        this.limitID = limitID === "" ? null : limitID;
     }
 }
