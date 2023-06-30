@@ -14,7 +14,7 @@ import {
     HStack,
     Icon,
     IconButton,
-    Input,
+    Input, Menu, MenuButton, MenuItem, MenuList,
     Modal,
     ModalBody,
     ModalCloseButton,
@@ -31,8 +31,11 @@ import {
 import {Beneficiary} from "../../../model/Beneficiaries/Beneficiary";
 import {BeneficiaryRegistration} from "../../../model/Beneficiaries/BeneficiaryRegistration";
 import LocalUnitContext from "../../../contexts/LocalUnitContext";
-import {DeleteIcon, EditIcon, InfoOutlineIcon, PhoneIcon} from "@chakra-ui/icons";
+import {AddIcon, DeleteIcon, EditIcon, InfoOutlineIcon, PhoneIcon} from "@chakra-ui/icons";
 import Card from "../../../components/Card/Card";
+import BeneficiaryProduct from "./BeneficiaryProduct";
+import {FaCog, FaPencilAlt, FaTrashAlt, FaUserPlus} from "react-icons/fa";
+import {MdReceipt} from "react-icons/md";
 
 const BeneficiariesContext = createContext({
     beneficiaries: [],
@@ -41,6 +44,12 @@ const BeneficiariesContext = createContext({
 });
 
 function Beneficiaries() {
+
+    const {
+        isOpen: isOpenProductModal,
+        onOpen: onOpenProductModal,
+        onClose: onCloseProductModal
+    } = useDisclosure();
 
     const {
         isOpen: isOpenCreationModal,
@@ -78,13 +87,12 @@ function Beneficiaries() {
     const [loadingBeneficiaries, setLoadingBeneficiaries] = useState(false);
     const [beneficiaries, setBeneficiaries] = useState([]);
 
-    const [selectedBeneficiary, setSelectedBeneficiary] = useState(new Beneficiary('', '', '', '', undefined, '', '', ''));
+    const [selectedBeneficiary, setSelectedBeneficiary] = useState(new Beneficiary(undefined, '', '', '', undefined, '', '', ''));
 
     if (!loadedBeneficiaries && !loadingBeneficiaries) {
         setLoadingBeneficiaries(true);
         getBeneficiaries().then((res) => {
             setBeneficiaries(res);
-            console.log(res);
             setLoadingBeneficiaries(false);
             setLoadedBeneficiaries(true);
         }).catch((err) => {
@@ -135,14 +143,17 @@ function Beneficiaries() {
     }
 
     const deleteBeneficiaries = (beneficiary) => {
-        console.log('deleteBeneficiaries')
-        console.log(beneficiary)
         deleteBeneficiary(beneficiary.id)
             .then((res) => {
                 setLoadedBeneficiaries(false);
             }).catch((err) => {
             console.log(err)
         });
+    }
+
+    const onProduct = (beneficiary) => {
+        setSelectedBeneficiary(beneficiary);
+        onOpenProductModal();
     }
 
     const editBeneficiaries = (beneficiary) => {
@@ -156,28 +167,54 @@ function Beneficiaries() {
         return (
             <WrapItem>
                 <Card key={beneficiary.id} maxW='max'>
-                    <HStack align={'stretch'}>
-                        <Text> Prénom : </Text>
-                        <Text> {beneficiary.firstName} </Text>
-                    </HStack>
-                    <HStack>
-                        <Text> Nom de famille : </Text>
-                        <Text> {beneficiary.lastName} </Text>
-                    </HStack>
-                    <HStack>
-                        <Icon as={PhoneIcon} mr="8px"/>
-                        <Text> {beneficiary.phoneNumber} </Text>
-                    </HStack>
-                    <HStack>
-                        <IconButton colorScheme="blue" aria-label="View"
-                                    icon={<InfoOutlineIcon/>}
-                                    onClick={() => veiwBeneficiaries(beneficiary)}/>
-                        <IconButton colorScheme="yellow" aria-label="Modifier"
-                                    icon={<EditIcon/>}
-                                    onClick={() => editBeneficiaries(beneficiary)}/>
-                        <IconButton colorScheme="red" aria-label="Supprimer"
-                                    icon={<DeleteIcon/>}
-                                    onClick={() => deleteBeneficiaries(beneficiary)}/>
+                    <HStack align={'start'}>
+                        <VStack align={'stretch'}>
+                            <HStack align={'stretch'}>
+                                <Text  fontWeight="semibold"> Prénom : </Text>
+                                <Text> {beneficiary.firstName} </Text>
+                            </HStack>
+                            <HStack>
+                                <Text  fontWeight="semibold"> Nom de famille : </Text>
+                                <Text> {beneficiary.lastName} </Text>
+                            </HStack>
+                            <HStack>
+                                <Icon as={PhoneIcon} mr="8px"/>
+                                <Text> {beneficiary.phoneNumber} </Text>
+                            </HStack>
+                        </VStack>
+                        <Menu>
+                            <MenuButton>
+                                <Icon as={FaCog}/>
+                            </MenuButton>
+                            <MenuList>
+                                <Flex direction="column">
+                                    <MenuItem onClick={() => veiwBeneficiaries(beneficiary)}>
+                                        <Flex direction="row" cursor="pointer" p="12px">
+                                            <Icon as={FaUserPlus} mr="8px"/>
+                                            <Text fontSize="sm" fontWeight="semibold">détails</Text>
+                                        </Flex>
+                                    </MenuItem>
+                                    <MenuItem onClick={() => editBeneficiaries(beneficiary)}>
+                                        <Flex direction="row" cursor="pointer" p="12px">
+                                            <Icon as={FaPencilAlt} mr="8px"/>
+                                            <Text fontSize="sm" fontWeight="semibold">Modifier</Text>
+                                        </Flex>
+                                    </MenuItem>
+                                    <MenuItem onClick={() => onProduct(beneficiary)}>
+                                        <Flex direction="row" cursor="pointer" p="12px">
+                                            <Icon as={MdReceipt} mr="8px"/>
+                                            <Text fontSize="sm" fontWeight="semibold">Voir les produits</Text>
+                                        </Flex>
+                                    </MenuItem>
+                                    <MenuItem onClick={() => deleteBeneficiaries(beneficiary)}>
+                                        <Flex direction="row" cursor="pointer" p="12px">
+                                            <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                            <Text color="red.500" fontSize="sm" fontWeight="semibold">Supprimer</Text>
+                                        </Flex>
+                                    </MenuItem>
+                                </Flex>
+                            </MenuList>
+                        </Menu>
                     </HStack>
                 </Card>
             </WrapItem>
@@ -187,15 +224,19 @@ function Beneficiaries() {
     return (
         <BeneficiariesContext.Provider value={{beneficiaries, setBeneficiaries}}>
             <VStack pt={{base: "120px", md: "75px"}} mr='32px' align={'stretch'}>
-                <HStack>
-                    <Button onClick={onOpenCreationModal}>
-                        ajouter nouveau bénéficiaire
-                    </Button>
-                </HStack>
+                <Card>
+                    <Flex justify="space-between">
+                        <Text fontSize="xl" fontWeight="bold">Gestion des bénéficiaires</Text>
+                        <Button onClick={onOpenCreationModal} colorScheme="green">Ajouter un bénéficiaire</Button>
+                    </Flex>
+                </Card>
                 <Wrap>
                     {beneficiaries.map((beneficiary) => getBeneficiariesCards(beneficiary))}
                 </Wrap>
             </VStack>
+
+            <BeneficiaryProduct isOpen={isOpenProductModal} onClose={onCloseProductModal} size="6xl"
+                                scrollBehavior="outside" beneficiary={selectedBeneficiary}> </BeneficiaryProduct>
 
             <Modal isOpen={isOpenCreationModal} onClose={onCloseCreationModal} size="6xl" scrollBehavior="outside">
                 <ModalOverlay/>
@@ -334,24 +375,26 @@ function Beneficiaries() {
                     <ModalBody>
                         <SimpleGrid columns={2} spacing={5}>
                             <FormLabel>Login</FormLabel>
-                            <Input type="text" placeholder="Login" value={selectedBeneficiary.username}/>
+                            <Input type="text" placeholder="Login" readOnly={true}
+                                   value={selectedBeneficiary.username}/>
 
                             <FormLabel>Nom</FormLabel>
-                            <Input type="text" placeholder="nom" value={selectedBeneficiary.lastName}/>
+                            <Input type="text" placeholder="nom" readOnly={true} value={selectedBeneficiary.lastName}/>
 
                             <FormLabel>Prenom</FormLabel>
-                            <Input flex={1} type="text" placeholder="prenom" value={selectedBeneficiary.firstName}/>
+                            <Input flex={1} type="text" placeholder="prenom" readOnly={true}
+                                   value={selectedBeneficiary.firstName}/>
 
                             <FormLabel>Date de naissance</FormLabel>
-                            <Input flex={1} type="date" placeholder="Date de naissance"
+                            <Input flex={1} type="date" placeholder="Date de naissance" readOnly={true}
                                    value={selectedBeneficiary.birthDate}/>
 
                             <FormLabel>Numéro de téléphone</FormLabel>
-                            <Input flex={1} type="text" placeholder="Numéro de téléphone"
+                            <Input flex={1} type="text" placeholder="Numéro de téléphone" readOnly={true}
                                    value={selectedBeneficiary.phoneNumber}/>
 
                             <FormLabel>Numéro de sécu</FormLabel>
-                            <Input flex={1} type="text" placeholder="Numéro de sécu"
+                            <Input flex={1} type="text" placeholder="Numéro de sécu" readOnly={true}
                                    value={newBeneficiary.socialWorkerNumber}/>
 
                         </SimpleGrid>

@@ -137,7 +137,6 @@ export default function Role(props) {
                 <Th color="gray.400" p="8px 8px 8px 2px">
                   Resource
                 </Th>
-                {console.log(props.roleAuth)}
                 {props.roleAuth.operations.map((op, index) => {
                   return (
                     <Th key={index} color="gray.400" p="8px">{op}</Th>

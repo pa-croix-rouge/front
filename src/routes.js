@@ -13,6 +13,7 @@ import Stocks from "./views/Dashboard/Stocks";
 import Roles from "./views/Dashboard/roles/Roles";
 import Beneficiaries from "./views/Dashboard/Beneficiaries/Beneficiaries";
 import {FaChartBar, FaShoppingCart, FaUsers, FaWrench} from "react-icons/fa";
+import ProductLimits from "./views/Dashboard/productlimits/ProductLImits";
 
 var dashRoutes = [
   {
@@ -55,6 +56,13 @@ var dashRoutes = [
     name: "Stocks",
     icon: <FaShoppingCart color='inherit' />,
     component: Stocks,
+    layout: "/admin",
+  },
+  {
+    path: "/product-limits",
+    name: "Limites de produits",
+    icon: <FaShoppingCart color='inherit' />,
+    component: ProductLimits,
     layout: "/admin",
   },
   {
