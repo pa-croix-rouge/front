@@ -165,8 +165,8 @@ function Beneficiaries() {
 
     const getBeneficiariesCards = (beneficiary) => {
         return (
-            <WrapItem>
-                <Card key={beneficiary.id} maxW='max'>
+            <WrapItem key={beneficiary.id}>
+                <Card maxW='max'>
                     <HStack align={'start'}>
                         <VStack align={'stretch'}>
                             <HStack align={'stretch'}>
