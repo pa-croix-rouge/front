@@ -165,8 +165,8 @@ function Beneficiaries() {
 
     const getBeneficiariesCards = (beneficiary) => {
         return (
-            <WrapItem>
-                <Card key={beneficiary.id} maxW='max'>
+            <WrapItem key={beneficiary.id}>
+                <Card maxW='max'>
                     <HStack align={'start'}>
                         <VStack align={'stretch'}>
                             <HStack align={'stretch'}>
@@ -375,26 +375,26 @@ function Beneficiaries() {
                     <ModalBody>
                         <SimpleGrid columns={2} spacing={5}>
                             <FormLabel>Login</FormLabel>
-                            <Input type="text" placeholder="Login" readOnly={true}
+                            <Input type="text" placeholder="Login" readOnly={true} isDisabled={true}
                                    value={selectedBeneficiary.username}/>
 
                             <FormLabel>Nom</FormLabel>
-                            <Input type="text" placeholder="nom" readOnly={true} value={selectedBeneficiary.lastName}/>
+                            <Input type="text" placeholder="nom" readOnly={true} isDisabled={true} value={selectedBeneficiary.lastName}/>
 
                             <FormLabel>Prenom</FormLabel>
-                            <Input flex={1} type="text" placeholder="prenom" readOnly={true}
+                            <Input flex={1} type="text" placeholder="prenom" readOnly={true} isDisabled={true}
                                    value={selectedBeneficiary.firstName}/>
 
                             <FormLabel>Date de naissance</FormLabel>
-                            <Input flex={1} type="date" placeholder="Date de naissance" readOnly={true}
+                            <Input flex={1} type="date" placeholder="Date de naissance" readOnly={true} isDisabled={true}
                                    value={selectedBeneficiary.birthDate}/>
 
                             <FormLabel>Numéro de téléphone</FormLabel>
-                            <Input flex={1} type="text" placeholder="Numéro de téléphone" readOnly={true}
+                            <Input flex={1} type="text" placeholder="Numéro de téléphone" readOnly={true} isDisabled={true}
                                    value={selectedBeneficiary.phoneNumber}/>
 
                             <FormLabel>Numéro de sécu</FormLabel>
-                            <Input flex={1} type="text" placeholder="Numéro de sécu" readOnly={true}
+                            <Input flex={1} type="text" placeholder="Numéro de sécu" readOnly={true} isDisabled={true}
                                    value={newBeneficiary.socialWorkerNumber}/>
 
                         </SimpleGrid>

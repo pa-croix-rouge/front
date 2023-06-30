@@ -89,7 +89,6 @@ export default function Events() {
 
     if (!localUnitVolunteerLoaded && !localUnitVolunteerLoading) {
         setLocalUnitVolunteerLoading(true);
-        console.log('getVolunteers')
         getVolunteers()
             .then((volunteers) => {
                 setLocalUnitVolunteerLoading(false);
@@ -111,7 +110,6 @@ export default function Events() {
     }
 
     if (!loadedEvents && !loadingEvents) {
-        console.log('loading events' + selectedDate.getMonth() + 1 + ' ' + selectedDate.getFullYear());
         setLoadingEvents(true);
         getEventForSpecificMonth(volunteer.localUnitId, selectedDate.getMonth() + 1, selectedDate.getFullYear())
             .then((events) => {
@@ -120,7 +118,6 @@ export default function Events() {
                 setLoadedEvents(true);
             })
             .catch((e) => {
-                console.log('loading event error: ' + e);
                 setLoadingEvents(false);
                 setLoadedEvents(false);
             });

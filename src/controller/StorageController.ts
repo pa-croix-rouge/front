@@ -5,6 +5,8 @@ import {ClothStorageProduct} from "../model/stock/ClothStorageProduct";
 import {StorageProduct} from "../model/stock/StorageProduct";
 import {FoodStorageProduct} from "../model/stock/FoodStorageProduct";
 import {ProductsStats} from "../model/stock/ProductsStats";
+import {ProductLimit} from "../model/ProductLimit";
+import {Quantifier} from "../model/Quantifier";
 
 const convertDate = (date: string): Date => {
     const startDateParts = date.split(/[\-\+:\[\]]/);
@@ -28,7 +30,12 @@ const mapJsonToClothStorageProduct = (data: any): ClothStorageProduct[] => {
                 clothJson.productName,
                 clothJson.quantity,
                 clothJson.quantifierQuantity,
-                clothJson.quantifierName),
+                clothJson.quantifierName,
+                clothJson.limit == null ? null :
+                new ProductLimit(clothJson.limit.id,
+                    clothJson.limit.name,
+                    clothJson.limit.duration,
+                    new Quantifier(clothJson.limit.quantity.measurementUnit, clothJson.limit.quantity.value))),
             clothJson.size,
             clothJson.gender);
     });
@@ -46,7 +53,12 @@ const mapJsonToFoodStorageProduct = (data: any): FoodStorageProduct[] => {
                 foodJson.productName,
                 foodJson.quantity,
                 foodJson.quantifierQuantity,
-                foodJson.quantifierName),
+                foodJson.quantifierName,
+                foodJson.limit == null ? null :
+                new ProductLimit(foodJson.limit.id,
+                    foodJson.limit.name,
+                    foodJson.limit.duration,
+                    new Quantifier(foodJson.limit.quantity.measurementUnit, foodJson.limit.quantity.value))),
             foodJson.foodConservation,
             convertDate(foodJson.expirationDate),
             convertDate(foodJson.optimalConsumptionDate),

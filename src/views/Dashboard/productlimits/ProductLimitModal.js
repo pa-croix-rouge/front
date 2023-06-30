@@ -1,9 +1,10 @@
 import React, {useContext, useEffect, useState} from "react";
 import {
+    Badge,
     Button,
     Flex,
-    FormLabel,
-    Input,
+    FormLabel, Icon,
+    Input, Menu, MenuButton, MenuItem, MenuList,
     Modal,
     ModalBody,
     ModalCloseButton,
@@ -18,13 +19,21 @@ import {
     NumberInputStepper,
     Radio,
     RadioGroup,
-    SimpleGrid, Spacer,
-    Text,
+    SimpleGrid, Skeleton, Spacer,
+    Text, Wrap, WrapItem,
 } from "@chakra-ui/react";
 import {ProductLimit} from "../../../model/ProductLimit";
-import {createProductLimit, updateProductLimit} from "../../../controller/ProductLimitsController";
+import {
+    createProductLimit,
+    getAllProductLimitProducts,
+    updateProductLimit
+} from "../../../controller/ProductLimitsController";
 import {Quantifier} from "../../../model/Quantifier";
 import ProductLimitsContext from "../../../contexts/ProductLimitsContext";
+import Card from "../../../components/Card/Card";
+import CardHeader from "../../../components/Card/CardHeader";
+import {FaEdit, FaEllipsisV, FaTrashAlt} from "react-icons/fa";
+import CardBody from "../../../components/Card/CardBody";
 
 
 export default function ProductLimitModal(props) {
@@ -34,7 +43,13 @@ export default function ProductLimitModal(props) {
     const [inProgress, setInProgress] = useState(false);
     const [error, setError] = useState(undefined);
 
+    const [loadedProducts, setLoadedProducts] = useState(false);
+    const [loadingProducts, setLoadingProducts] = useState(false);
+    const [products, setProducts] = useState({first:[], second: []});
+
     useEffect(() => {
+        setProducts({first:[], second: []});
+        setLoadedProducts(false);
         if (props.productLimit === undefined && props.edit === true) {
             setProductLimit(new ProductLimit(undefined, '', 1, new Quantifier('', 1)));
         } else {
@@ -44,6 +59,20 @@ export default function ProductLimitModal(props) {
 
     if (productLimit === undefined || productLimit === null) {
         return null;
+    }
+
+    if (loadedProducts === false && loadingProducts === false) {
+        setLoadingProducts(true);
+        getAllProductLimitProducts(productLimit.id).then((products) => {
+            setProducts(products);
+            console.log(products)
+            setLoadedProducts(true);
+            setLoadingProducts(false);
+        }).catch((error) => {
+            console.log(error);
+            setLoadedProducts(false);
+            setLoadingProducts(false);
+        });
     }
 
     const getModalTitle = () => {
@@ -70,7 +99,7 @@ export default function ProductLimitModal(props) {
             return;
         }
 
-        if(inProgress) {
+        if (inProgress) {
             return;
         }
 
@@ -97,7 +126,65 @@ export default function ProductLimitModal(props) {
                 setInProgress(false);
             });
         }
+    }
 
+    const convertDate = (date) => {
+        const startDateParts = date.split(/[\-\+:\[\]]/);
+        const yearStartDate = parseInt(startDateParts[0]);
+        const monthStartDate = parseInt(startDateParts[1]) - 1;
+        const dayStartDate = parseInt(startDateParts[2].split("T")[0]);
+        const hourStartDate = parseInt(startDateParts[2].split("T")[1]);
+        const minuteStartDate = parseInt(startDateParts[3]);
+        const timeZoneOffsetStartDate = parseInt(startDateParts[4]);
+        return new Date(Date.UTC(yearStartDate, monthStartDate, dayStartDate, hourStartDate, minuteStartDate) - timeZoneOffsetStartDate * 60 * 60 * 1000);
+    }
+
+    const getDateColor = (dateStr) => {
+        const date = convertDate(dateStr);
+
+        if (date.getTime() < Date.now()) {
+            return 'red';
+        } else if (date.getTime() < (new Date().getTime() + (14 * 24 * 60 * 60 * 1000))) {
+            return 'orange';
+        } else {
+            return 'green';
+        }
+    }
+
+    const getClothProductCard = (clothProduct) => {
+        return (
+            <Card key={clothProduct.productId}>
+                <CardHeader>
+                    <Flex direction="row" justify="space-between">
+                        <Text m="auto 0">{clothProduct.name}</Text>
+                    </Flex>
+                </CardHeader>
+                <CardBody>
+                    <Text>{clothProduct.quantity.value} {clothProduct.quantity.quantityQuantifier} </Text>
+                    <Badge colorScheme="teal" m="4px">{clothProduct.size}</Badge>
+                    <Badge colorScheme="blue" mr="4px">{clothProduct.gender}</Badge>
+                </CardBody>
+            </Card>
+        );
+    }
+
+    const getFoodProductCard = (foodProduct) => {
+        return (
+            <Card key={foodProduct.productId}>
+                <CardHeader>
+                    <Text m="auto 0">{foodProduct.name}</Text>
+                </CardHeader>
+                <CardBody>
+                    <Text>{foodProduct.quantity.value} {foodProduct.quantity.measurementUnit} </Text>
+                    <Badge m="2px"
+                           colorScheme={getDateColor(foodProduct.expirationDate)}>DLC {convertDate(foodProduct.expirationDate).toLocaleDateString()}</Badge>
+                    <Badge m="2px"
+                           colorScheme={getDateColor(foodProduct.optimalConsumptionDate)}>DLUO {convertDate(foodProduct.optimalConsumptionDate).toLocaleDateString()}</Badge>
+                    <Badge colorScheme="teal" mr="4px">{foodProduct.price / 100} €</Badge>
+                    <Badge colorScheme="cyan" mr="4px">{foodProduct.conservation}</Badge>
+                </CardBody>
+            </Card>
+        )
     }
 
     return (
@@ -109,7 +196,8 @@ export default function ProductLimitModal(props) {
                 <ModalBody>
                     <SimpleGrid columns={2} spacing={5}>
                         <FormLabel fontWeight="semibold">Name</FormLabel>
-                        <Input type="text" placeholder="Name" value={productLimit.name} disabled={!props.edit} isInvalid={productLimit.name.length <= 0}
+                        <Input type="text" placeholder="Name" value={productLimit.name} disabled={!props.edit}
+                               isInvalid={productLimit.name.length <= 0}
                                onChange={(e) => setProductLimit({...productLimit, name: e.target.value})}/>
 
                         <FormLabel fontWeight="semibold">Nombre de jours</FormLabel>
@@ -149,7 +237,8 @@ export default function ProductLimitModal(props) {
                                         {unit.units.map((unitName, keyRadio) => (
                                             <div key={keyRadio}>
                                                 {unitName !== "" && (
-                                                    <Radio value={unitName} disabled={!props.edit} isInvalid={productLimit.quantity.measurementUnit.length <= 0}> {unitName}</Radio>
+                                                    <Radio value={unitName} disabled={!props.edit}
+                                                           isInvalid={productLimit.quantity.measurementUnit.length <= 0}> {unitName}</Radio>
                                                 )}
                                             </div>
                                         ))}
@@ -158,9 +247,24 @@ export default function ProductLimitModal(props) {
                             </Flex>
                         </RadioGroup>
                     </SimpleGrid>
+                    <Text size="md" mt="8px" fontWeight="semibold">Produits limités</Text>
+                    <Skeleton isLoaded={loadedProducts}>
+                        <Wrap>
+                            {products.first.map((product, key) => (
+                                <WrapItem key={key}>
+                                    {getFoodProductCard(product)}
+                                </WrapItem>
+                            ))}
+                            {products.second.map((product, key) => (
+                                <WrapItem key={key}>
+                                    {getClothProductCard(product)}
+                                </WrapItem>
+                            ))}
+                        </Wrap>
+                    </Skeleton>
                 </ModalBody>
                 <ModalFooter>
-                    <Text color={'red'} >
+                    <Text color={'red'}>
                         {error}
                     </Text>
                     <Spacer/>

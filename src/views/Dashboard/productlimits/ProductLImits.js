@@ -128,7 +128,7 @@ export default function ProductLimits() {
                 </Card>
                 <Wrap>
                     {productLimits.map((productLimit) => {
-                        return (<WrapItem>
+                        return (<WrapItem key={productLimit.id}>
                             <Card>
                                 <HStack>
                                     <VStack>
