@@ -500,7 +500,7 @@ export default function ULDashboard() {
                               fontSize='sm'
                               borderColor={borderColor}
                               border={index === arr.length - 1 ? "none" : null}>
-                            {el.expirationDate.split('T')[0]}
+                            {el.expirationDate.toLocaleDateString()}
                           </Td>
                           <Td
                               color={textTableColor}
