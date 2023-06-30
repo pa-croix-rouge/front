@@ -3,7 +3,6 @@ import {
   Button,
   Flex,
   Grid,
-  Progress,
   SimpleGrid,
   Stat,
   StatLabel,
@@ -22,17 +21,16 @@ import IconBox from "components/Icons/IconBox";
 import {CartIcon} from "components/Icons/Icons.js";
 import {FaCalendar, FaMedkit, FaUsers} from "react-icons/fa";
 import React, {useContext, useEffect, useRef, useState} from "react";
-import {stockClothCategories, stockFoodCategories} from "variables/general";
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import {getLocalUnit, getLocalUnitStats} from "../../controller/LocalUnitController";
 import VolunteerContext from "../../contexts/VolunteerContext";
 import {getEventForSpecificMonth, getEventsStats} from "../../controller/EventController";
-import {getVolunteerById} from "../../controller/VolunteerController";
+import {getVolunteerById, getVolunteers} from "../../controller/VolunteerController";
 import {useHistory} from "react-router-dom";
 import {LocalUnitStats} from "../../model/LocalUnitStats";
 import {EventsStats} from "../../model/event/EventsStats";
-import {getProductsStats} from "../../controller/StorageController";
+import {getProductsStats, getSoonExpiredFood} from "../../controller/StorageController";
 import {ProductsStats} from "../../model/stock/ProductsStats";
 
 export default function ULDashboard() {
@@ -47,6 +45,8 @@ export default function ULDashboard() {
   const [loadedLocalUnitStats, setLoadedLocalUnitStats] = useState(false);
   const [loadedEventStats, setLoadedEventStats] = useState(false);
   const [loadedProductStats, setLoadedProductStats] = useState(false);
+  const [loadedSoonExpiredFood, setLoadedSoonExpiredFood] = useState(false);
+  const [loadedVolunteers, setLoadedVolunteers] = useState(false);
   const {volunteer, setVolunteer} = useContext(VolunteerContext);
   const [tableMaxHeight, setTableMaxHeight] = useState('320px');
   const [isInitialRender, setIsInitialRender] = useState(true);
@@ -62,6 +62,8 @@ export default function ULDashboard() {
   const [localUnitStats, setLocalUnitStats] = useState(new LocalUnitStats(0, 0));
   const [eventStats, setEventStats] = useState(new EventsStats(0, 0, 0, 0));
   const [productStats, setProductStats] = useState(new ProductsStats(0, 0));
+  const [soonExpiredFood, setSoonExpiredFood] = useState([]);
+  const [volunteers, setVolunteers] = useState([]);
   const history = useHistory();
 
   useEffect(() => {
@@ -173,6 +175,28 @@ export default function ULDashboard() {
         });
   }
 
+  const loadSoonExpiredFood = () => {
+    setLoadedSoonExpiredFood(true);
+    getSoonExpiredFood()
+        .then((food) => {
+            setSoonExpiredFood(food);
+        })
+        .catch((_) => {
+            setLoadedSoonExpiredFood(false);
+        });
+  }
+
+  const loadVolunteers = () => {
+    setLoadedVolunteers(true);
+    getVolunteers()
+        .then((volunteers) => {
+            setVolunteers(volunteers);
+        })
+        .catch((_) => {
+            setLoadedVolunteers(false);
+        });
+  }
+
   return (
       <Flex flexDirection='column' pt={{ base: "120px", md: "75px" }}>
         {volunteer && !loadedLocalUnit && loadLocalUnit()}
@@ -181,6 +205,8 @@ export default function ULDashboard() {
         {!loadedLocalUnit && !loadedLocalUnitStats && loadLocalUnitStats()}
         {!loadedLocalUnit && !loadedEventStats  && loadEventStats()}
         {!loadedLocalUnit && !loadedProductStats && loadProductStats()}
+        {!loadedSoonExpiredFood && loadSoonExpiredFood()}
+        {!loadedVolunteers && loadVolunteers()}
         <SimpleGrid columns={{ sm: 1, md: 2, xl: 4 }} spacing='24px' mb='20px'>
           <Card minH='125px'>
             <Flex direction='column'>
@@ -323,7 +349,6 @@ export default function ULDashboard() {
             </Flex>
           </Card>
         </SimpleGrid>
-
         <Flex
             flexDirection='row' overflow="scroll">
           <Card
@@ -357,7 +382,7 @@ export default function ULDashboard() {
                   GERER TOUT LES EVENEMENTS
                 </Button>
               </Flex>
-              <Box  maxH={tableMaxHeight} overflow="auto">
+              <Box maxH={tableMaxHeight} overflow="auto">
                 <Table>
                   <Thead>
                     <Tr bg={tableRowColor}>
@@ -436,28 +461,30 @@ export default function ULDashboard() {
             <Flex direction='column'>
               <Flex align='center' justify='space-between' p='22px'>
                 <Text fontSize='lg' color={textColor} fontWeight='bold'>
-                  Stock alimentaire
+                  Aliments dont la date de péremption nécessite une attention
                 </Text>
-                <Button variant='primary' maxH='30px'>
+                <Button variant='primary' maxH='30px' onClick={goToStocks}>
                   VOIR TOUS
                 </Button>
               </Flex>
             </Flex>
-            <Box overflow={{ sm: "scroll", lg: "hidden" }}>
+            <Box h="320px" overflow="scroll">
               <Table>
                 <Thead>
                   <Tr bg={tableRowColor}>
                     <Th color='gray.400' borderColor={borderColor}>
-                      Catégorie
+                      Nom
                     </Th>
                     <Th color='gray.400' borderColor={borderColor}>
-                      Quantité
+                      DLC
                     </Th>
-                    <Th color='gray.400' borderColor={borderColor}></Th>
+                    <Th color='gray.400' borderColor={borderColor}>
+                      Quantité total
+                    </Th>
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {stockFoodCategories.map((el, index, arr) => {
+                  {soonExpiredFood.map((el, index, arr) => {
                     return (
                         <Tr key={index}>
                           <Td
@@ -466,33 +493,21 @@ export default function ULDashboard() {
                               fontWeight='bold'
                               borderColor={borderColor}
                               border={index === arr.length - 1 ? "none" : null}>
-                            {el.name}
+                            {el.product.name}
                           </Td>
                           <Td
                               color={textTableColor}
                               fontSize='sm'
                               borderColor={borderColor}
                               border={index === arr.length - 1 ? "none" : null}>
-                            {el.quantity}
+                            {el.expirationDate.split('T')[0]}
                           </Td>
                           <Td
                               color={textTableColor}
                               fontSize='sm'
                               borderColor={borderColor}
                               border={index === arr.length - 1 ? "none" : null}>
-                            <Flex align='center'>
-                              <Text
-                                  color={textTableColor}
-                                  fontWeight='bold'
-                                  fontSize='sm'
-                                  me='12px'>{`${el.percentage}%`}</Text>
-                              <Progress
-                                  size='xs'
-                                  colorScheme={el.color}
-                                  value={el.percentage}
-                                  minW='120px'
-                              />
-                            </Flex>
+                            {Number(el.product.quantity) * Number(el.product.quantityQuantifier)} {el.product.quantifierName}
                           </Td>
                         </Tr>
                     );
@@ -505,9 +520,9 @@ export default function ULDashboard() {
             <Flex direction='column'>
               <Flex align='center' justify='space-between' p='22px'>
                 <Text fontSize='lg' color={textColor} fontWeight='bold'>
-                  Stock vestimentaire
+                  Volontaires de votre unité locale
                 </Text>
-                <Button variant='primary' maxH='30px'>
+                <Button variant='primary' maxH='30px' onClick={goToLocalUnit}>
                   VOIR TOUT
                 </Button>
               </Flex>
@@ -517,16 +532,18 @@ export default function ULDashboard() {
                 <Thead>
                   <Tr bg={tableRowColor}>
                     <Th color='gray.400' borderColor={borderColor}>
-                      Type de vêtement
+                      Nom
                     </Th>
                     <Th color='gray.400' borderColor={borderColor}>
-                      Quantité
+                      Prénom
                     </Th>
-                    <Th color='gray.400' borderColor={borderColor}></Th>
+                    <Th color='gray.400' borderColor={borderColor}>
+                      Téléphone
+                    </Th>
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {stockClothCategories.map((el, index, arr) => {
+                  {volunteers.filter(v => v.isValidated).map((el, index, arr) => {
                     return (
                         <Tr key={index}>
                           <Td
@@ -535,33 +552,21 @@ export default function ULDashboard() {
                               fontWeight='bold'
                               borderColor={borderColor}
                               border={index === arr.length - 1 ? "none" : null}>
-                            {el.name}
+                            {el.firstName}
                           </Td>
                           <Td
                               color={textTableColor}
                               fontSize='sm'
                               borderColor={borderColor}
                               border={index === arr.length - 1 ? "none" : null}>
-                            {el.quantity}
+                            {el.lastName}
                           </Td>
                           <Td
                               color={textTableColor}
                               fontSize='sm'
                               borderColor={borderColor}
                               border={index === arr.length - 1 ? "none" : null}>
-                            <Flex align='center'>
-                              <Text
-                                  color={textTableColor}
-                                  fontWeight='bold'
-                                  fontSize='sm'
-                                  me='12px'>{`${el.percentage}%`}</Text>
-                              <Progress
-                                  size='xs'
-                                  colorScheme={el.color}
-                                  value={el.percentage}
-                                  minW='120px'
-                              />
-                            </Flex>
+                            {el.phoneNumber}
                           </Td>
                         </Tr>
                     );
