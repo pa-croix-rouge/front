@@ -1,4 +1,4 @@
-import React, {useContext, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {
     Button,
     FormLabel,
@@ -56,6 +56,10 @@ export default function BeneficiaryProduct(props) {
     const [selectedProduct, setSelectedProduct] = useState(undefined);
 
     const [addingProduct, setAddingProduct] = useState(false);
+
+    useEffect(() => {
+        setLoadedBeneficiaryProducts(false);
+    }, [props.beneficiary]);
 
     if (!loadedProducts && !loadingProducts) {
         setLoadingProducts(true);
