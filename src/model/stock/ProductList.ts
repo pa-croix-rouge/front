@@ -2,8 +2,8 @@ import {ClothStorageProduct} from "./ClothStorageProduct";
 import {FoodStorageProduct} from "./FoodStorageProduct";
 
 export class ProductList {
-    private clothes: ClothStorageProduct[];
-    private foods: FoodStorageProduct[];
+    clothes: ClothStorageProduct[];
+    foods: FoodStorageProduct[];
 
     constructor(clothes: ClothStorageProduct[], foods: FoodStorageProduct[]) {
         this.clothes = clothes;

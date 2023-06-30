@@ -350,7 +350,7 @@ export default function ULDashboard() {
           </Card>
         </SimpleGrid>
         <Flex
-            flexDirection='row' overflow="scroll">
+            flexDirection='row' overflow="auto">
           <Card
               p='8px'
               maxW={{ sm: "320px", md: "100%" }}
