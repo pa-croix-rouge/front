@@ -26,15 +26,15 @@ import {
     Radio,
     RadioGroup,
     Select,
-    SimpleGrid,
-    Text,
+    SimpleGrid, Stat, StatLabel, StatNumber,
+    Text, useColorModeValue,
     useDisclosure
 } from "@chakra-ui/react";
 import {
     createStockage,
     deleteStockage,
     getAllProducts,
-    getProductsByStorage,
+    getProductsByStorage, getProductsStats, getSoonExpiredFood,
     getStockages, updateStockage
 } from "../../controller/StorageController";
 import CardHeader from "../../components/Card/CardHeader";
@@ -55,12 +55,24 @@ import {
     updateClothProduct,
     updateFoodProduct
 } from "../../controller/ProductController";
-import {FaCog, FaEdit, FaEllipsisV, FaEye, FaPencilAlt, FaTrashAlt} from "react-icons/fa";
+import {
+    FaCog,
+    FaEdit,
+    FaEllipsisV,
+    FaEye, FaLemon,
+    FaPencilAlt, FaTag,
+    FaTrashAlt,
+} from "react-icons/fa";
 import Quagga from "quagga";
 import {readFromBarCode} from "../../controller/OpenFoodFactController";
 import {getCitiesFromPostalCode} from "../../controller/IGNController";
+import {ProductsStats} from "../../model/stock/ProductsStats";
+import IconBox from "../../components/Icons/IconBox";
 
 export default function Stocks() {
+    const iconBoxInside = useColorModeValue("white", "white");
+    const textColor = useColorModeValue("gray.700", "white");
+    const iconBlue = useColorModeValue("orange.500", "orange.500");
     const {volunteer, setVolunteer} = useContext(VolunteerContext);
     const [loadedStorages, setLoadedStorages] = useState(false);
     const [loadedDepartments, setLoadedDepartments] = useState(false);
@@ -70,6 +82,8 @@ export default function Stocks() {
     const [loadedUnits, setLoadedUnits] = useState(false);
     const [loadedConservations, setLoadedConservations] = useState(false);
     const [loadedGenders, setLoadedGenders] = useState(false);
+    const [loadedStorageStats, setLoadedStorageStats] = useState(false);
+    const [loadedSoonExpiredProducts, setLoadedSoonExpiredProducts] = useState(true);
     const [storages, setStorages] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [sizes, setSizes] = useState([]);
@@ -77,6 +91,9 @@ export default function Stocks() {
     const [units, setUnits] = useState([]);
     const [conservations, setConservations] = useState([]);
     const [genders, setGenders] = useState([]);
+    const [storageStats, setStorageStats] = useState(new ProductsStats(0, 0, 0));
+    const [soonExpiredProducts, setSoonExpiredProducts] = useState([]);
+    const { isOpen: isOpenSoonExpiredProductsModal, onOpen: onOpenSoonExpiredProductsModal, onClose: onCloseSoonExpiredProductsModal } = useDisclosure();
     const { isOpen: isOpenAddStorageModal, onOpen: onOpenAddStorageModal, onClose: onCloseAddStorageModal } = useDisclosure();
     const { isOpen: isOpenDeleteStorageModal, onOpen: onOpenDeleteStorageModal, onClose: onCloseDeleteStorageModal } = useDisclosure();
     const { isOpen: isOpenUpdateStorageModal, onOpen: onOpenUpdateStorageModal, onClose: onCloseUpdateStorageModal } = useDisclosure();
@@ -333,6 +350,34 @@ export default function Stocks() {
             .catch((_) => {
                 setLoadedGenders(false);
             });
+    }
+
+    const loadStorageStats = () => {
+        setLoadedStorageStats(true);
+        getProductsStats()
+            .then((stats) => {
+                setStorageStats(stats);
+            })
+            .catch((_) => {
+                setLoadedStorageStats(false);
+            });
+    }
+
+    const loadSoonExpiredProducts = () => {
+        setLoadedSoonExpiredProducts(true);
+        getSoonExpiredFood()
+            .then((products) => {
+                console.log(products);
+                setSoonExpiredProducts(products);
+            })
+            .catch((_) => {
+                setLoadedSoonExpiredProducts(false);
+            });
+    }
+
+    const openSoonExpiredProductsModal = () => {
+        setLoadedSoonExpiredProducts(false);
+        onOpenSoonExpiredProductsModal();
     }
 
     const addStorage = () => {
@@ -645,7 +690,101 @@ export default function Stocks() {
             {callAddStockage && addStorage()}
             {callUpdateStockage && updateStorage()}
             {!loadedProductsByStorage && selectedStorage !== null && loadProductsFromStorage()}
+            {!loadedStorageStats && loadStorageStats()}
+            {!loadedSoonExpiredProducts && loadSoonExpiredProducts()}
             <Flex direction="column" pt={{ base: "120px", md: "75px" }}>
+                <SimpleGrid columns={{ sm: 1, md: 2, xl: 3 }} spacing='24px' mb='20px'>
+                    <Card minH='125px'>
+                        <Flex direction='column'>
+                            <Flex
+                                flexDirection='row'
+                                align='center'
+                                justify='center'
+                                w='100%'
+                                mb='25px'>
+                                <Stat me='auto'>
+                                    <StatLabel
+                                        fontSize='xs'
+                                        color='gray.400'
+                                        fontWeight='bold'
+                                        textTransform='uppercase'>
+                                        Quantité total de nourriture
+                                    </StatLabel>
+                                    <Flex>
+                                        <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
+                                            {storageStats.totalFoodQuantity}
+                                        </StatNumber>
+                                    </Flex>
+                                </Stat>
+                                <IconBox
+                                    borderRadius='50%'
+                                    h={"45px"}
+                                    w={"45px"}
+                                    bg={iconBlue}>
+                                    <FaLemon h={"24px"} w={"24px"} color={iconBoxInside} />
+                                </IconBox>
+                            </Flex>
+                        </Flex>
+                    </Card>
+                    <Card minH='125px'>
+                        <Flex direction='column'>
+                            <Flex
+                                flexDirection='row'
+                                align='center'
+                                justify='center'
+                                w='100%'
+                                mb='25px'>
+                                <Stat me='auto'>
+                                    <StatLabel
+                                        fontSize='xs'
+                                        color='gray.400'
+                                        fontWeight='bold'
+                                        textTransform='uppercase'>
+                                        Quantité total de vêtements
+                                    </StatLabel>
+                                    <Flex>
+                                        <StatNumber fontSize='lg' color={textColor} fontWeight='bold' href='/local-unit'>
+                                            {storageStats.totalClothesQuantity}
+                                        </StatNumber>
+                                    </Flex>
+                                </Stat>
+                                <IconBox
+                                    borderRadius='50%'
+                                    h={"45px"}
+                                    w={"45px"}
+                                    bg={iconBlue}>
+                                    <FaTag h={"24px"} w={"24px"} color={iconBoxInside} />
+                                </IconBox>
+                            </Flex>
+                        </Flex>
+                    </Card>
+                    <Card minH='125px'>
+                        <Flex direction='column'>
+                            <Flex
+                                flexDirection='row'
+                                align='center'
+                                justify='center'
+                                w='100%'
+                                mb='25px'>
+                                {storageStats.soonExpiredFood > 0 && (
+                                    <Flex direction="column" m="auto">
+                                        <Text fontWeight="bold" mb="8px" textAlign="center">
+                                            ⚠️La date d'expiration de {storageStats.soonExpiredFood} produits nécessite votre attention
+                                        </Text>
+                                        <Button colorScheme="orange" m="auto" onClick={openSoonExpiredProductsModal}>
+                                            Voir la liste
+                                        </Button>
+                                    </Flex>
+                                )}
+                                {storageStats.soonExpiredFood === 0 && (
+                                    <Text fontWeight="bold" textAlign="center">
+                                        ✅La date d'expiration d'aucun produit ne nécessite votre attention
+                                    </Text>
+                                )}
+                            </Flex>
+                        </Flex>
+                    </Card>
+                </SimpleGrid>
                 <Card pb="0px">
                     <CardHeader>
                         <Flex justify="space-between" m="12px 8px">
@@ -711,6 +850,7 @@ export default function Stocks() {
                                             <Badge m="2px" colorScheme="green">DLUO {new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).toLocaleDateString()}</Badge>
                                         )}
                                         <Badge colorScheme="teal" mr="4px">{foodStorageProduct.price / 100} €</Badge>
+                                        <Badge colorScheme="cyan" mr="4px">{foodStorageProduct.conservation}</Badge>
                                         <Badge colorScheme="purple">{foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Badge>
                                     </CardBody>
                                 </Card>
@@ -1209,6 +1349,7 @@ export default function Stocks() {
                                                     <Badge m="2px" colorScheme="green">DLUO {new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).toLocaleDateString()}</Badge>
                                                 )}
                                                 <Badge colorScheme="teal" mr="4px">{foodStorageProduct.price / 100} €</Badge>
+                                                <Badge colorScheme="cyan" mr="4px">{foodStorageProduct.conservation}</Badge>
                                                 <Badge colorScheme="purple">{foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Badge>
                                             </CardBody>
                                         </Card>
@@ -1375,6 +1516,80 @@ export default function Stocks() {
                         </Button>
                         <Button colorScheme="red" variant="outline" mr={3} onClick={() => deleteStorage()} disabled={selectedStorageProducts.foods.length > 0 || selectedStorageProducts.clothes.length > 0}>
                             Supprimer
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+            <Modal isOpen={isOpenSoonExpiredProductsModal} onClose={onCloseSoonExpiredProductsModal} size="6xl" scrollBehavior="outside">
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>Produits dont la date de péremption nécessite votre attention</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                        <SimpleGrid columns={{ sm: 1, md: 2, lg: 3, xl: 4 }} spacing="24px" m="12px">
+                            {soonExpiredProducts.map((foodStorageProduct, key) => (
+                                <Card key={key}>
+                                    <CardHeader>
+                                        <Flex direction="row" justify="space-between">
+                                            <Text m="auto 0">{foodStorageProduct.product.name}</Text>
+                                            <Menu>
+                                                <MenuButton>
+                                                    <Icon as={FaEllipsisV} />
+                                                </MenuButton>
+                                                <MenuList>
+                                                    <Flex direction="column">
+                                                        <MenuItem onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenUpdateProductModal)}>
+                                                            <Flex cursor="pointer" align="center" p="12px">
+                                                                <Icon as={FaEdit} mr="8px"/>
+                                                                <Text fontSize="sm" fontWeight="semibold">
+                                                                    Modifier
+                                                                </Text>
+                                                            </Flex>
+                                                        </MenuItem>
+                                                        <MenuItem onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenDeleteProductModal)}>
+                                                            <Flex cursor="pointer" align="center" p="12px">
+                                                                <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                                                <Text fontSize="sm" fontWeight="semibold" color="red.500">
+                                                                    Supprimer
+                                                                </Text>
+                                                            </Flex>
+                                                        </MenuItem>
+                                                    </Flex>
+                                                </MenuList>
+                                            </Menu>
+                                        </Flex>
+                                    </CardHeader>
+                                    <CardBody>
+                                        <Text>{foodStorageProduct.product.quantity} * {foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Text>
+                                        {foodStorageProduct.expirationDate && new Date(foodStorageProduct.expirationDate.split('[')[0]).getTime() < Date.now() && (
+                                            <Badge m="2px" colorScheme="red">DLC {new Date(foodStorageProduct.expirationDate.split('[')[0]).toLocaleDateString()}</Badge>
+                                        )}
+                                        {foodStorageProduct.expirationDate && new Date(foodStorageProduct.expirationDate.split('[')[0]).getTime() > Date.now() && new Date(foodStorageProduct.expirationDate.split('[')[0]).getTime() < (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
+                                            <Badge m="2px" colorScheme="orange">DLC {new Date(foodStorageProduct.expirationDate.split('[')[0]).toLocaleDateString()}</Badge>
+                                        )}
+                                        {foodStorageProduct.expirationDate && new Date(foodStorageProduct.expirationDate.split('[')[0]).getTime() > (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
+                                            <Badge m="2px" colorScheme="green">DLC {new Date(foodStorageProduct.expirationDate.split('[')[0]).toLocaleDateString()}</Badge>
+                                        )}
+                                        {foodStorageProduct.optimalConsumptionDate && new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).getTime() < Date.now() && (
+                                            <Badge m="2px" colorScheme="red">DLUO {new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).toLocaleDateString()}</Badge>
+                                        )}
+                                        {foodStorageProduct.optimalConsumptionDate && new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).getTime() > Date.now() && new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).getTime() < (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
+                                            <Badge m="2px" colorScheme="orange">DLUO {new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).toLocaleDateString()}</Badge>
+                                        )}
+                                        {foodStorageProduct.optimalConsumptionDate && new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).getTime() > (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
+                                            <Badge m="2px" colorScheme="green">DLUO {new Date(foodStorageProduct.optimalConsumptionDate.split('[')[0]).toLocaleDateString()}</Badge>
+                                        )}
+                                        <Badge colorScheme="teal" mr="4px">{foodStorageProduct.price / 100} €</Badge>
+                                        <Badge colorScheme="cyan" mr="4px">{foodStorageProduct.conservation}</Badge>
+                                        <Badge colorScheme="purple">{foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Badge>
+                                    </CardBody>
+                                </Card>
+                            ))}
+                        </SimpleGrid>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button colorScheme="blue" mr={3} onClick={onCloseSoonExpiredProductsModal}>
+                            Fermer
                         </Button>
                     </ModalFooter>
                 </ModalContent>

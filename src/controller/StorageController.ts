@@ -134,5 +134,17 @@ export const getProductsStats = async (): Promise<ProductsStats> => {
 
     const data = await response.json();
 
-    return new ProductsStats(data.totalFoodQuantity, data.totalClothesQuantity);
+    return new ProductsStats(data.totalFoodQuantity, data.totalClothesQuantity, data.soonExpiredFood);
+}
+
+export const getSoonExpiredFood = async (): Promise<FoodStorageProduct[]> => {
+    const response = await getWithToken(`product/food/expired`);
+
+    if (!response.ok) {
+        throw new Error(`Fetching soon expired food failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    return mapJsonToFoodStorageProduct(data);
 }
