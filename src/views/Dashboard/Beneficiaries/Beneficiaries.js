@@ -226,7 +226,7 @@ function Beneficiaries() {
             <VStack pt={{base: "120px", md: "75px"}} mr='32px' align={'stretch'}>
                 <Card>
                     <Flex justify="space-between">
-                        <Text fontSize="xl" fontWeight="bold">Gestion des rôles</Text>
+                        <Text fontSize="xl" fontWeight="bold">Gestion des bénéficiaires</Text>
                         <Button onClick={onOpenCreationModal} colorScheme="green">Ajouter un bénéficiaire</Button>
                     </Flex>
                 </Card>
