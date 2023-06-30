@@ -26,7 +26,7 @@ import {
     Radio,
     RadioGroup,
     Select,
-    SimpleGrid, Stat, StatLabel, StatNumber,
+    SimpleGrid, Skeleton, Stat, StatLabel, StatNumber,
     Text, useColorModeValue,
     useDisclosure
 } from "@chakra-ui/react";
@@ -68,6 +68,7 @@ import {readFromBarCode} from "../../controller/OpenFoodFactController";
 import {getCitiesFromPostalCode} from "../../controller/IGNController";
 import {ProductsStats} from "../../model/stock/ProductsStats";
 import IconBox from "../../components/Icons/IconBox";
+import {getAllProductLimit} from "../../controller/ProductLimitsController";
 
 export default function Stocks() {
     const iconBoxInside = useColorModeValue("white", "white");
@@ -93,11 +94,31 @@ export default function Stocks() {
     const [genders, setGenders] = useState([]);
     const [storageStats, setStorageStats] = useState(new ProductsStats(0, 0, 0));
     const [soonExpiredProducts, setSoonExpiredProducts] = useState([]);
-    const { isOpen: isOpenSoonExpiredProductsModal, onOpen: onOpenSoonExpiredProductsModal, onClose: onCloseSoonExpiredProductsModal } = useDisclosure();
-    const { isOpen: isOpenAddStorageModal, onOpen: onOpenAddStorageModal, onClose: onCloseAddStorageModal } = useDisclosure();
-    const { isOpen: isOpenDeleteStorageModal, onOpen: onOpenDeleteStorageModal, onClose: onCloseDeleteStorageModal } = useDisclosure();
-    const { isOpen: isOpenUpdateStorageModal, onOpen: onOpenUpdateStorageModal, onClose: onCloseUpdateStorageModal } = useDisclosure();
-    const { isOpen: isOpenViewStorageModal, onOpen: onOpenViewStorageModal, onClose: onCloseViewStorageModal } = useDisclosure();
+    const {
+        isOpen: isOpenSoonExpiredProductsModal,
+        onOpen: onOpenSoonExpiredProductsModal,
+        onClose: onCloseSoonExpiredProductsModal
+    } = useDisclosure();
+    const {
+        isOpen: isOpenAddStorageModal,
+        onOpen: onOpenAddStorageModal,
+        onClose: onCloseAddStorageModal
+    } = useDisclosure();
+    const {
+        isOpen: isOpenDeleteStorageModal,
+        onOpen: onOpenDeleteStorageModal,
+        onClose: onCloseDeleteStorageModal
+    } = useDisclosure();
+    const {
+        isOpen: isOpenUpdateStorageModal,
+        onOpen: onOpenUpdateStorageModal,
+        onClose: onCloseUpdateStorageModal
+    } = useDisclosure();
+    const {
+        isOpen: isOpenViewStorageModal,
+        onOpen: onOpenViewStorageModal,
+        onClose: onCloseViewStorageModal
+    } = useDisclosure();
     const [storageName, setStorageName] = useState("");
     const [storageDepartment, setStorageDepartment] = useState("");
     const [storagePostalCode, setStoragePostalCode] = useState("");
@@ -115,7 +136,11 @@ export default function Stocks() {
     const [updatedStorageAddress, setUpdatedStorageAddress] = useState("");
     const [errorUpdatingStorage, setErrorUpdatingStorage] = useState("");
     //Add new product
-    const { isOpen: isOpenAddProductModal, onOpen: onOpenAddProductModal, onClose: onCloseAddProductModal } = useDisclosure();
+    const {
+        isOpen: isOpenAddProductModal,
+        onOpen: onOpenAddProductModal,
+        onClose: onCloseAddProductModal
+    } = useDisclosure();
     const [callAddStockage, setCallAddStockage] = useState(false);
     const [callUpdateStockage, setCallUpdateStockage] = useState(false);
     const [addProductType, setAddProductType] = useState("food");
@@ -132,7 +157,11 @@ export default function Stocks() {
     const [addProductGender, setAddProductGender] = useState("");
     const [addProductError, setAddProductError] = useState("");
     //Update product
-    const { isOpen: isOpenUpdateProductModal, onOpen: onOpenUpdateProductModal, onClose: onCloseUpdateProductModal } = useDisclosure();
+    const {
+        isOpen: isOpenUpdateProductModal,
+        onOpen: onOpenUpdateProductModal,
+        onClose: onCloseUpdateProductModal
+    } = useDisclosure();
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [selectedProductType, setSelectedProductType] = useState("");
     const [updatedProductName, setUpdatedProductName] = useState("");
@@ -148,11 +177,36 @@ export default function Stocks() {
     const [updatedProductGender, setUpdatedProductGender] = useState("");
     const [updatedProductError, setUpdatedProductError] = useState("");
     //Delete product
-    const { isOpen: isOpenDeleteProductModal, onOpen: onOpenDeleteProductModal, onClose: onCloseDeleteProductModal } = useDisclosure();
+    const {
+        isOpen: isOpenDeleteProductModal,
+        onOpen: onOpenDeleteProductModal,
+        onClose: onCloseDeleteProductModal
+    } = useDisclosure();
     //Quagga scanner
-    const { isOpen: isOpenScannerModal, onOpen: onOpenScannerModal, onClose: onCloseScannerModal } = useDisclosure();
+    const {isOpen: isOpenScannerModal, onOpen: onOpenScannerModal, onClose: onCloseScannerModal} = useDisclosure();
     const scannerRef = useRef(null);
     const [barcodeScanned, setBarcodeScanned] = useState(false);
+
+    const [loadedProductLimits, setLoadedProductLimits] = useState(false);
+    const [loadingProductLimits, setLoadingProductLimits] = useState(false);
+    const [productLimits, setProductLimits] = useState([]);
+
+    const [selectedProductLimit, setSelectedProductLimit] = useState(undefined);
+
+    if (loadedProductLimits === false && loadingProductLimits === false) {
+        setLoadingProductLimits(true);
+        getAllProductLimit()
+            .then((units) => {
+                setProductLimits(units);
+                setLoadedProductLimits(true);
+                setLoadingProductLimits(false);
+            })
+            .catch((e) => {
+                console.log(e)
+                setLoadedProductLimits(false);
+                setLoadingProductLimits(false);
+            });
+    }
 
     const openScannerModal = () => {
         onOpenScannerModal();
@@ -556,7 +610,7 @@ export default function Stocks() {
             setAddProductError("Veuillez renseigner une date optimale de consommation valide pour le produit");
             return;
         }
-        createFoodProduct(addProductName, addProductQuantity, addProductUnit, addProductConservation, expirationDate, optimalDate, addProductPrice, addProductStorageId, addProductAmount)
+        createFoodProduct(addProductName, addProductQuantity, addProductUnit, addProductConservation, expirationDate, optimalDate, addProductPrice, addProductStorageId, addProductAmount, selectedProductLimit)
             .then((_) => {
                 onCloseAddProductModal();
                 setLoadedAllProducts(false);
@@ -575,7 +629,7 @@ export default function Stocks() {
             setAddProductError("Veuillez renseigner un genre pour le produit");
             return;
         }
-        createClothProduct(addProductName, addProductQuantity, addProductSize, addProductStorageId, addProductAmount, addProductGender)
+        createClothProduct(addProductName, addProductQuantity, addProductSize, addProductStorageId, addProductAmount, addProductGender, selectedProductLimit)
             .then((_) => {
                 onCloseAddProductModal();
                 setLoadedAllProducts(false);
@@ -628,7 +682,7 @@ export default function Stocks() {
             setUpdatedProductError("Veuillez renseigner une date optimale de consommation valide pour le produit");
             return;
         }
-        updateFoodProduct(selectedProduct.id, updatedProductName, updatedProductQuantity, updatedProductUnit, updatedProductConservation, expirationDate, optimalDate, updatedProductPrice, updatedProductStorageId, updatedProductAmount)
+        updateFoodProduct(selectedProduct.id, updatedProductName, updatedProductQuantity, updatedProductUnit, updatedProductConservation, expirationDate, optimalDate, updatedProductPrice, updatedProductStorageId, updatedProductAmount, selectedProductLimit)
             .then((_) => {
                 onCloseUpdateProductModal();
                 setLoadedAllProducts(false);
@@ -647,7 +701,7 @@ export default function Stocks() {
             setUpdatedProductError("Veuillez renseigner un genre pour le produit");
             return;
         }
-        updateClothProduct(selectedProduct.id, updatedProductName, updatedProductQuantity, updatedProductSize, updatedProductStorageId, updatedProductAmount, updatedProductGender)
+        updateClothProduct(selectedProduct.id, updatedProductName, updatedProductQuantity, updatedProductSize, updatedProductStorageId, updatedProductAmount, updatedProductGender, selectedProductLimit)
             .then((_) => {
                 onCloseUpdateProductModal();
                 setLoadedAllProducts(false);
@@ -692,8 +746,8 @@ export default function Stocks() {
             {!loadedProductsByStorage && selectedStorage !== null && loadProductsFromStorage()}
             {!loadedStorageStats && loadStorageStats()}
             {!loadedSoonExpiredProducts && loadSoonExpiredProducts()}
-            <Flex direction="column" pt={{ base: "120px", md: "75px" }}>
-                <SimpleGrid columns={{ sm: 1, md: 2, xl: 3 }} spacing='24px' mb='20px'>
+            <Flex direction="column" pt={{base: "120px", md: "75px"}}>
+                <SimpleGrid columns={{sm: 1, md: 2, xl: 3}} spacing='24px' mb='20px'>
                     <Card minH='125px'>
                         <Flex direction='column'>
                             <Flex
@@ -721,7 +775,7 @@ export default function Stocks() {
                                     h={"45px"}
                                     w={"45px"}
                                     bg={iconBlue}>
-                                    <FaLemon h={"24px"} w={"24px"} color={iconBoxInside} />
+                                    <FaLemon h={"24px"} w={"24px"} color={iconBoxInside}/>
                                 </IconBox>
                             </Flex>
                         </Flex>
@@ -743,7 +797,8 @@ export default function Stocks() {
                                         Quantité total de vêtements
                                     </StatLabel>
                                     <Flex>
-                                        <StatNumber fontSize='lg' color={textColor} fontWeight='bold' href='/local-unit'>
+                                        <StatNumber fontSize='lg' color={textColor} fontWeight='bold'
+                                                    href='/local-unit'>
                                             {storageStats.totalClothesQuantity}
                                         </StatNumber>
                                     </Flex>
@@ -753,7 +808,7 @@ export default function Stocks() {
                                     h={"45px"}
                                     w={"45px"}
                                     bg={iconBlue}>
-                                    <FaTag h={"24px"} w={"24px"} color={iconBoxInside} />
+                                    <FaTag h={"24px"} w={"24px"} color={iconBoxInside}/>
                                 </IconBox>
                             </Flex>
                         </Flex>
@@ -769,7 +824,8 @@ export default function Stocks() {
                                 {storageStats.soonExpiredFood > 0 && (
                                     <Flex direction="column" m="auto">
                                         <Text fontWeight="bold" mb="8px" textAlign="center">
-                                            ⚠️La date d'expiration de {storageStats.soonExpiredFood} produits nécessite votre attention
+                                            ⚠️La date d'expiration de {storageStats.soonExpiredFood} produits nécessite
+                                            votre attention
                                         </Text>
                                         <Button colorScheme="orange" m="auto" onClick={openSoonExpiredProductsModal}>
                                             Voir la liste
@@ -789,14 +845,15 @@ export default function Stocks() {
                     <CardHeader>
                         <Flex justify="space-between" m="12px 8px">
                             <Text fontSize="2xl">Stock de l'unité locale</Text>
-                            <Button colorScheme="green" onClick={onOpenAddProductModal}>Ajouter un produit aux stocks</Button>
+                            <Button colorScheme="green" onClick={onOpenAddProductModal}>Ajouter un produit aux
+                                stocks</Button>
                         </Flex>
                     </CardHeader>
                     <CardBody>
                         <Text fontSize="xl" fontWeight="semibold">
                             Produits alimentaires
                         </Text>
-                        <SimpleGrid columns={{ sm: 2, md: 3, lg: 4, xl: 5 }} spacing="24px" m="12px">
+                        <SimpleGrid columns={{sm: 2, md: 3, lg: 4, xl: 5}} spacing="24px" m="12px">
                             {allProducts.foods.map((foodStorageProduct, key) => (
                                 <Card key={key}>
                                     <CardHeader>
@@ -804,11 +861,12 @@ export default function Stocks() {
                                             <Text m="auto 0">{foodStorageProduct.product.name}</Text>
                                             <Menu>
                                                 <MenuButton>
-                                                    <Icon as={FaEllipsisV} />
+                                                    <Icon as={FaEllipsisV}/>
                                                 </MenuButton>
                                                 <MenuList>
                                                     <Flex direction="column">
-                                                        <MenuItem onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenUpdateProductModal)}>
+                                                        <MenuItem
+                                                            onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenUpdateProductModal)}>
                                                             <Flex cursor="pointer" align="center" p="12px">
                                                                 <Icon as={FaEdit} mr="8px"/>
                                                                 <Text fontSize="sm" fontWeight="semibold">
@@ -816,10 +874,12 @@ export default function Stocks() {
                                                                 </Text>
                                                             </Flex>
                                                         </MenuItem>
-                                                        <MenuItem onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenDeleteProductModal)}>
+                                                        <MenuItem
+                                                            onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenDeleteProductModal)}>
                                                             <Flex cursor="pointer" align="center" p="12px">
                                                                 <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
-                                                                <Text fontSize="sm" fontWeight="semibold" color="red.500">
+                                                                <Text fontSize="sm" fontWeight="semibold"
+                                                                      color="red.500">
                                                                     Supprimer
                                                                 </Text>
                                                             </Flex>
@@ -832,26 +892,33 @@ export default function Stocks() {
                                     <CardBody>
                                         <Text>{foodStorageProduct.product.quantity} * {foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Text>
                                         {foodStorageProduct.expirationDate && foodStorageProduct.expirationDate.getTime() < Date.now() && (
-                                            <Badge m="2px" colorScheme="red">DLC {foodStorageProduct.expirationDate.toLocaleDateString()}</Badge>
+                                            <Badge m="2px"
+                                                   colorScheme="red">DLC {foodStorageProduct.expirationDate.toLocaleDateString()}</Badge>
                                         )}
                                         {foodStorageProduct.expirationDate.getTime() > Date.now() && foodStorageProduct.expirationDate.getTime() < (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
-                                            <Badge m="2px" colorScheme="orange">DLC {foodStorageProduct.expirationDate.toLocaleDateString()}</Badge>
+                                            <Badge m="2px"
+                                                   colorScheme="orange">DLC {foodStorageProduct.expirationDate.toLocaleDateString()}</Badge>
                                         )}
                                         {foodStorageProduct.expirationDate.getTime() > (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
-                                            <Badge m="2px" colorScheme="green">DLC {foodStorageProduct.expirationDate.toLocaleDateString()}</Badge>
+                                            <Badge m="2px"
+                                                   colorScheme="green">DLC {foodStorageProduct.expirationDate.toLocaleDateString()}</Badge>
                                         )}
                                         {foodStorageProduct.optimalConsumptionDate.getTime() < Date.now() && (
-                                            <Badge m="2px" colorScheme="red">DLUO {foodStorageProduct.optimalConsumptionDate.toLocaleDateString()}</Badge>
+                                            <Badge m="2px"
+                                                   colorScheme="red">DLUO {foodStorageProduct.optimalConsumptionDate.toLocaleDateString()}</Badge>
                                         )}
                                         {foodStorageProduct.optimalConsumptionDate.getTime() > Date.now() && foodStorageProduct.optimalConsumptionDate.getTime() < (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
-                                            <Badge m="2px" colorScheme="orange">DLUO {foodStorageProduct.optimalConsumptionDate.toLocaleDateString()}</Badge>
+                                            <Badge m="2px"
+                                                   colorScheme="orange">DLUO {foodStorageProduct.optimalConsumptionDate.toLocaleDateString()}</Badge>
                                         )}
-                                        {foodStorageProduct.optimalConsumptionDate .getTime() > (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
-                                            <Badge m="2px" colorScheme="green">DLUO {foodStorageProduct.optimalConsumptionDate.toLocaleDateString()}</Badge>
+                                        {foodStorageProduct.optimalConsumptionDate.getTime() > (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
+                                            <Badge m="2px"
+                                                   colorScheme="green">DLUO {foodStorageProduct.optimalConsumptionDate.toLocaleDateString()}</Badge>
                                         )}
                                         <Badge colorScheme="teal" mr="4px">{foodStorageProduct.price / 100} €</Badge>
                                         <Badge colorScheme="cyan" mr="4px">{foodStorageProduct.conservation}</Badge>
-                                        <Badge colorScheme="purple">{foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Badge>
+                                        <Badge
+                                            colorScheme="purple">{foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Badge>
                                     </CardBody>
                                 </Card>
                             ))}
@@ -862,7 +929,7 @@ export default function Stocks() {
                         <Text fontSize="xl" mt="16px" fontWeight="semibold">
                             Vêtements
                         </Text>
-                        <SimpleGrid columns={{ sm: 2, md: 3, lg: 4, xl: 5 }} spacing="24px" m="12px">
+                        <SimpleGrid columns={{sm: 2, md: 3, lg: 4, xl: 5}} spacing="24px" m="12px">
                             {allProducts.clothes.map((clothStorageProduct, key) => (
                                 <Card key={key}>
                                     <CardHeader>
@@ -870,11 +937,12 @@ export default function Stocks() {
                                             <Text m="auto 0">{clothStorageProduct.product.name}</Text>
                                             <Menu>
                                                 <MenuButton>
-                                                    <Icon as={FaEllipsisV} />
+                                                    <Icon as={FaEllipsisV}/>
                                                 </MenuButton>
                                                 <MenuList>
                                                     <Flex direction="column">
-                                                        <MenuItem onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenUpdateProductModal)}>
+                                                        <MenuItem
+                                                            onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenUpdateProductModal)}>
                                                             <Flex cursor="pointer" align="center" p="12px">
                                                                 <Icon as={FaEdit} mr="8px"/>
                                                                 <Text fontSize="sm" fontWeight="semibold">
@@ -882,10 +950,12 @@ export default function Stocks() {
                                                                 </Text>
                                                             </Flex>
                                                         </MenuItem>
-                                                        <MenuItem onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenDeleteProductModal)}>
+                                                        <MenuItem
+                                                            onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenDeleteProductModal)}>
                                                             <Flex cursor="pointer" align="center" p="12px">
                                                                 <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
-                                                                <Text fontSize="sm" fontWeight="semibold" color="red.500">
+                                                                <Text fontSize="sm" fontWeight="semibold"
+                                                                      color="red.500">
                                                                     Supprimer
                                                                 </Text>
                                                             </Flex>
@@ -899,7 +969,8 @@ export default function Stocks() {
                                         <Text>{clothStorageProduct.product.quantity} * {clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Text>
                                         <Badge colorScheme="teal" m="4px">{clothStorageProduct.size}</Badge>
                                         <Badge colorScheme="blue" mr="4px">{clothStorageProduct.gender}</Badge>
-                                        <Badge colorScheme="purple">{clothStorageProduct.product.quantity * clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Badge>
+                                        <Badge
+                                            colorScheme="purple">{clothStorageProduct.product.quantity * clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Badge>
                                     </CardBody>
                                 </Card>
                             ))}
@@ -919,7 +990,7 @@ export default function Stocks() {
                         </Flex>
                     </CardHeader>
                     <CardBody>
-                        <SimpleGrid columns={{ sm: 1, md: 2, xl: 3 }} spacing="40px" mb="16px">
+                        <SimpleGrid columns={{sm: 1, md: 2, xl: 3}} spacing="40px" mb="16px">
                             {storages.map((storage) => (
                                 <Card key={storage.id}>
                                     <CardHeader>
@@ -927,26 +998,32 @@ export default function Stocks() {
                                             <Text fontSize="xl">{storage.name}</Text>
                                             <Menu>
                                                 <MenuButton>
-                                                    <Icon as={FaCog} />
+                                                    <Icon as={FaCog}/>
                                                 </MenuButton>
                                                 <MenuList>
                                                     <Flex direction="column">
-                                                        <MenuItem onClick={() => selectStorageForModal(storage, onOpenViewStorageModal)}>
+                                                        <MenuItem
+                                                            onClick={() => selectStorageForModal(storage, onOpenViewStorageModal)}>
                                                             <Flex direction="row" p="12px">
-                                                                <Icon as={FaEye} mr="8px" />
-                                                                <Text fontSize="sm" fontWeight="semibold">Voir le contenu</Text>
+                                                                <Icon as={FaEye} mr="8px"/>
+                                                                <Text fontSize="sm" fontWeight="semibold">Voir le
+                                                                    contenu</Text>
                                                             </Flex>
                                                         </MenuItem>
-                                                        <MenuItem onClick={() => selectStorageForModal(storage, onOpenUpdateStorageModal)}>
+                                                        <MenuItem
+                                                            onClick={() => selectStorageForModal(storage, onOpenUpdateStorageModal)}>
                                                             <Flex direction="row" p="12px">
-                                                                <Icon as={FaPencilAlt} mr="8px" />
-                                                                <Text fontSize="sm" fontWeight="semibold">Modifier</Text>
+                                                                <Icon as={FaPencilAlt} mr="8px"/>
+                                                                <Text fontSize="sm"
+                                                                      fontWeight="semibold">Modifier</Text>
                                                             </Flex>
                                                         </MenuItem>
-                                                        <MenuItem onClick={() => selectStorageForModal(storage, onOpenDeleteStorageModal)}>
+                                                        <MenuItem
+                                                            onClick={() => selectStorageForModal(storage, onOpenDeleteStorageModal)}>
                                                             <Flex direction="row" p="12px">
                                                                 <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
-                                                                <Text color="red.500" fontSize="sm" fontWeight="semibold">Supprimer</Text>
+                                                                <Text color="red.500" fontSize="sm"
+                                                                      fontWeight="semibold">Supprimer</Text>
                                                             </Flex>
                                                         </MenuItem>
                                                     </Flex>
@@ -957,12 +1034,16 @@ export default function Stocks() {
                                     <CardBody>
                                         <Flex direction="row">
                                             <Flex direction="column" w="50%">
-                                                <Text fontSize="sm">Quantité de produtis alimentaire: {allProducts.foods.filter(f => f.product.storageId === storage.id).reduce((acc, f) => acc + f.product.quantity, 0)}</Text>
-                                                <Text fontSize="sm">Quantité de vêtements: {allProducts.clothes.filter(c => c.product.storageId === storage.id).reduce((acc, c) => acc + c.product.quantity, 0)}</Text>
+                                                <Text fontSize="sm">Quantité de produtis
+                                                    alimentaire: {allProducts.foods.filter(f => f.product.storageId === storage.id).reduce((acc, f) => acc + f.product.quantity, 0)}</Text>
+                                                <Text fontSize="sm">Quantité de
+                                                    vêtements: {allProducts.clothes.filter(c => c.product.storageId === storage.id).reduce((acc, c) => acc + c.product.quantity, 0)}</Text>
                                             </Flex>
                                             <Flex direction="column" w="50%">
-                                                <Text fontSize="sm" textAlign="end">{storage.address.city} - {storage.address.postalCode}</Text>
-                                                <Text fontSize="sm" textAlign="end">{storage.address.streetNumberAndName}</Text>
+                                                <Text fontSize="sm"
+                                                      textAlign="end">{storage.address.city} - {storage.address.postalCode}</Text>
+                                                <Text fontSize="sm"
+                                                      textAlign="end">{storage.address.streetNumberAndName}</Text>
                                             </Flex>
                                         </Flex>
                                     </CardBody>
@@ -975,11 +1056,12 @@ export default function Stocks() {
                     </CardBody>
                 </Card>
             </Flex>
+
             <Modal isOpen={isOpenAddProductModal} onClose={onCloseAddProductModal} size="2xl" scrollBehavior="outside">
-                <ModalOverlay />
+                <ModalOverlay/>
                 <ModalContent>
                     <ModalHeader>Ajouter un produit aux stocks</ModalHeader>
-                    <ModalCloseButton />
+                    <ModalCloseButton/>
                     <ModalBody>
                         <Text size="md" fontWeight="semibold" w="40%">
                             Type de produit à ajouter
@@ -998,27 +1080,31 @@ export default function Stocks() {
                                 </Flex>
                             )}
                             <FormLabel>Nom du produit</FormLabel>
-                            <Input type="text" placeholder="Nom du produit" value={addProductName} onChange={(e) => setAddProductName(e.target.value)}/>
+                            <Input type="text" placeholder="Nom du produit" value={addProductName}
+                                   onChange={(e) => setAddProductName(e.target.value)}/>
                             <Text size="md" mt="8px" fontWeight="semibold">Espace de stockage</Text>
-                            <Select placeholder="Espace de stockage" value={addProductStorageId} onChange={(e) => setAddProductStorageId(e.target.value)}>
+                            <Select placeholder="Espace de stockage" value={addProductStorageId}
+                                    onChange={(e) => setAddProductStorageId(e.target.value)}>
                                 {storages.map((storage, key) => (
                                     <option key={key} value={storage.id}>{storage.name}</option>
                                 ))}
                             </Select>
                             <Text size="md" mt="8px" fontWeight="semibold">Nombre d'exemplaire du produit perçu</Text>
-                            <NumberInput defaultValue={1} min={1} max={2000000} value={addProductAmount} onChange={(e) => setAddProductAmount(parseInt(e))}>
-                                <NumberInputField />
+                            <NumberInput defaultValue={1} min={1} max={2000000} value={addProductAmount}
+                                         onChange={(e) => setAddProductAmount(parseInt(e))}>
+                                <NumberInputField/>
                                 <NumberInputStepper>
-                                    <NumberIncrementStepper />
-                                    <NumberDecrementStepper />
+                                    <NumberIncrementStepper/>
+                                    <NumberDecrementStepper/>
                                 </NumberInputStepper>
                             </NumberInput>
                             <Text size="md" mt="8px" fontWeight="semibold">Contenue du produit en quantité</Text>
-                            <NumberInput defaultValue={1} min={1} max={2000000} value={addProductQuantity} onChange={(e) => setAddProductQuantity(parseInt(e))}>
-                                <NumberInputField />
+                            <NumberInput defaultValue={1} min={1} max={2000000} value={addProductQuantity}
+                                         onChange={(e) => setAddProductQuantity(parseInt(e))}>
+                                <NumberInputField/>
                                 <NumberInputStepper>
-                                    <NumberIncrementStepper />
-                                    <NumberDecrementStepper />
+                                    <NumberIncrementStepper/>
+                                    <NumberDecrementStepper/>
                                 </NumberInputStepper>
                             </NumberInput>
                             {addProductType === "food" && (
@@ -1041,7 +1127,8 @@ export default function Stocks() {
                                         </Flex>
                                     </RadioGroup>
                                     <Text size="md" mt="8px" fontWeight="semibold">Méthode de conservation</Text>
-                                    <RadioGroup value={addProductConservation} onChange={(e) => setAddProductConservation(e)}>
+                                    <RadioGroup value={addProductConservation}
+                                                onChange={(e) => setAddProductConservation(e)}>
                                         <Flex direction="row" justify="space-between">
                                             {conservations.map((conservation, key) => (
                                                 <Radio key={key} value={conservation}>{conservation}</Radio>
@@ -1049,15 +1136,18 @@ export default function Stocks() {
                                         </Flex>
                                     </RadioGroup>
                                     <Text size="md" mt="8px" fontWeight="semibold">Date de consommation optimale</Text>
-                                    <Input type="date" value={addProductOptimalDate} onChange={(e) => setAddProductOptimalDate(e.target.value)} />
+                                    <Input type="date" value={addProductOptimalDate}
+                                           onChange={(e) => setAddProductOptimalDate(e.target.value)}/>
                                     <Text size="md" mt="8px" fontWeight="semibold">Date de péremption</Text>
-                                    <Input type="date" value={addProductExpirationDate} onChange={(e) => setAddProductExpirationDate(e.target.value)} />
+                                    <Input type="date" value={addProductExpirationDate}
+                                           onChange={(e) => setAddProductExpirationDate(e.target.value)}/>
                                     <Text size="md" mt="8px" fontWeight="semibold">Prix en centimes</Text>
-                                    <NumberInput defaultValue={1} min={0} max={2000000} value={addProductPrice} onChange={(e) => setAddProductPrice(parseInt(e))}>
-                                        <NumberInputField />
+                                    <NumberInput defaultValue={1} min={0} max={2000000} value={addProductPrice}
+                                                 onChange={(e) => setAddProductPrice(parseInt(e))}>
+                                        <NumberInputField/>
                                         <NumberInputStepper>
-                                            <NumberIncrementStepper />
-                                            <NumberDecrementStepper />
+                                            <NumberIncrementStepper/>
+                                            <NumberDecrementStepper/>
                                         </NumberInputStepper>
                                     </NumberInput>
                                 </>
@@ -1065,19 +1155,32 @@ export default function Stocks() {
                             {addProductType === "cloth" && (
                                 <>
                                     <Text size="md" mt="8px" fontWeight="semibold">Taille du vêtement</Text>
-                                    <Select placeholder="Taille du vêtement" value={addProductSize} onChange={(e) => setAddProductSize(e.target.value)}>
+                                    <Select placeholder="Taille du vêtement" value={addProductSize}
+                                            onChange={(e) => setAddProductSize(e.target.value)}>
                                         {sizes.map((size, key) => (
                                             <option key={key} value={size}>{size}</option>
                                         ))}
                                     </Select>
                                     <Text size="md" mt="8px" fontWeight="semibold">Genre du vêtement</Text>
-                                    <Select placeholder="Genre du vêtement" value={addProductGender} onChange={(e) => setAddProductGender(e.target.value)}>
+                                    <Select placeholder="Genre du vêtement" value={addProductGender}
+                                            onChange={(e) => setAddProductGender(e.target.value)}>
                                         {genders.map((size, key) => (
                                             <option key={key} value={size}>{size}</option>
                                         ))}
                                     </Select>
                                 </>
                             )}
+
+                            <Text size="md" mt="8px" fontWeight="semibold">Limite</Text>
+                            <Skeleton isLoaded={loadedProductLimits}>
+                                <Select placeholder="Limite" value={selectedProductLimit}
+                                        onChange={(e) => setSelectedProductLimit(e.target.value)}>
+                                    {productLimits.map((productLimit) => (
+                                        <option key={productLimit.id}
+                                                value={productLimit.id}> {productLimit.name + ': ' + productLimit.quantity.value + ' ' + productLimit.quantity.measurementUnit + ' tous les ' + productLimit.duration + ' jours'}</option>
+                                    ))}
+                                </Select>
+                            </Skeleton>
                         </FormControl>
                         {addProductError !== "" && (
                             <Text color="red">{addProductError}</Text>
@@ -1093,14 +1196,15 @@ export default function Stocks() {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
+
             <Modal isOpen={isOpenScannerModal} onClose={onCloseScannerModal} size="3xl" scrollBehavior="outside">
-                <ModalOverlay />
+                <ModalOverlay/>
                 <ModalContent>
                     <ModalHeader>Scanner un produit</ModalHeader>
-                    <ModalCloseButton />
+                    <ModalCloseButton/>
                     <ModalBody>
                         <Flex justify="space-around" maxH="480px" maxW="640px" overflow="hidden" m="auto">
-                            <div id="scanner" ref={scannerRef} />
+                            <div id="scanner" ref={scannerRef}/>
                         </Flex>
                     </ModalBody>
                     <ModalFooter>
@@ -1110,35 +1214,41 @@ export default function Stocks() {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-            <Modal isOpen={isOpenUpdateProductModal} onClose={onCloseUpdateProductModal} size="lg" scrollBehavior="outside">
-                <ModalOverlay />
+
+            <Modal isOpen={isOpenUpdateProductModal} onClose={onCloseUpdateProductModal} size="lg"
+                   scrollBehavior="outside">
+                <ModalOverlay/>
                 <ModalContent>
                     <ModalHeader>Modifier {selectedProduct?.product?.name}</ModalHeader>
-                    <ModalCloseButton />
+                    <ModalCloseButton/>
                     <ModalBody>
                         <FormControl>
                             <FormLabel>Nom du produit</FormLabel>
-                            <Input type="text" placeholder="Nom du produit" value={updatedProductName} onChange={(e) => setUpdatedProductName(e.target.value)}/>
+                            <Input type="text" placeholder="Nom du produit" value={updatedProductName}
+                                   onChange={(e) => setUpdatedProductName(e.target.value)}/>
                             <Text size="md" mt="8px" fontWeight="semibold">Espace de stockage</Text>
-                            <Select placeholder="Espace de stockage" value={updatedProductStorageId} onChange={(e) => setUpdatedProductStorageId(e.target.value)}>
+                            <Select placeholder="Espace de stockage" value={updatedProductStorageId}
+                                    onChange={(e) => setUpdatedProductStorageId(e.target.value)}>
                                 {storages.map((storage, key) => (
                                     <option key={key} value={storage.id}>{storage.name}</option>
                                 ))}
                             </Select>
                             <Text size="md" mt="8px" fontWeight="semibold">Nombre d'exemplaire du produit perçu</Text>
-                            <NumberInput defaultValue={1} min={1} max={2000000} value={updatedProductAmount} onChange={(e) => setUpdatedProductAmount(parseInt(e))}>
-                                <NumberInputField />
+                            <NumberInput defaultValue={1} min={1} max={2000000} value={updatedProductAmount}
+                                         onChange={(e) => setUpdatedProductAmount(parseInt(e))}>
+                                <NumberInputField/>
                                 <NumberInputStepper>
-                                    <NumberIncrementStepper />
-                                    <NumberDecrementStepper />
+                                    <NumberIncrementStepper/>
+                                    <NumberDecrementStepper/>
                                 </NumberInputStepper>
                             </NumberInput>
                             <Text size="md" mt="8px" fontWeight="semibold">Contenue du produit en quantité</Text>
-                            <NumberInput defaultValue={1} min={1} max={2000000} value={updatedProductQuantity} onChange={(e) => setUpdatedProductQuantity(parseInt(e))}>
-                                <NumberInputField />
+                            <NumberInput defaultValue={1} min={1} max={2000000} value={updatedProductQuantity}
+                                         onChange={(e) => setUpdatedProductQuantity(parseInt(e))}>
+                                <NumberInputField/>
                                 <NumberInputStepper>
-                                    <NumberIncrementStepper />
-                                    <NumberDecrementStepper />
+                                    <NumberIncrementStepper/>
+                                    <NumberDecrementStepper/>
                                 </NumberInputStepper>
                             </NumberInput>
                             {selectedProductType === "food" && (
@@ -1161,7 +1271,8 @@ export default function Stocks() {
                                         </Flex>
                                     </RadioGroup>
                                     <Text size="md" mt="8px" fontWeight="semibold">Méthode de conservation</Text>
-                                    <RadioGroup value={updatedProductConservation} onChange={(e) => setUpdatedProductConservation(e)}>
+                                    <RadioGroup value={updatedProductConservation}
+                                                onChange={(e) => setUpdatedProductConservation(e)}>
                                         <Flex direction="row" justify="space-between">
                                             {conservations.map((conservation, key) => (
                                                 <Radio key={key} value={conservation}>{conservation}</Radio>
@@ -1169,15 +1280,18 @@ export default function Stocks() {
                                         </Flex>
                                     </RadioGroup>
                                     <Text size="md" mt="8px" fontWeight="semibold">Date de consommation optimale</Text>
-                                    <Input type="date" value={updatedProductOptimalDate} onChange={(e) => setUpdatedProductOptimalDate(e.target.value)} />
+                                    <Input type="date" value={updatedProductOptimalDate}
+                                           onChange={(e) => setUpdatedProductOptimalDate(e.target.value)}/>
                                     <Text size="md" mt="8px" fontWeight="semibold">Date de péremption</Text>
-                                    <Input type="date" value={updatedProductExpirationDate} onChange={(e) => setUpdatedProductExpirationDate(e.target.value)} />
+                                    <Input type="date" value={updatedProductExpirationDate}
+                                           onChange={(e) => setUpdatedProductExpirationDate(e.target.value)}/>
                                     <Text size="md" mt="8px" fontWeight="semibold">Prix en centimes</Text>
-                                    <NumberInput defaultValue={1} min={0} max={2000000} value={updatedProductPrice} onChange={(e) => setUpdatedProductPrice(parseInt(e))}>
-                                        <NumberInputField />
+                                    <NumberInput defaultValue={1} min={0} max={2000000} value={updatedProductPrice}
+                                                 onChange={(e) => setUpdatedProductPrice(parseInt(e))}>
+                                        <NumberInputField/>
                                         <NumberInputStepper>
-                                            <NumberIncrementStepper />
-                                            <NumberDecrementStepper />
+                                            <NumberIncrementStepper/>
+                                            <NumberDecrementStepper/>
                                         </NumberInputStepper>
                                     </NumberInput>
                                 </>
@@ -1185,19 +1299,31 @@ export default function Stocks() {
                             {selectedProductType === "cloth" && (
                                 <>
                                     <Text size="md" mt="8px" fontWeight="semibold">Taille du vêtement</Text>
-                                    <Select placeholder="Taille du vêtement" value={updatedProductSize} onChange={(e) => setUpdatedProductSize(e.target.value)}>
+                                    <Select placeholder="Taille du vêtement" value={updatedProductSize}
+                                            onChange={(e) => setUpdatedProductSize(e.target.value)}>
                                         {sizes.map((size, key) => (
                                             <option key={key} value={size}>{size}</option>
                                         ))}
                                     </Select>
                                     <Text size="md" mt="8px" fontWeight="semibold">Genre du vêtement</Text>
-                                    <Select placeholder="Genre du vêtement" value={updatedProductGender} onChange={(e) => setUpdatedProductGender(e.target.value)}>
+                                    <Select placeholder="Genre du vêtement" value={updatedProductGender}
+                                            onChange={(e) => setUpdatedProductGender(e.target.value)}>
                                         {genders.map((size, key) => (
                                             <option key={key} value={size}>{size}</option>
                                         ))}
                                     </Select>
                                 </>
                             )}
+                            <Text size="md" mt="8px" fontWeight="semibold">Limite</Text>
+                            <Skeleton isLoaded={loadedProductLimits}>
+                                <Select placeholder="Limite" value={selectedProductLimit}
+                                        onChange={(e) => setSelectedProductLimit(e.target.value)}>
+                                    {productLimits.map((productLimit) => (
+                                        <option key={productLimit.id}
+                                                value={productLimit.id}> {productLimit.name + ': ' + productLimit.quantity.value + ' ' + productLimit.quantity.measurementUnit + ' tous les ' + productLimit.duration + ' jours'}</option>
+                                    ))}
+                                </Select>
+                            </Skeleton>
                         </FormControl>
                         {updatedProductError !== "" && (
                             <Text color="red">{updatedProductError}</Text>
@@ -1213,11 +1339,13 @@ export default function Stocks() {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-            <Modal isOpen={isOpenDeleteProductModal} onClose={onCloseDeleteProductModal} size="lg" scrollBehavior="outside">
-                <ModalOverlay />
+
+            <Modal isOpen={isOpenDeleteProductModal} onClose={onCloseDeleteProductModal} size="lg"
+                   scrollBehavior="outside">
+                <ModalOverlay/>
                 <ModalContent>
                     <ModalHeader>Supprimer un produit</ModalHeader>
-                    <ModalCloseButton />
+                    <ModalCloseButton/>
                     <ModalBody>
                         <FormControl>
                             {selectedProduct !== null && (
@@ -1235,18 +1363,21 @@ export default function Stocks() {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
+
             <Modal isOpen={isOpenAddStorageModal} onClose={onCloseAddStorageModal} size="xl" scrollBehavior="outside">
-                <ModalOverlay />
+                <ModalOverlay/>
                 <ModalContent>
                     <ModalHeader>Ajouter un espace de stockage</ModalHeader>
-                    <ModalCloseButton />
+                    <ModalCloseButton/>
                     <ModalBody>
                         <FormControl>
                             <FormLabel>Nom de l'espace de stockage</FormLabel>
-                            <Input type="text" placeholder="Nom de l'espace de stockage" value={storageName} onChange={(e) => setStorageName(e.target.value)}/>
+                            <Input type="text" placeholder="Nom de l'espace de stockage" value={storageName}
+                                   onChange={(e) => setStorageName(e.target.value)}/>
                             <Text size="md" mt="8px" fontWeight="semibold">Emplacement de l'espace de stockage</Text>
                             <FormLabel>Département</FormLabel>
-                            <Select placeholder="Sélectionnez un département" value={storageDepartment} onChange={(e) => setStorageDepartment(e.target.value)}>
+                            <Select placeholder="Sélectionnez un département" value={storageDepartment}
+                                    onChange={(e) => setStorageDepartment(e.target.value)}>
                                 {departments.map((department, index) => {
                                     return (
                                         <option key={index} value={index}>{department.code} - {department.name}</option>
@@ -1254,9 +1385,11 @@ export default function Stocks() {
                                 })}
                             </Select>
                             <FormLabel>Code postale</FormLabel>
-                            <Input type="text" placeholder="Code postale" value={storagePostalCode} onChange={(e) => setStoragePostalCode(e.target.value)}/>
+                            <Input type="text" placeholder="Code postale" value={storagePostalCode}
+                                   onChange={(e) => setStoragePostalCode(e.target.value)}/>
                             <FormLabel>Ville</FormLabel>
-                            <Select placeholder="Sélectionnez une ville" value={storageCity} onChange={(e) => setStorageCity(e.target.value)}>
+                            <Select placeholder="Sélectionnez une ville" value={storageCity}
+                                    onChange={(e) => setStorageCity(e.target.value)}>
                                 {addStorageCityList.map((city, index) => {
                                     return (
                                         <option key={index} value={city}>{city}</option>
@@ -1264,7 +1397,8 @@ export default function Stocks() {
                                 })}
                             </Select>
                             <FormLabel>Adresse</FormLabel>
-                            <Input type="text" placeholder="Adresse" value={storageAddress} onChange={(e) => setStorageAddress(e.target.value)}/>
+                            <Input type="text" placeholder="Adresse" value={storageAddress}
+                                   onChange={(e) => setStorageAddress(e.target.value)}/>
                         </FormControl>
                         {errorAddingStorage !== "" && (
                             <Text color="red" mt="8px">{errorAddingStorage}</Text>
@@ -1274,17 +1408,20 @@ export default function Stocks() {
                         <Button colorScheme="blue" mr={3} onClick={onCloseAddStorageModal}>
                             Annuler
                         </Button>
-                        <Button variant="outline" colorScheme="green" onClick={() => setCallAddStockage(true)} isDisabled={createEventLoading}>
+                        <Button variant="outline" colorScheme="green" onClick={() => setCallAddStockage(true)}
+                                isDisabled={createEventLoading}>
                             Ajouter
                         </Button>
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-            <Modal isOpen={isOpenViewStorageModal} onClose={onCloseViewStorageModal} size="4xl" scrollBehavior="outside">
-                <ModalOverlay />
+
+            <Modal isOpen={isOpenViewStorageModal} onClose={onCloseViewStorageModal} size="4xl"
+                   scrollBehavior="outside">
+                <ModalOverlay/>
                 <ModalContent>
                     <ModalHeader>Contenu de l'espace de stockage</ModalHeader>
-                    <ModalCloseButton />
+                    <ModalCloseButton/>
                     <ModalBody>
                         {selectedStorage !== null && (
                             <Flex direction="column">
@@ -1295,7 +1432,7 @@ export default function Stocks() {
                                 <Text fontSize="xl" fontWeight="semibold">
                                     Produits alimentaires
                                 </Text>
-                                <SimpleGrid columns={{ sm: 2, md: 3, lg: 3, xl: 4 }} spacing="24px" m="12px">
+                                <SimpleGrid columns={{sm: 2, md: 3, lg: 3, xl: 4}} spacing="24px" m="12px">
                                     {selectedStorageProducts.foods.map((foodStorageProduct, key) => (
                                         <Card key={key}>
                                             <CardHeader>
@@ -1303,11 +1440,12 @@ export default function Stocks() {
                                                     <Text m="auto 0">{foodStorageProduct.product.name}</Text>
                                                     <Menu>
                                                         <MenuButton>
-                                                            <Icon as={FaEllipsisV} />
+                                                            <Icon as={FaEllipsisV}/>
                                                         </MenuButton>
                                                         <MenuList>
                                                             <Flex direction="column">
-                                                                <MenuItem onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenUpdateProductModal)}>
+                                                                <MenuItem
+                                                                    onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenUpdateProductModal)}>
                                                                     <Flex cursor="pointer" align="center" p="12px">
                                                                         <Icon as={FaEdit} mr="8px"/>
                                                                         <Text fontSize="sm" fontWeight="semibold">
@@ -1315,10 +1453,12 @@ export default function Stocks() {
                                                                         </Text>
                                                                     </Flex>
                                                                 </MenuItem>
-                                                                <MenuItem onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenDeleteProductModal)}>
+                                                                <MenuItem
+                                                                    onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenDeleteProductModal)}>
                                                                     <Flex cursor="pointer" align="center" p="12px">
                                                                         <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
-                                                                        <Text fontSize="sm" fontWeight="semibold" color="red.500">
+                                                                        <Text fontSize="sm" fontWeight="semibold"
+                                                                              color="red.500">
                                                                             Supprimer
                                                                         </Text>
                                                                     </Flex>
@@ -1331,26 +1471,35 @@ export default function Stocks() {
                                             <CardBody>
                                                 <Text>{foodStorageProduct.product.quantity} * {foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Text>
                                                 {foodStorageProduct.expirationDate && foodStorageProduct.expirationDate.getTime() < Date.now() && (
-                                                    <Badge m="2px" colorScheme="red">DLC {foodStorageProduct.expirationDate.toLocaleDateString()}</Badge>
+                                                    <Badge m="2px"
+                                                           colorScheme="red">DLC {foodStorageProduct.expirationDate.toLocaleDateString()}</Badge>
                                                 )}
                                                 {foodStorageProduct.expirationDate.getTime() > Date.now() && foodStorageProduct.expirationDate.getTime() < (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
-                                                    <Badge m="2px" colorScheme="orange">DLC {foodStorageProduct.expirationDate.toLocaleDateString()}</Badge>
+                                                    <Badge m="2px"
+                                                           colorScheme="orange">DLC {foodStorageProduct.expirationDate.toLocaleDateString()}</Badge>
                                                 )}
                                                 {foodStorageProduct.expirationDate.getTime() > (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
-                                                    <Badge m="2px" colorScheme="green">DLC {foodStorageProduct.expirationDate.toLocaleDateString()}</Badge>
+                                                    <Badge m="2px"
+                                                           colorScheme="green">DLC {foodStorageProduct.expirationDate.toLocaleDateString()}</Badge>
                                                 )}
                                                 {foodStorageProduct.optimalConsumptionDate.getTime() < Date.now() && (
-                                                    <Badge m="2px" colorScheme="red">DLUO {foodStorageProduct.optimalConsumptionDate.toLocaleDateString()}</Badge>
+                                                    <Badge m="2px"
+                                                           colorScheme="red">DLUO {foodStorageProduct.optimalConsumptionDate.toLocaleDateString()}</Badge>
                                                 )}
                                                 {foodStorageProduct.optimalConsumptionDate.getTime() > Date.now() && foodStorageProduct.optimalConsumptionDate.getTime() < (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
-                                                    <Badge m="2px" colorScheme="orange">DLUO {foodStorageProduct.optimalConsumptionDate.toLocaleDateString()}</Badge>
+                                                    <Badge m="2px"
+                                                           colorScheme="orange">DLUO {foodStorageProduct.optimalConsumptionDate.toLocaleDateString()}</Badge>
                                                 )}
-                                                {foodStorageProduct.optimalConsumptionDate .getTime() > (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
-                                                    <Badge m="2px" colorScheme="green">DLUO {foodStorageProduct.optimalConsumptionDate.toLocaleDateString()}</Badge>
+                                                {foodStorageProduct.optimalConsumptionDate.getTime() > (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
+                                                    <Badge m="2px"
+                                                           colorScheme="green">DLUO {foodStorageProduct.optimalConsumptionDate.toLocaleDateString()}</Badge>
                                                 )}
-                                                <Badge colorScheme="teal" mr="4px">{foodStorageProduct.price / 100} €</Badge>
-                                                <Badge colorScheme="cyan" mr="4px">{foodStorageProduct.conservation}</Badge>
-                                                <Badge colorScheme="purple">{foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Badge>
+                                                <Badge colorScheme="teal"
+                                                       mr="4px">{foodStorageProduct.price / 100} €</Badge>
+                                                <Badge colorScheme="cyan"
+                                                       mr="4px">{foodStorageProduct.conservation}</Badge>
+                                                <Badge
+                                                    colorScheme="purple">{foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Badge>
                                             </CardBody>
                                         </Card>
                                     ))}
@@ -1361,7 +1510,7 @@ export default function Stocks() {
                                 <Text fontSize="xl" mt="16px" fontWeight="semibold">
                                     Vêtements
                                 </Text>
-                                <SimpleGrid columns={{ sm: 2, md: 3, lg: 3, xl: 4 }} spacing="24px" m="12px">
+                                <SimpleGrid columns={{sm: 2, md: 3, lg: 3, xl: 4}} spacing="24px" m="12px">
                                     {selectedStorageProducts.clothes.map((clothStorageProduct, key) => (
                                         <Card key={key}>
                                             <CardHeader>
@@ -1369,11 +1518,12 @@ export default function Stocks() {
                                                     <Text m="auto 0">{clothStorageProduct.product.name}</Text>
                                                     <Menu>
                                                         <MenuButton>
-                                                            <Icon as={FaEllipsisV} />
+                                                            <Icon as={FaEllipsisV}/>
                                                         </MenuButton>
                                                         <MenuList>
                                                             <Flex direction="column">
-                                                                <MenuItem onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenUpdateProductModal)}>
+                                                                <MenuItem
+                                                                    onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenUpdateProductModal)}>
                                                                     <Flex cursor="pointer" align="center" p="12px">
                                                                         <Icon as={FaEdit} mr="8px"/>
                                                                         <Text fontSize="sm" fontWeight="semibold">
@@ -1381,10 +1531,12 @@ export default function Stocks() {
                                                                         </Text>
                                                                     </Flex>
                                                                 </MenuItem>
-                                                                <MenuItem onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenDeleteProductModal)}>
+                                                                <MenuItem
+                                                                    onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenDeleteProductModal)}>
                                                                     <Flex cursor="pointer" align="center" p="12px">
                                                                         <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
-                                                                        <Text fontSize="sm" fontWeight="semibold" color="red.500">
+                                                                        <Text fontSize="sm" fontWeight="semibold"
+                                                                              color="red.500">
                                                                             Supprimer
                                                                         </Text>
                                                                     </Flex>
@@ -1398,7 +1550,8 @@ export default function Stocks() {
                                                 <Text>{clothStorageProduct.product.quantity} * {clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Text>
                                                 <Badge colorScheme="teal" m="4px">{clothStorageProduct.size}</Badge>
                                                 <Badge colorScheme="blue" mr="4px">{clothStorageProduct.gender}</Badge>
-                                                <Badge colorScheme="purple">{clothStorageProduct.product.quantity * clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Badge>
+                                                <Badge
+                                                    colorScheme="purple">{clothStorageProduct.product.quantity * clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Badge>
                                             </CardBody>
                                         </Card>
                                     ))}
@@ -1416,18 +1569,22 @@ export default function Stocks() {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-            <Modal isOpen={isOpenUpdateStorageModal} onClose={onCloseUpdateStorageModal} size="xl" scrollBehavior="outside">
-                <ModalOverlay />
+
+            <Modal isOpen={isOpenUpdateStorageModal} onClose={onCloseUpdateStorageModal} size="xl"
+                   scrollBehavior="outside">
+                <ModalOverlay/>
                 <ModalContent>
                     <ModalHeader>Modifier un espace de stockage</ModalHeader>
-                    <ModalCloseButton />
+                    <ModalCloseButton/>
                     <ModalBody>
                         <FormControl>
                             <FormLabel>Nom de l'espace de stockage</FormLabel>
-                            <Input type="text" placeholder="Nom de l'espace de stockage" value={updatedStorageName} onChange={(e) => setUpdatedStorageName(e.target.value)}/>
+                            <Input type="text" placeholder="Nom de l'espace de stockage" value={updatedStorageName}
+                                   onChange={(e) => setUpdatedStorageName(e.target.value)}/>
                             <Text size="md" mt="8px" fontWeight="semibold">Emplacement de l'espace de stockage</Text>
                             <FormLabel>Département</FormLabel>
-                            <Select placeholder="Sélectionnez un département" value={updatedStorageDepartment} onChange={(e) => setUpdatedStorageDepartment(e.target.value)}>
+                            <Select placeholder="Sélectionnez un département" value={updatedStorageDepartment}
+                                    onChange={(e) => setUpdatedStorageDepartment(e.target.value)}>
                                 {departments.map((department, index) => {
                                     return (
                                         <option key={index} value={index}>{department.code} - {department.name}</option>
@@ -1435,9 +1592,11 @@ export default function Stocks() {
                                 })}
                             </Select>
                             <FormLabel>Code postale</FormLabel>
-                            <Input type="text" placeholder="Code postale" value={updatedStoragePostalCode} onChange={(e) => setUpdatedStoragePostalCode(e.target.value)}/>
+                            <Input type="text" placeholder="Code postale" value={updatedStoragePostalCode}
+                                   onChange={(e) => setUpdatedStoragePostalCode(e.target.value)}/>
                             <FormLabel>Ville</FormLabel>
-                            <Select placeholder="Sélectionnez une ville" value={updatedStorageCity} onChange={(e) => setUpdatedStorageCity(e.target.value)}>
+                            <Select placeholder="Sélectionnez une ville" value={updatedStorageCity}
+                                    onChange={(e) => setUpdatedStorageCity(e.target.value)}>
                                 {addStorageCityList.map((city, index) => {
                                     return (
                                         <option key={index} value={city}>{city}</option>
@@ -1445,7 +1604,8 @@ export default function Stocks() {
                                 })}
                             </Select>
                             <FormLabel>Adresse</FormLabel>
-                            <Input type="text" placeholder="Adresse" value={updatedStorageAddress} onChange={(e) => setUpdatedStorageAddress(e.target.value)}/>
+                            <Input type="text" placeholder="Adresse" value={updatedStorageAddress}
+                                   onChange={(e) => setUpdatedStorageAddress(e.target.value)}/>
                         </FormControl>
                         {errorUpdatingStorage !== "" && (
                             <Text color="red" mt="8px">{errorUpdatingStorage}</Text>
@@ -1455,36 +1615,42 @@ export default function Stocks() {
                         <Button colorScheme="blue" mr={3} onClick={onCloseUpdateStorageModal}>
                             Annuler
                         </Button>
-                        <Button variant="outline" colorScheme="green" onClick={() => setCallUpdateStockage(true)} isDisabled={createEventLoading}>
+                        <Button variant="outline" colorScheme="green" onClick={() => setCallUpdateStockage(true)}
+                                isDisabled={createEventLoading}>
                             Ajouter
                         </Button>
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-            <Modal isOpen={isOpenDeleteStorageModal} onClose={onCloseDeleteStorageModal} size="3xl" scrollBehavior="outside">
-                <ModalOverlay />
+
+            <Modal isOpen={isOpenDeleteStorageModal} onClose={onCloseDeleteStorageModal} size="3xl"
+                   scrollBehavior="outside">
+                <ModalOverlay/>
                 <ModalContent>
                     <ModalHeader>Supprimer un espace de stockage</ModalHeader>
-                    <ModalCloseButton />
+                    <ModalCloseButton/>
                     <ModalBody>
                         <FormControl>
                             {selectedStorage !== null && selectedStorageProducts.foods.length === 0 && selectedStorageProducts.clothes.length === 0 && (
                                 <Text>Etes-vous sur de vouloir supprimer {selectedStorage?.name} ?</Text>
                             )}
                             {selectedStorage !== null && (selectedStorageProducts.foods.length > 0 || selectedStorageProducts.clothes.length > 0) && (
-                                <Text fontWeight="semibold" color="red">Vous ne pouvez pas supprimer {selectedStorage?.name} car il contient les produits suivants: </Text>
+                                <Text fontWeight="semibold" color="red">Vous ne pouvez pas
+                                    supprimer {selectedStorage?.name} car il contient les produits suivants: </Text>
                             )}
                             {selectedStorageProducts.foods.length > 0 && (
                                 <Flex direction="column">
                                     <Text mt="16px" fontWeight="semibold">
                                         Produits alimentaires
                                     </Text>
-                                    <SimpleGrid columns={{ sm: 1, md: 1, lg: 2, xl: 3 }} spacing="24px" m="12px 2px">
+                                    <SimpleGrid columns={{sm: 1, md: 1, lg: 2, xl: 3}} spacing="24px" m="12px 2px">
                                         {selectedStorageProducts.foods.map((foodStorageProduct, key) => (
                                             <Card key={key}>
                                                 <Flex direction="row" justify="space-between">
-                                                    <Text fontSize="sm" mr="4px">{foodStorageProduct.product.name}</Text>
-                                                    <Badge colorScheme="purple" m="auto 0 auto auto">{foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Badge>
+                                                    <Text fontSize="sm"
+                                                          mr="4px">{foodStorageProduct.product.name}</Text>
+                                                    <Badge colorScheme="purple"
+                                                           m="auto 0 auto auto">{foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Badge>
                                                 </Flex>
                                             </Card>
                                         ))}
@@ -1496,12 +1662,14 @@ export default function Stocks() {
                                     <Text mt="16px" fontWeight="semibold">
                                         Vêtements
                                     </Text>
-                                    <SimpleGrid columns={{ sm: 1, md: 1, lg: 2, xl: 3 }} spacing="24px" m="12px 2px">
+                                    <SimpleGrid columns={{sm: 1, md: 1, lg: 2, xl: 3}} spacing="24px" m="12px 2px">
                                         {selectedStorageProducts.clothes.map((clothStorageProduct, key) => (
                                             <Card key={key}>
                                                 <Flex direction="row" justify="space-between">
-                                                    <Text fontSize="sm" mr="4px">{clothStorageProduct.product.name}</Text>
-                                                    <Badge colorScheme="purple" m="auto 0 auto auto">{clothStorageProduct.product.quantity * clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Badge>
+                                                    <Text fontSize="sm"
+                                                          mr="4px">{clothStorageProduct.product.name}</Text>
+                                                    <Badge colorScheme="purple"
+                                                           m="auto 0 auto auto">{clothStorageProduct.product.quantity * clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Badge>
                                                 </Flex>
                                             </Card>
                                         ))}
@@ -1514,19 +1682,22 @@ export default function Stocks() {
                         <Button colorScheme="blue" mr={3} onClick={onCloseDeleteStorageModal}>
                             Annuler
                         </Button>
-                        <Button colorScheme="red" variant="outline" mr={3} onClick={() => deleteStorage()} disabled={selectedStorageProducts.foods.length > 0 || selectedStorageProducts.clothes.length > 0}>
+                        <Button colorScheme="red" variant="outline" mr={3} onClick={() => deleteStorage()}
+                                disabled={selectedStorageProducts.foods.length > 0 || selectedStorageProducts.clothes.length > 0}>
                             Supprimer
                         </Button>
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-            <Modal isOpen={isOpenSoonExpiredProductsModal} onClose={onCloseSoonExpiredProductsModal} size="6xl" scrollBehavior="outside">
-                <ModalOverlay />
+
+            <Modal isOpen={isOpenSoonExpiredProductsModal} onClose={onCloseSoonExpiredProductsModal} size="6xl"
+                   scrollBehavior="outside">
+                <ModalOverlay/>
                 <ModalContent>
                     <ModalHeader>Produits dont la date de péremption nécessite votre attention</ModalHeader>
-                    <ModalCloseButton />
+                    <ModalCloseButton/>
                     <ModalBody>
-                        <SimpleGrid columns={{ sm: 1, md: 2, lg: 3, xl: 4 }} spacing="24px" m="12px">
+                        <SimpleGrid columns={{sm: 1, md: 2, lg: 3, xl: 4}} spacing="24px" m="12px">
                             {soonExpiredProducts.map((foodStorageProduct, key) => (
                                 <Card key={key}>
                                     <CardHeader>
@@ -1534,11 +1705,12 @@ export default function Stocks() {
                                             <Text m="auto 0">{foodStorageProduct.product.name}</Text>
                                             <Menu>
                                                 <MenuButton>
-                                                    <Icon as={FaEllipsisV} />
+                                                    <Icon as={FaEllipsisV}/>
                                                 </MenuButton>
                                                 <MenuList>
                                                     <Flex direction="column">
-                                                        <MenuItem onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenUpdateProductModal)}>
+                                                        <MenuItem
+                                                            onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenUpdateProductModal)}>
                                                             <Flex cursor="pointer" align="center" p="12px">
                                                                 <Icon as={FaEdit} mr="8px"/>
                                                                 <Text fontSize="sm" fontWeight="semibold">
@@ -1546,10 +1718,12 @@ export default function Stocks() {
                                                                 </Text>
                                                             </Flex>
                                                         </MenuItem>
-                                                        <MenuItem onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenDeleteProductModal)}>
+                                                        <MenuItem
+                                                            onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenDeleteProductModal)}>
                                                             <Flex cursor="pointer" align="center" p="12px">
                                                                 <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
-                                                                <Text fontSize="sm" fontWeight="semibold" color="red.500">
+                                                                <Text fontSize="sm" fontWeight="semibold"
+                                                                      color="red.500">
                                                                     Supprimer
                                                                 </Text>
                                                             </Flex>
@@ -1562,26 +1736,33 @@ export default function Stocks() {
                                     <CardBody>
                                         <Text>{foodStorageProduct.product.quantity} * {foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Text>
                                         {foodStorageProduct.expirationDate && foodStorageProduct.expirationDate.getTime() < Date.now() && (
-                                            <Badge m="2px" colorScheme="red">DLC {foodStorageProduct.expirationDate.toLocaleDateString()}</Badge>
+                                            <Badge m="2px"
+                                                   colorScheme="red">DLC {foodStorageProduct.expirationDate.toLocaleDateString()}</Badge>
                                         )}
                                         {foodStorageProduct.expirationDate.getTime() > Date.now() && foodStorageProduct.expirationDate.getTime() < (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
-                                            <Badge m="2px" colorScheme="orange">DLC {foodStorageProduct.expirationDate.toLocaleDateString()}</Badge>
+                                            <Badge m="2px"
+                                                   colorScheme="orange">DLC {foodStorageProduct.expirationDate.toLocaleDateString()}</Badge>
                                         )}
                                         {foodStorageProduct.expirationDate.getTime() > (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
-                                            <Badge m="2px" colorScheme="green">DLC {foodStorageProduct.expirationDate.toLocaleDateString()}</Badge>
+                                            <Badge m="2px"
+                                                   colorScheme="green">DLC {foodStorageProduct.expirationDate.toLocaleDateString()}</Badge>
                                         )}
                                         {foodStorageProduct.optimalConsumptionDate.getTime() < Date.now() && (
-                                            <Badge m="2px" colorScheme="red">DLUO {foodStorageProduct.optimalConsumptionDate.toLocaleDateString()}</Badge>
+                                            <Badge m="2px"
+                                                   colorScheme="red">DLUO {foodStorageProduct.optimalConsumptionDate.toLocaleDateString()}</Badge>
                                         )}
                                         {foodStorageProduct.optimalConsumptionDate.getTime() > Date.now() && foodStorageProduct.optimalConsumptionDate.getTime() < (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
-                                            <Badge m="2px" colorScheme="orange">DLUO {foodStorageProduct.optimalConsumptionDate.toLocaleDateString()}</Badge>
+                                            <Badge m="2px"
+                                                   colorScheme="orange">DLUO {foodStorageProduct.optimalConsumptionDate.toLocaleDateString()}</Badge>
                                         )}
-                                        {foodStorageProduct.optimalConsumptionDate .getTime() > (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
-                                            <Badge m="2px" colorScheme="green">DLUO {foodStorageProduct.optimalConsumptionDate.toLocaleDateString()}</Badge>
+                                        {foodStorageProduct.optimalConsumptionDate.getTime() > (new Date().getTime() + (14 * 24 * 60 * 60 * 1000)) && (
+                                            <Badge m="2px"
+                                                   colorScheme="green">DLUO {foodStorageProduct.optimalConsumptionDate.toLocaleDateString()}</Badge>
                                         )}
                                         <Badge colorScheme="teal" mr="4px">{foodStorageProduct.price / 100} €</Badge>
                                         <Badge colorScheme="cyan" mr="4px">{foodStorageProduct.conservation}</Badge>
-                                        <Badge colorScheme="purple">{foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Badge>
+                                        <Badge
+                                            colorScheme="purple">{foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Badge>
                                     </CardBody>
                                 </Card>
                             ))}
