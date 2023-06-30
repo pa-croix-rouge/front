@@ -30,6 +30,16 @@ export const getAllProductLimit = async () => {
     return await response.json();
 }
 
+export const getAllProductLimitProducts = async (id: string) => {
+    const response = await getWithToken(`product-limit/${id}/products`);
+
+    if (!response.ok) {
+        throw new Error(`Adding food product failed with status ${response.status}`);
+    }
+
+    return await response.json();
+}
+
 export const deleteProductLimit = async (id: string): Promise<void> => {
     const response = await deleteWithToken(`product-limit/${id}`);
 
