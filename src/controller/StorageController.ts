@@ -1,4 +1,4 @@
-import {getWithToken, postWithToken} from "./Controller";
+import {deleteWithToken, getWithToken, postWithToken} from "./Controller";
 import {Stockage} from "../model/stock/Stockage";
 import {ProductList} from "../model/stock/ProductList";
 import {ClothStorageProduct} from "../model/stock/ClothStorageProduct";
@@ -72,8 +72,49 @@ export const createStockage = async (name: string, localUnitID: string, departme
     return true;
 }
 
+export const updateStockage = async (id: string, name: string, localUnitID: string, departmentCode: string, postalCode: string, city: string, streetNumberAndName: string): Promise<boolean> => {
+    const response = await postWithToken(`storage/${id}`, {
+        name: name,
+        localUnitID: localUnitID,
+        address: {
+            departmentCode: departmentCode,
+            postalCode: postalCode,
+            city: city,
+            streetNumberAndName: streetNumberAndName,
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error(`Updating storage failed with status ${response.status}`);
+    }
+
+    return true;
+}
+
+export const deleteStockage = async (id: string): Promise<boolean> => {
+    const response = await deleteWithToken(`storage/${id}`);
+
+    if (!response.ok) {
+        throw new Error(`Deleting storage failed with status ${response.status}`);
+    }
+
+    return true;
+}
+
 export const getAllProducts = async (): Promise<ProductList> => {
     const response = await getWithToken(`storage/product/localunit`);
+
+    if (!response.ok) {
+        throw new Error(`Fetching products failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    return new ProductList(mapJsonToClothStorageProduct(data.clothProducts), mapJsonToFoodStorageProduct(data.foodProducts));
+}
+
+export const getProductsByStorage = async (storageId: string): Promise<ProductList> => {
+    const response = await getWithToken(`storage/product/${storageId}`);
 
     if (!response.ok) {
         throw new Error(`Fetching products failed with status ${response.status}`);
