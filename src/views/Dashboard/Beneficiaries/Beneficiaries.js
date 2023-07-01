@@ -2,7 +2,7 @@ import React, {createContext, useContext, useState} from "react";
 import {
     deleteBeneficiary,
     getBeneficiaries,
-    registerBeneficiary,
+    registerBeneficiary, setBeneficiaryValidationStatus,
     updateBeneficiary
 } from "../../../controller/BeneficiariesController";
 import {
@@ -31,7 +31,7 @@ import {
 import {Beneficiary} from "../../../model/Beneficiaries/Beneficiary";
 import {BeneficiaryRegistration} from "../../../model/Beneficiaries/BeneficiaryRegistration";
 import LocalUnitContext from "../../../contexts/LocalUnitContext";
-import {AddIcon, DeleteIcon, EditIcon, InfoOutlineIcon, PhoneIcon} from "@chakra-ui/icons";
+import {NotAllowedIcon, CheckIcon, DeleteIcon, EditIcon, InfoOutlineIcon, PhoneIcon} from "@chakra-ui/icons";
 import Card from "../../../components/Card/Card";
 import BeneficiaryProduct from "./BeneficiaryProduct";
 import {FaCog, FaPencilAlt, FaTrashAlt, FaUserPlus} from "react-icons/fa";
@@ -93,6 +93,7 @@ function Beneficiaries() {
         setLoadingBeneficiaries(true);
         getBeneficiaries().then((res) => {
             setBeneficiaries(res);
+            console.log(res)
             setLoadingBeneficiaries(false);
             setLoadedBeneficiaries(true);
         }).catch((err) => {
@@ -163,6 +164,25 @@ function Beneficiaries() {
         onOpenEditionModal();
     }
 
+    const onBeneficiaryValidation = (beneficiary) => {
+        setBeneficiaryValidationStatus(beneficiary.id, !beneficiary.isValidated).then((res) => {
+            setLoadedBeneficiaries(false);
+        }).catch((err) => {
+            console.log(err)
+        });
+    }
+
+    const getBeneficiaryCardValidateMenItem = (beneficiary) => {
+        return (
+            <MenuItem onClick={() => onBeneficiaryValidation(beneficiary)}>
+                <Flex direction="row" cursor="pointer" p="12px">
+                    <Icon as={beneficiary.isValidated? NotAllowedIcon : CheckIcon} mr="8px"/>
+                    <Text fontSize="sm" fontWeight="semibold">{ beneficiary.isValidated ? 'invalider' : 'valider' }</Text>
+                </Flex>
+            </MenuItem>
+        );
+    }
+
     const getBeneficiariesCards = (beneficiary) => {
         return (
             <WrapItem key={beneficiary.id}>
@@ -200,12 +220,13 @@ function Beneficiaries() {
                                             <Text fontSize="sm" fontWeight="semibold">Modifier</Text>
                                         </Flex>
                                     </MenuItem>
-                                    <MenuItem onClick={() => onProduct(beneficiary)}>
+                                    {beneficiary.isValidated && <MenuItem onClick={() => onProduct(beneficiary)}>
                                         <Flex direction="row" cursor="pointer" p="12px">
                                             <Icon as={MdReceipt} mr="8px"/>
                                             <Text fontSize="sm" fontWeight="semibold">Voir les produits</Text>
                                         </Flex>
-                                    </MenuItem>
+                                    </MenuItem>}
+                                    {getBeneficiaryCardValidateMenItem(beneficiary)}
                                     <MenuItem onClick={() => deleteBeneficiaries(beneficiary)}>
                                         <Flex direction="row" cursor="pointer" p="12px">
                                             <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
@@ -230,8 +251,13 @@ function Beneficiaries() {
                         <Button onClick={onOpenCreationModal} colorScheme="green">Ajouter un bénéficiaire</Button>
                     </Flex>
                 </Card>
+                <Text fontSize="xl" fontWeight="bold">Bénéficiares validés</Text>
                 <Wrap>
-                    {beneficiaries.map((beneficiary) => getBeneficiariesCards(beneficiary))}
+                    {beneficiaries.filter(b => b.isValidated).map((beneficiary) => getBeneficiariesCards(beneficiary))}
+                </Wrap>
+                <Text fontSize="xl" fontWeight="bold">Bénéficiares non validés</Text>
+                <Wrap>
+                    {beneficiaries.filter(b => !b.isValidated).map((beneficiary) => getBeneficiariesCards(beneficiary))}
                 </Wrap>
             </VStack>
 
