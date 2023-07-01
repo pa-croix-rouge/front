@@ -106,24 +106,24 @@ export const getEventForTrimester = async (localUnitId: string, month: number, y
     return mapJsonEventToEvent(data);
 }
 
-export const createSingleEvent = async (event: SingleEventCreation): Promise<boolean> => {
+export const createSingleEvent = async (event: SingleEventCreation) => {
     const response = await postWithToken(`event/details`, event);
 
     if (!response.ok) {
         throw new Error(`Creating single event failed with status ${response.status}`);
     }
 
-    return true;
+    return await response.json();
 }
 
-export const createRecurrentEvent = async (event: RecurrentEventCreation): Promise<boolean> => {
+export const createRecurrentEvent = async (event: RecurrentEventCreation) => {
     const response = await postWithToken(`event/sessions`, event);
 
     if (!response.ok) {
         throw new Error(`Creating recurrent event failed with status ${response.status}`);
     }
 
-    return true;
+    return await response.json();
 }
 
 export const updateEventSession = async (event: Event, start: Date, end: Date, eventTimeWindowDuration: number, eventTimeWindowOccurrence: number, eventTimeWindowMaxParticipants: number): Promise<boolean> => {
@@ -146,7 +146,7 @@ export const updateEventSession = async (event: Event, start: Date, end: Date, e
 }
 
 export const updateAllEventSessions = async (event: Event, start: Date, end: Date, eventTimeWindowDuration: number, eventTimeWindowOccurrence: number, eventTimeWindowMaxParticipants: number): Promise<boolean> => {
-    console.log("updateAllEventSessions params: ", event, start, end, eventTimeWindowDuration, eventTimeWindowOccurrence, eventTimeWindowMaxParticipants);
+    // console.log("updateAllEventSessions params: ", event, start, end, eventTimeWindowDuration, eventTimeWindowOccurrence, eventTimeWindowMaxParticipants);
     const response = await postWithToken(`event/sessions/${event.eventId}/${event.sessionId}`, {
         name: event.name,
         description: event.description,

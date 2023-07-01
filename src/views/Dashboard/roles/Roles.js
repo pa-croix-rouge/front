@@ -1,10 +1,11 @@
 import React, {useContext, useState} from "react";
-import {Button, Progress, Text, useDisclosure, VStack} from "@chakra-ui/react";
+import {Button, Flex, Progress, SimpleGrid, Text, useDisclosure, VStack} from "@chakra-ui/react";
 import VolunteerContext from "../../../contexts/VolunteerContext";
 import {getLocalUnitRoles, getRoleAuth} from "../../../controller/RoleController";
 import Role from "./Role";
 import RoleCreationModal from "./RoleCreationModal";
 import {getVolunteers} from "../../../controller/VolunteerController";
+import Card from "../../../components/Card/Card";
 
 export default function Roles(props) {
   const [rolesLoaded, setRolesLoaded] = useState(false);
@@ -67,14 +68,18 @@ export default function Roles(props) {
         <VStack spacing={10}
                 align="stretch"
                 pt={{ base: "120px", md: "75px", lg: "75px" }}>
-          <VStack spacing={4}
-                  align="stretch">
+          <Card>
+            <Flex justify="space-between">
+              <Text fontSize="xl" fontWeight="bold">Gestion des rôles</Text>
+              <Button onClick={onOpenAddModal} colorScheme="green">Ajouter un rôle</Button>
+            </Flex>
+          </Card>
+          <SimpleGrid columns={{ sm: 1, md: 1, xl: 2 }} spacing='24px' mb='8px'>
             {roles.map((role, index) => (
               <Role localUnitID={volunteer.localUnitId} localUnitVolunteer={localUnitVolunteer} role={role}
-                    roleAuth={roleAuth} onDelete={onDeleteRole}></Role>
+                    roleAuth={roleAuth} onDelete={onDeleteRole} key={index}></Role>
             ))}
-          </VStack>
-          <Button onClick={onOpenAddModal}> Add New Role </Button>
+          </SimpleGrid>
         </VStack>
         <RoleCreationModal isOpen={isOpenAddModal} onClose={onCloseAddModal}
                            localUnitID={volunteer.localUnitId} roleAuth={roleAuth} onNewValidRole={onNewValidRole} />

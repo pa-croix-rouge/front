@@ -1,12 +1,16 @@
 import {
   Button,
-  Checkbox,
   Flex,
   FormControl,
   FormLabel,
   HStack,
+  Icon,
   IconButton,
   Input,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
   Modal,
   ModalBody,
   ModalContent,
@@ -25,7 +29,7 @@ import {
 } from "@chakra-ui/react";
 import Card from "../../../components/Card/Card";
 import React, {useState} from "react";
-import {AddIcon, DeleteIcon, EditIcon} from "@chakra-ui/icons";
+import {AddIcon, DeleteIcon} from "@chakra-ui/icons";
 import {
   assignVolunteerToRole,
   deleteRole,
@@ -33,6 +37,7 @@ import {
   unassignVolunteerToRole
 } from "../../../controller/RoleController";
 import RoleCreationModal from "./RoleCreationModal";
+import {FaCog, FaPencilAlt, FaTrashAlt, FaUserPlus} from "react-icons/fa";
 
 export default function Role(props) {
   const { isOpen: isOpenAddModal, onOpen: onOpenAddModal, onClose: onCloseAddModal } = useDisclosure();
@@ -92,27 +97,49 @@ export default function Role(props) {
   return (
     <>
       <Card>
-        <Flex direction="row">
-          <VStack flex={"0.5"}>
-            <Text>Name: {role.name}</Text>
-            <Text>Description: {role.description}</Text>
-            <Spacer />
-            <Button colorScheme="blue" aria-label="Manage" onClick={onOpenManageModal}>Manage User</Button>
-            <IconButton isLoading={roleDeletionProgress} colorScheme="yellow" aria-label="Modifier" icon={<EditIcon />}
-                        onClick={onOpenAddModal} />
-            <IconButton isLoading={roleDeletionProgress} colorScheme="red" aria-label="Supprimer" icon={<DeleteIcon />}
-                        onClick={onDelete} />
-            <Text>{error}</Text>
-          </VStack>
+        <Flex direction="column">
+          <Flex direction="row" justify="space-between">
+            <Flex direction="column">
+              <Text fontSize="lg" fontWeight="bold">{role.name}</Text>
+              <Text><i>{role.description}</i></Text>
+            </Flex>
+            <Menu>
+              <MenuButton>
+                <Icon as={FaCog}/>
+              </MenuButton>
+              <MenuList>
+                <Flex direction="column">
+                  <MenuItem onClick={onOpenManageModal}>
+                    <Flex direction="row" cursor="pointer" p="12px">
+                      <Icon as={FaUserPlus} mr="8px"/>
+                      <Text fontSize="sm" fontWeight="semibold">Gérer les utilisateurs</Text>
+                    </Flex>
+                  </MenuItem>
+                  <MenuItem onClick={onOpenAddModal}>
+                    <Flex direction="row" cursor="pointer" p="12px">
+                      <Icon as={FaPencilAlt} mr="8px"/>
+                      <Text fontSize="sm" fontWeight="semibold">Modifier</Text>
+                    </Flex>
+                  </MenuItem>
+                  <MenuItem onClick={onDelete}>
+                    <Flex direction="row" cursor="pointer" p="12px">
+                      <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                      <Text color="red.500" fontSize="sm" fontWeight="semibold">Supprimer</Text>
+                    </Flex>
+                  </MenuItem>
+                </Flex>
+              </MenuList>
+            </Menu>
+          </Flex>
           <Table variant="simple" flex={"1"}>
             <Thead>
               <Tr color="gray.400">
-                <Th color="gray.400">
+                <Th color="gray.400" p="8px 8px 8px 2px">
                   Resource
                 </Th>
                 {props.roleAuth.operations.map((op, index) => {
                   return (
-                    <Th color="gray.400">{op}</Th>
+                    <Th key={index} color="gray.400" p="8px">{op}</Th>
                   );
                 })}
               </Tr>
@@ -120,13 +147,17 @@ export default function Role(props) {
             <Tbody>
               {props.roleAuth.resources.map((resource, index) => {
                 return (
-                  <Tr>
-                    <Th>{resource}</Th>
-                    {props.roleAuth.operations.map((opt, index) => {
+                  <Tr key={index}>
+                    <Th  p="8px 8px 8px 2px">{resource}</Th>
+                    {props.roleAuth.operations.map((opt, idx) => {
                       return (
-                        <Th>
-                          <Checkbox isReadOnly={true}
-                                    isChecked={role.authorizations[resource]?.find(v => v === opt) !== undefined} />
+                        <Th key={idx} p="8px">
+                          {role.authorizations[resource]?.find(v => v === opt) !== undefined && (
+                              <Text>✅</Text>
+                          )}
+                          {role.authorizations[resource]?.find(v => v === opt) === undefined && (
+                              <Text>❌</Text>
+                          )}
                         </Th>
                       );
                     })}
@@ -135,6 +166,7 @@ export default function Role(props) {
               })}
             </Tbody>
           </Table>
+          <Text>{error}</Text>
         </Flex>
       </Card>
 
@@ -163,7 +195,7 @@ export default function Role(props) {
                       && (luv.firstName.search(searchVolunteer) !== -1 || luv.lastName.search(searchVolunteer) !== -1))
                     .map((volunteer, index) => {
                       return (
-                        <Flex direction="row">
+                        <Flex direction="row" key={index}>
                           <Text>{volunteer.id} {volunteer.firstName} {volunteer.lastName}</Text>
                           <Spacer grow={"10"} />
                           <IconButton colorScheme="green" aria-label="assign" icon={<AddIcon />}
@@ -179,7 +211,7 @@ export default function Role(props) {
                     // ?.filter( rv => rv.firstName.search(searchVolunteer) !== -1 || rv.lastName.search(searchVolunteer) !== -1 )
                     ?.map((volunteer, index) => {
                       return (
-                        <Flex direction="row">
+                        <Flex direction="row" key={index}>
                           <Text>{volunteer.id} {volunteer.firstName} {volunteer.lastName}</Text>
                           <Spacer grow={"10"} />
                           <IconButton colorScheme="red" aria-label="unassign" icon={<DeleteIcon />}

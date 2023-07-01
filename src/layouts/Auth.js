@@ -1,16 +1,22 @@
 // chakra imports
-import { Box, Portal } from "@chakra-ui/react";
+import {Box, Portal} from "@chakra-ui/react";
 import Footer from "./../components/Footer/Footer.js";
 // core components
 import AuthNavbar from "./../components/Navbars/AuthNavbar.js";
-import React from "react";
-import { Redirect, Route, Switch } from "react-router-dom";
+import React, {useState} from "react";
+import {Redirect, Route, Switch, useHistory} from "react-router-dom";
 import routes from "./../routes.js";
 
 export default function Pages(props) {
   const { ...rest } = props;
+  const history = useHistory();
   // ref for the wrapper div
   const wrapper = React.createRef();
+  const [isConnectionChecking, setIsConnectionChecking] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+
+  console.log("Auth layout");
+
   React.useEffect(() => {
     document.body.style.overflow = "unset";
     // Specify how to clean up after this effect:
@@ -80,8 +86,14 @@ export default function Pages(props) {
       }
     });
   };
+
   const navRef = React.useRef();
   document.documentElement.dir = "ltr";
+
+  if (localStorage.getItem('token')) {
+    history.push("/admin/ul-dashboard");
+  }
+
   return (
     <Box ref={navRef} w='100%'>
       <Portal containerRef={navRef}>

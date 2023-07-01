@@ -13,9 +13,10 @@ import {
 } from "@chakra-ui/react";
 // Assets
 import BgSignUp from "./../../assets/img/BgSignUp.jpg";
-import React, {useState} from "react";
+import React, {useContext, useState} from "react";
 import {VolunteerRegistration} from "../../model/volunteer/VolunteerRegistration";
 import {register} from "../../controller/VolunteerController";
+import TokenContext from "../../contexts/TokenContext";
 import {useHistory} from "react-router-dom";
 
 function SignUp() {
@@ -38,8 +39,13 @@ function SignUp() {
     const [isError, setIsError] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [isSuccess, setIsSuccess] = useState(false);
-
     const history = useHistory();
+    const {token} = useContext(TokenContext);
+
+    if(token) {
+        history.push("/admin/ul-dashboard");
+    }
+
 
     const checkPasswordValidity = () => {
         if (password !== passwordConfirmation) {
