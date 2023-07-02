@@ -2,13 +2,13 @@ import {ProductLimit} from "../ProductLimit";
 
 export class StorageProduct {
     private storageProductId: string;
-    private productId: string;
+    productId: string;
     private storageId: string;
     private name: string;
     private quantity: number;
     private quantityQuantifier: string;
-    private quantifierName: string;
-    private productLimit: ProductLimit;
+    quantifierName: string;
+    productLimit: ProductLimit;
 
 
     constructor(storageProductId: string, productId: string, storageId: string, name: string, quantity: number, quantityQuantifier: string, quantifierName: string, productLimit: ProductLimit) {

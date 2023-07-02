@@ -1,6 +1,8 @@
 import React, {useContext, useEffect, useState} from "react";
 import {
-    Button,
+    Badge,
+    Box,
+    Button, Center, Container, Flex,
     FormLabel,
     HStack,
     Modal,
@@ -34,11 +36,13 @@ import {BeneficiaryAddProductRequestDTO} from "../../../model/Beneficiaries/Bene
 import {BeneficiaryProductCounterResponse} from "../../../model/Beneficiaries/BeneficiaryProductCounterResponse";
 import Card from "../../../components/Card/Card";
 import CardHeader from "../../../components/Card/CardHeader";
+import CardBody from "../../../components/Card/CardBody";
 
 export default function BeneficiaryProduct(props) {
 
     const {localUnit} = useContext(LocalUnitContext);
-    if (localUnit === undefined || localUnit.id === undefined || props.beneficiary === undefined || props.beneficiary.id === undefined) {
+    if (localUnit === undefined || localUnit.id === undefined ||
+        props.beneficiary === undefined || props.beneficiary.id === undefined) {
         return null;
     }
 
@@ -46,11 +50,13 @@ export default function BeneficiaryProduct(props) {
 
     const [loadedBeneficiaryProducts, setLoadedBeneficiaryProducts] = useState(false);
     const [loadingBeneficiaryProducts, setLoadingBeneficiaryProducts] = useState(false);
-    const [beneficiaryProducts, setBeneficiaryProducts] = useState(new BeneficiaryProductCounterResponse(new Map(), new Map()));
+    const [beneficiaryProducts, setBeneficiaryProducts] = useState([]);
 
     const [loadedProducts, setLoadedProducts] = useState(false);
     const [loadingProducts, setLoadingProducts] = useState(false);
     const [products, setProducts] = useState(new ProductList([], []));
+
+    const [productLimits, setProductLimits] = useState([]);
 
     const [quantity, setQuantity] = useState(1);
     const [selectedProduct, setSelectedProduct] = useState(undefined);
@@ -65,6 +71,30 @@ export default function BeneficiaryProduct(props) {
         setLoadingProducts(true);
         getAllProducts().then((res) => {
             setProducts(res);
+            console.log(res);
+
+            for (const temp of res.foods) {
+                if (temp.product.productLimit === undefined) {
+                    continue;
+                }
+                if (productLimits.find((item) => item.id === temp.product.productLimit.id) !== undefined) {
+                    continue;
+                }
+                productLimits.push({...temp.product.productLimit, currentQuantity: 0});
+            }
+
+            for (const temp of res.clothes) {
+                if (temp.product.productLimit === undefined) {
+                    continue;
+                }
+                if (productLimits.find((item) => item.id === temp.product.productLimit.id) !== undefined) {
+                    continue;
+                }
+                productLimits.push({...temp.product.productLimit, currentQuantity: 0});
+            }
+
+            console.log(productLimits);
+
             setLoadedProducts(true);
             setLoadingProducts(false);
         }).catch((err) => {
@@ -73,12 +103,85 @@ export default function BeneficiaryProduct(props) {
         });
     }
 
+    const isSameProduct = (productId1, productId2) => {
+        let product1 = products.foods.find((product) => product.product.productId === productId1);
+        if (product1 !== undefined) {
+            let product2 = products.foods.find((product) => product.product.productId === productId2);
+            if (product2 === undefined) {
+                return false;
+            }
+            return product1.product.name === product2.product.name;
+        }
+        product1 = products.clothes.find((product) => product.product.productId === productId1);
+        if (product1 !== undefined) {
+            let product2 = products.clothes.find((product) => product.product.productId === productId2);
+            if (product2 === undefined) {
+                return false;
+            }
+            return product1.product.name === product2.product.name;
+        }
+        return false;
+    }
+
     if (!loadedBeneficiaryProducts && !loadingBeneficiaryProducts) {
         setLoadingBeneficiaryProducts(true);
         const currentDate = new Date();
+
+        for (const temp of productLimits) {
+            temp.currentQuantity = 0;
+        }
+
         getAllBeneficiaryProductQuantity(props.beneficiary.id, new Date().setDate(currentDate.getDate() - periode), currentDate)
             .then((res) => {
-                setBeneficiaryProducts(res);
+                res = res.filter((beneficiaryProductResponse) => beneficiaryProductResponse.quantity !== 0);
+
+                for (const temp of res) {
+                    if (temp.productLimitId === undefined) {
+                        continue;
+                    }
+
+                    const productLimit = productLimits.find((item) => item.id === temp.productLimitId);
+                    if (productLimit === undefined) {
+                        continue;
+                    }
+                    const startDate = new Date().setDate(new Date().getDate() - productLimit.duration);
+                    if (new Date(temp.date).getTime() < startDate) {
+                        continue;
+                    }
+
+                    let product = products.foods.find((item) => item.product.productId === temp.productId);
+                    if (product === undefined) {
+                        product = products.clothes.find((item) => item.product.productId === temp.productId);
+                        if (product === undefined) {
+                            continue;
+                        }
+                        productLimit.currentQuantity += Number(product.product.quantityQuantifier) * temp.quantity;
+                    } else {
+                        if (product.product.quantifierName === "kilogram") {
+                            productLimit.currentQuantity += Number(product.product.quantityQuantifier) * temp.quantity;
+                        } else {
+                            productLimit.currentQuantity += Number(product.product.quantityQuantifier) / 1000 * temp.quantity;
+                        }
+                    }
+                }
+
+                console.log(productLimits)
+
+                const list = []
+                for (const temp of res) {
+                    if (list.find((item) => item.productId === temp.productId) !== undefined) {
+                        continue;
+                    }
+                    let dup = res.filter((item) => isSameProduct(item.productId, temp.productId));
+                    if (dup.length === 0) {
+                        continue;
+                    }
+                    const quantity = dup.reduce((acc, item) => acc + item.quantity, 0);
+                    list.push({...dup[0], quantity: quantity});
+                    res = res.filter((item) => !isSameProduct(item.productId, temp.productId));
+                }
+                console.log(list)
+                setBeneficiaryProducts(list);
                 setLoadingBeneficiaryProducts(false);
                 setLoadedBeneficiaryProducts(true);
             }).catch((err) => {
@@ -100,7 +203,6 @@ export default function BeneficiaryProduct(props) {
                 setSelectedProduct(undefined);
             }
         }
-
     }
 
     const onPeriodeChange = (e) => {
@@ -124,11 +226,103 @@ export default function BeneficiaryProduct(props) {
         });
     }
 
+    const getProductLimitCards = (productLimitId) => {
+        const productLimit = productLimits.find((item) => item.id === productLimitId);
+        if (productLimit === undefined) {
+            return <Text> Not Found </Text>;
+        }
+        return (
+            <Card>
+                <CardHeader>
+                    <Text fontWeight="semibold">Limitation {productLimit.name}</Text>
+                </CardHeader>
+                <CardBody>
+                    <Text> {productLimit.currentQuantity + '/' + productLimit.quantity.value + productLimit.quantity.measurementUnit} </Text>
+                </CardBody>
+            </Card>
+        )
+    }
+
+    const getBeneficiaryFoodProductCards = (foodProduct, quantity) => {
+        const productLimit = productLimits.find((item) => item.id === foodProduct.product.productLimit.id);
+        if (productLimit === undefined) {
+            return <Text> Not Found </Text>;
+        }
+
+        return (
+            <WrapItem key={foodProduct.product.productId}>
+                <Card>
+                    <CardHeader>
+                        <Text fontWeight="semibold">{foodProduct.product.name}</Text>
+                    </CardHeader>
+                    <CardBody>
+                        <HStack>
+                            <Text> Total {Number(foodProduct.product.quantityQuantifier) * quantity} {foodProduct.product.quantifierName}</Text>
+                            <VStack>
+                                <Text fontWeight="semibold">Limitation {productLimit.name}</Text>
+                                <Text> {productLimit.currentQuantity + ' / ' + productLimit.quantity.value + productLimit.quantity.measurementUnit} </Text>
+                                <Text> {'tous les ' + productLimit.duration + ' jours'} </Text>
+                            </VStack>
+                        </HStack>
+                    </CardBody>
+                    <Badge colorScheme="orange" mr="4px">Alimentaires</Badge>
+
+                </Card>
+            </WrapItem>
+        )
+    }
+
+    const getBeneficiaryClothProductCards = (clothProduct, quantity) => {
+        const productLimit = productLimits.find((item) => item.id === clothProduct.product.productLimit.id);
+        if (productLimit === undefined) {
+            return <Text> Not Found </Text>;
+        }
+
+        return (
+            <WrapItem key={clothProduct.product.productId}>
+                <Card>
+                    <CardHeader>
+                        <Text fontWeight="semibold">{clothProduct.product.name}</Text>
+                    </CardHeader>
+                    <CardBody>
+                        <HStack>
+                            <Text> Total {Number(clothProduct.product.quantityQuantifier) * quantity} {clothProduct.product.quantifierName}</Text>
+                            <VStack>
+                                <Text fontWeight="semibold">Limitation {productLimit.name}</Text>
+                                <Text> {productLimit.currentQuantity + ' / ' + productLimit.quantity.value + productLimit.quantity.measurementUnit} </Text>
+                                <Text> {'tous les ' + productLimit.duration + ' jours'} </Text>
+                            </VStack>
+                        </HStack>
+                    </CardBody>
+                    <Badge colorScheme="blue" mr="4px">Vetements</Badge>
+                </Card>
+            </WrapItem>
+        )
+    }
+
+    const getBeneficiaryProductCard = (beneficiaryProductResponse) => {
+        let product = products.foods.find((foodStorageProduct) => foodStorageProduct.product.productId == beneficiaryProductResponse.productId);
+        if (product !== undefined) {
+            return getBeneficiaryFoodProductCards(product, beneficiaryProductResponse.quantity);
+        }
+
+        product = products.clothes.find((clothStorageProduct) => clothStorageProduct.product.productId == beneficiaryProductResponse.productId);
+        if (product !== undefined) {
+            return getBeneficiaryClothProductCards(product, beneficiaryProductResponse.quantity);
+        }
+
+        return null;
+    }
+
     return (
         <Modal isOpen={props.isOpen} onClose={props.onClose} size="6xl" scrollBehavior="outside">
             <ModalOverlay/>
             <ModalContent>
-                <ModalHeader></ModalHeader>
+                <ModalHeader>
+                    <HStack>
+                        <Text>Produits de {props.beneficiary.firstName + ' ' + props.beneficiary.lastName}</Text>
+                    </HStack>
+                </ModalHeader>
                 <ModalCloseButton/>
                 <ModalBody>
                     <VStack align={'stretch'}>
@@ -163,6 +357,13 @@ export default function BeneficiaryProduct(props) {
                                 </NumberInputStepper>
                             </NumberInput>
                         </SimpleGrid>
+                        <HStack align={'stretch'}>
+                            <Text color={'red'}></Text>
+                            <Spacer></Spacer>
+                            <Button isLoading={addingProduct} colorScheme="blue" mr={3} onClick={onOK}>
+                                Ajouter
+                            </Button>
+                        </HStack>
                         <HStack>
                             <Text fontWeight="semibold">Produits déjà pris</Text>
                             <Spacer></Spacer>
@@ -178,29 +379,17 @@ export default function BeneficiaryProduct(props) {
                         </HStack>
                         <Skeleton isLoaded={loadedBeneficiaryProducts}>
                             <Wrap>
-                                {Array.from(beneficiaryProducts).map(([key, value]) => {
-                                    return (
-                                        <WrapItem>
-                                            <Card>
-                                                <CardHeader>
-                                                    <Text fontWeight="semibold">{key}</Text>
-                                                </CardHeader>
-                                                {value.value + ' ' + value.measurementUnit}
-                                            </Card>
-                                        </WrapItem>
-                                    )
+                                {beneficiaryProducts.map((value) => {
+                                    return getBeneficiaryProductCard(value);
                                 })}
                             </Wrap>
                         </Skeleton>
                     </VStack>
+
                 </ModalBody>
                 <ModalFooter>
-                    <Text color={'red'}></Text>
                     <Button colorScheme="blue" mr={3} onClick={props.onClose}>
                         fermer
-                    </Button>
-                    <Button isLoading={addingProduct} colorScheme="blue" mr={3} onClick={onOK}>
-                        Ok
                     </Button>
                 </ModalFooter>
             </ModalContent>
