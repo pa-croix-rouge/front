@@ -1,5 +1,14 @@
 import React, {useContext, useState} from "react";
-import {Button, Flex, Progress, SimpleGrid, Text, useDisclosure, VStack} from "@chakra-ui/react";
+import {
+  Button,
+  Center,
+  CircularProgress,
+  Flex,
+  SimpleGrid,
+  Text,
+  useDisclosure,
+  VStack
+} from "@chakra-ui/react";
 import VolunteerContext from "../../../contexts/VolunteerContext";
 import {getLocalUnitRoles, getRoleAuth} from "../../../controller/RoleController";
 import Role from "./Role";
@@ -87,8 +96,9 @@ export default function Roles(props) {
     );
   } else {
     return (
-      <Progress size="xs" isIndeterminate />
+        <Center h="100%" w="100%">
+          <CircularProgress isIndeterminate color="green.300" />
+        </Center>
     );
   }
-
 }
