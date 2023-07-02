@@ -6,7 +6,7 @@ import {
   Flex,
   SimpleGrid,
   Text,
-  useDisclosure,
+  useDisclosure, useToast,
   VStack
 } from "@chakra-ui/react";
 import VolunteerContext from "../../../contexts/VolunteerContext";
@@ -25,6 +25,7 @@ export default function Roles(props) {
   const [localUnitVolunteerLoaded, setLocalUnitVolunteerLoaded] = useState(false);
   const { volunteer, setVolunteer } = useContext(VolunteerContext);
   const { isOpen: isOpenAddModal, onOpen: onOpenAddModal, onClose: onCloseAddModal } = useDisclosure();
+  const toast = useToast();
 
   const onNewValidRole = (role) => {
     setRoles([...roles, role]);
@@ -41,6 +42,13 @@ export default function Roles(props) {
       })
       .catch((e) => {
         console.log(e.message);
+        toast({
+          title: 'Erreur',
+          description: "Echec du chargement des rôles.",
+          status: 'error',
+          duration: 10_000,
+          isClosable: true,
+        });
       });
   }
 
@@ -51,7 +59,14 @@ export default function Roles(props) {
         setLocalUnitVolunteerLoaded(true);
       })
       .catch((e) => {
-        setLocalUnitVolunteerLoaded(false);
+        setTimeout(() => {setLocalUnitVolunteerLoaded(false)}, 3000);
+        toast({
+          title: 'Erreur',
+          description: "Echec du chargement des volontaires.",
+          status: 'error',
+          duration: 10_000,
+          isClosable: true,
+        });
       });
   }
 
@@ -62,8 +77,14 @@ export default function Roles(props) {
         setRolesLoaded(true);
       })
       .catch((e) => {
-        setRolesLoadingError(e.message);
-        setRolesLoaded(false);
+        setTimeout(() => {setRolesLoaded(false)}, 3000);
+        toast({
+          title: 'Erreur',
+          description: "Echec du chargement des rôles.",
+          status: 'error',
+          duration: 10_000,
+          isClosable: true,
+        });
       });
   }
 
