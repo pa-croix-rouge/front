@@ -37,6 +37,7 @@ import {getEventSessions, updateAllEventSessions, updateEventSession} from "../.
 import TimelineRow from "../../../components/Tables/TimelineRow";
 import {CalendarIcon, CheckIcon} from "@chakra-ui/icons";
 import EventContext from "../../../contexts/EventContext";
+import {getBeneficiaries} from "../../../controller/BeneficiariesController";
 
 export default function EventEdition(props) {
 
@@ -76,6 +77,20 @@ export default function EventEdition(props) {
     const [eventMaxParticipants, setEventMaxParticipants] = useState(10);
     const [eventNumberOfTimeWindow, setEventNumberOfTimeWindow] = useState(3);
 
+    const [beneficiaries, setBeneficiaries] = useState([]);
+    const [loadedBeneficiaries, setLoadedBeneficiaries] = useState(false);
+
+    const loadBeneficiaries = () => {
+        setLoadedBeneficiaries(true);
+        getBeneficiaries()
+            .then((res) => {
+                setBeneficiaries(res);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    }
+
     useEffect(() => {
             setModifiedEvent(initialEvent)
 
@@ -90,12 +105,7 @@ export default function EventEdition(props) {
         }
         ,[props.eventSessionId])
 
-    const {
-        isOpen: isOpenModifyAllModal,
-        onOpen: onOpenModifyAllModal,
-        onClose: onCloseModifyAllModal
-    } = useDisclosure();
-
+    const {isOpen: isOpenModifyAllModal, onOpen: onOpenModifyAllModal, onClose: onCloseModifyAllModal} = useDisclosure();
 
     if ( modifiedEvent === undefined) {
         return null;
@@ -248,6 +258,7 @@ export default function EventEdition(props) {
 
     return (
         <>
+            {!loadedBeneficiaries && loadBeneficiaries()}
             <Modal isOpen={props.isOpen} onClose={props.onClose} size="6xl" scrollBehavior="outside">
                 <ModalOverlay/>
                 <ModalContent>
@@ -297,7 +308,7 @@ export default function EventEdition(props) {
                                     </Flex>
                                     <Flex direction="column" ml="16px" mr="16px">
                                         <Text m="auto">Nombre maximum de participants
-                                            calculé: {eventMaxParticipants * eventNumberOfTimeWindow}</Text>
+                                            calculé: {modifiedEventMaxParticipants * modifiedEventNumberOfTimeWindow}</Text>
                                     </Flex>
                                 </SimpleGrid>
                                 <SimpleGrid columns={{sm: 1, md: 2}} spacing='8px' mt="8px">
@@ -366,13 +377,20 @@ export default function EventEdition(props) {
                                             </Flex>
                                             <Text>Participants: {timeWindow.participants.length} / {timeWindow.maxParticipants}</Text>
                                             <Progress
-                                                colorScheme={(timeWindow.participants.length / timeWindow.maxParticipants) * 100 > 50 ? "green" : (timeWindow.participants.length / timeWindow.maxParticipants) * 100 > 85 ? "orange" : "red"}
+                                                colorScheme={(timeWindow.participants.length / timeWindow.maxParticipants) * 100 < 50 ? "green" : (timeWindow.participants.length / timeWindow.maxParticipants) * 100 < 85 ? "orange" : "red"}
                                                 size="xs"
                                                 value={timeWindow.participants.length / timeWindow.maxParticipants * 100}
                                                 borderRadius="15px"
                                             />
                                             {timeWindow.participants.map((participant, index) => (
-                                                <Text key={index}>{participant}</Text>
+                                                <>
+                                                    {beneficiaries.length === 0 && (
+                                                        <Text key={index}>{participant}</Text>
+                                                    )}
+                                                    {beneficiaries.length > 0 && (
+                                                        <Text key={index}>{beneficiaries.filter(beneficiary => beneficiary.id === participant)[0].firstName} {beneficiaries.filter(beneficiary => beneficiary.id === participant)[0].lastName}</Text>
+                                                    )}
+                                                </>
                                             ))}
                                         </Flex>
                                     </Card>
