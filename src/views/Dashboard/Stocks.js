@@ -27,8 +27,8 @@ import {
     RadioGroup,
     Select,
     SimpleGrid, Skeleton, Stat, StatLabel, StatNumber,
-    Text, useColorModeValue,
-    useDisclosure
+    Text, toast, useColorModeValue,
+    useDisclosure, useToast
 } from "@chakra-ui/react";
 import {
     createStockage,
@@ -165,6 +165,8 @@ export default function Stocks() {
 
     const [selectedProductLimit, setSelectedProductLimit] = useState(undefined);
 
+    const toast = useToast();
+
     if (loadedProductLimits === false && loadingProductLimits === false) {
         setLoadingProductLimits(true);
         getAllProductLimit()
@@ -298,7 +300,14 @@ export default function Stocks() {
                 setEndLoadingStorages(true);
             })
             .catch((_) => {
-                setLoadedStorages(false);
+                setTimeout(() => {setLoadedStorages(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des espaces de stockage.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -309,7 +318,14 @@ export default function Stocks() {
                 setDepartments(departments);
             })
             .catch((_) => {
-                setLoadedDepartments(false);
+                setTimeout(() => {setLoadedDepartments(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des départements.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -320,7 +336,14 @@ export default function Stocks() {
                 setUnits(units);
             })
             .catch((_) => {
-                setLoadedUnits(false);
+                setTimeout(() => {setLoadedUnits(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des unités de mesures.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -331,7 +354,14 @@ export default function Stocks() {
                 setConservations(conservations.conservations);
             })
             .catch((_) => {
-                setLoadedConservations(false);
+                setTimeout(() => {setLoadedConservations(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des méthodes de conservations.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -343,8 +373,14 @@ export default function Stocks() {
                 setEndLoadingAllProducts(true)
             })
             .catch((e) => {
-                console.log(e);
-                setLoadedAllProducts(false);
+                setTimeout(() => {setLoadedAllProducts(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des produits.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             })
     }
 
@@ -355,8 +391,14 @@ export default function Stocks() {
                 setSelectedStorageProducts(products);
             })
             .catch((e) => {
-                console.log(e);
-                setLoadedProductsByStorage(false);
+                setTimeout(() => {setLoadedProductsByStorage(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des stocks de produits.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -367,7 +409,14 @@ export default function Stocks() {
                 setSizes(sizes);
             })
             .catch((_) => {
-                setLoadedSizes(false);
+                setTimeout(() => {setLoadedSizes(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des tailles de vêtements.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -378,7 +427,14 @@ export default function Stocks() {
                 setGenders(genders);
             })
             .catch((_) => {
-                setLoadedGenders(false);
+                setTimeout(() => {setLoadedGenders(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des genres de vêtements.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -389,7 +445,14 @@ export default function Stocks() {
                 setStorageStats(stats);
             })
             .catch((_) => {
-                setLoadedStorageStats(false);
+                setTimeout(() => {setLoadedStorageStats(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des statistiques des espaces de stockage.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -401,7 +464,14 @@ export default function Stocks() {
                 setSoonExpiredProducts(products);
             })
             .catch((_) => {
-                setLoadedSoonExpiredProducts(false);
+                setTimeout(() => {setLoadedSoonExpiredProducts(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des produits bientôt expirés.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
