@@ -1,8 +1,6 @@
 import {deleteWithToken, getWithToken, postWithoutToken, postWithToken, putWithToken} from "./Controller";
 import {Beneficiary} from "../model/Beneficiaries/Beneficiary";
-import {VolunteerRegistration} from "../model/volunteer/VolunteerRegistration";
 import {BeneficiaryRegistration} from "../model/Beneficiaries/BeneficiaryRegistration";
-
 
 export const getBeneficiaries = async (): Promise<Beneficiary[]> => {
     const response = await getWithToken(`beneficiaries`);

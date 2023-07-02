@@ -753,7 +753,7 @@ export default function Stocks() {
             {!loadedProductsByStorage && selectedStorage !== null && loadProductsFromStorage()}
             {!loadedStorageStats && loadStorageStats()}
             {!loadedSoonExpiredProducts && loadSoonExpiredProducts()}
-            <Flex direction="column" pt={{base: "120px", md: "75px"}}>
+            <Flex direction="column" pt={{base: "120px", md: "75px"}} overflow="hidden">
                 <SimpleGrid columns={{sm: 1, md: 2, xl: 3}} spacing='24px' mb='20px'>
                     <Card minH='125px'>
                         <Flex direction='column'>
@@ -1063,7 +1063,6 @@ export default function Stocks() {
                     </CardBody>
                 </Card>
             </Flex>
-
             <Modal isOpen={isOpenAddProductModal} onClose={onCloseAddProductModal} size="2xl" scrollBehavior="outside">
                 <ModalOverlay/>
                 <ModalContent>
@@ -1203,7 +1202,6 @@ export default function Stocks() {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-
             <Modal isOpen={isOpenScannerModal} onClose={onCloseScannerModal} size="3xl" scrollBehavior="outside">
                 <ModalOverlay/>
                 <ModalContent>
@@ -1221,9 +1219,7 @@ export default function Stocks() {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-
-            <Modal isOpen={isOpenUpdateProductModal} onClose={onCloseUpdateProductModal} size="lg"
-                   scrollBehavior="outside">
+            <Modal isOpen={isOpenUpdateProductModal} onClose={onCloseUpdateProductModal} size="lg" scrollBehavior="outside">
                 <ModalOverlay/>
                 <ModalContent>
                     <ModalHeader>Modifier {selectedProduct?.product?.name}</ModalHeader>
@@ -1346,9 +1342,7 @@ export default function Stocks() {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-
-            <Modal isOpen={isOpenDeleteProductModal} onClose={onCloseDeleteProductModal} size="lg"
-                   scrollBehavior="outside">
+            <Modal isOpen={isOpenDeleteProductModal} onClose={onCloseDeleteProductModal} size="lg" scrollBehavior="outside">
                 <ModalOverlay/>
                 <ModalContent>
                     <ModalHeader>Supprimer un produit</ModalHeader>
@@ -1370,7 +1364,6 @@ export default function Stocks() {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-
             <Modal isOpen={isOpenAddStorageModal} onClose={onCloseAddStorageModal} size="xl" scrollBehavior="outside">
                 <ModalOverlay/>
                 <ModalContent>
@@ -1422,9 +1415,7 @@ export default function Stocks() {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-
-            <Modal isOpen={isOpenViewStorageModal} onClose={onCloseViewStorageModal} size="4xl"
-                   scrollBehavior="outside">
+            <Modal isOpen={isOpenViewStorageModal} onClose={onCloseViewStorageModal} size="4xl" scrollBehavior="outside">
                 <ModalOverlay/>
                 <ModalContent>
                     <ModalHeader>Contenu de l'espace de stockage</ModalHeader>
@@ -1576,9 +1567,7 @@ export default function Stocks() {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-
-            <Modal isOpen={isOpenUpdateStorageModal} onClose={onCloseUpdateStorageModal} size="xl"
-                   scrollBehavior="outside">
+            <Modal isOpen={isOpenUpdateStorageModal} onClose={onCloseUpdateStorageModal} size="xl" scrollBehavior="outside">
                 <ModalOverlay/>
                 <ModalContent>
                     <ModalHeader>Modifier un espace de stockage</ModalHeader>
@@ -1629,9 +1618,7 @@ export default function Stocks() {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-
-            <Modal isOpen={isOpenDeleteStorageModal} onClose={onCloseDeleteStorageModal} size="3xl"
-                   scrollBehavior="outside">
+            <Modal isOpen={isOpenDeleteStorageModal} onClose={onCloseDeleteStorageModal} size="3xl" scrollBehavior="outside">
                 <ModalOverlay/>
                 <ModalContent>
                     <ModalHeader>Supprimer un espace de stockage</ModalHeader>
@@ -1696,9 +1683,7 @@ export default function Stocks() {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-
-            <Modal isOpen={isOpenSoonExpiredProductsModal} onClose={onCloseSoonExpiredProductsModal} size="6xl"
-                   scrollBehavior="outside">
+            <Modal isOpen={isOpenSoonExpiredProductsModal} onClose={onCloseSoonExpiredProductsModal} size="6xl" scrollBehavior="outside">
                 <ModalOverlay/>
                 <ModalContent>
                     <ModalHeader>Produits dont la date de péremption nécessite votre attention</ModalHeader>

@@ -87,6 +87,8 @@ function Beneficiaries() {
     const [loadingBeneficiaries, setLoadingBeneficiaries] = useState(false);
     const [beneficiaries, setBeneficiaries] = useState([]);
 
+    const [search, setSearch] = useState('');
+
     const [selectedBeneficiary, setSelectedBeneficiary] = useState(new Beneficiary(undefined, '', '', '', undefined, '', '', ''));
 
     if (!loadedBeneficiaries && !loadingBeneficiaries) {
@@ -176,89 +178,109 @@ function Beneficiaries() {
         return (
             <MenuItem onClick={() => onBeneficiaryValidation(beneficiary)}>
                 <Flex direction="row" cursor="pointer" p="12px">
-                    <Icon as={beneficiary.isValidated? NotAllowedIcon : CheckIcon} mr="8px"/>
-                    <Text fontSize="sm" fontWeight="semibold">{ beneficiary.isValidated ? 'invalider' : 'valider' }</Text>
+                    <Icon as={beneficiary.isValidated ? NotAllowedIcon : CheckIcon} mr="8px"/>
+                    <Text fontSize="sm" fontWeight="semibold">{beneficiary.isValidated ? 'invalider' : 'valider'}</Text>
                 </Flex>
             </MenuItem>
         );
     }
 
+    const searchBeneficiaries = (beneficiary) => {
+        if (search === '') return true;
+        return beneficiary.firstName.search(search) !== -1 ||
+            beneficiary.lastName.search(search) !== -1 ||
+            beneficiary.phoneNumber.search(search) !== -1 ||
+            beneficiary.username.search(search) !== -1
+    }
+
+    const getFilteredBeneficiaries = (valid) => {
+        return beneficiaries.filter((beneficiary) => {
+            return beneficiary.isValidated === valid && searchBeneficiaries(beneficiary);
+        });
+    }
+
     const getBeneficiariesCards = (beneficiary) => {
         return (
-            <WrapItem key={beneficiary.id}>
-                <Card maxW='max'>
-                    <HStack align={'start'}>
-                        <VStack align={'stretch'}>
-                            <HStack align={'stretch'}>
-                                <Text  fontWeight="semibold"> Prénom : </Text>
-                                <Text> {beneficiary.firstName} </Text>
-                            </HStack>
-                            <HStack>
-                                <Text  fontWeight="semibold"> Nom de famille : </Text>
-                                <Text> {beneficiary.lastName} </Text>
-                            </HStack>
-                            <HStack>
-                                <Icon as={PhoneIcon} mr="8px"/>
-                                <Text> {beneficiary.phoneNumber} </Text>
-                            </HStack>
-                        </VStack>
-                        <Menu>
-                            <MenuButton>
-                                <Icon as={FaCog}/>
-                            </MenuButton>
-                            <MenuList>
-                                <Flex direction="column">
-                                    <MenuItem onClick={() => veiwBeneficiaries(beneficiary)}>
-                                        <Flex direction="row" cursor="pointer" p="12px">
-                                            <Icon as={FaUserPlus} mr="8px"/>
-                                            <Text fontSize="sm" fontWeight="semibold">détails</Text>
-                                        </Flex>
-                                    </MenuItem>
-                                    <MenuItem onClick={() => editBeneficiaries(beneficiary)}>
-                                        <Flex direction="row" cursor="pointer" p="12px">
-                                            <Icon as={FaPencilAlt} mr="8px"/>
-                                            <Text fontSize="sm" fontWeight="semibold">Modifier</Text>
-                                        </Flex>
-                                    </MenuItem>
-                                    {beneficiary.isValidated && <MenuItem onClick={() => onProduct(beneficiary)}>
-                                        <Flex direction="row" cursor="pointer" p="12px">
-                                            <Icon as={MdReceipt} mr="8px"/>
-                                            <Text fontSize="sm" fontWeight="semibold">Voir les produits</Text>
-                                        </Flex>
-                                    </MenuItem>}
-                                    {getBeneficiaryCardValidateMenItem(beneficiary)}
-                                    <MenuItem onClick={() => deleteBeneficiaries(beneficiary)}>
-                                        <Flex direction="row" cursor="pointer" p="12px">
-                                            <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
-                                            <Text color="red.500" fontSize="sm" fontWeight="semibold">Supprimer</Text>
-                                        </Flex>
-                                    </MenuItem>
-                                </Flex>
-                            </MenuList>
-                        </Menu>
-                    </HStack>
-                </Card>
-            </WrapItem>
+            <Card maxW='max'>
+                <HStack align={'start'}>
+                    <VStack align={'stretch'}>
+                        <HStack align={'stretch'}>
+                            <Text fontWeight="semibold"> Prénom : </Text>
+                            <Text> {beneficiary.firstName} </Text>
+                        </HStack>
+                        <HStack>
+                            <Text fontWeight="semibold"> Nom de famille : </Text>
+                            <Text> {beneficiary.lastName} </Text>
+                        </HStack>
+                        <HStack>
+                            <Icon as={PhoneIcon} mr="8px"/>
+                            <Text> {beneficiary.phoneNumber} </Text>
+                        </HStack>
+                    </VStack>
+                    <Menu>
+                        <MenuButton>
+                            <Icon as={FaCog}/>
+                        </MenuButton>
+                        <MenuList>
+                            <Flex direction="column">
+                                <MenuItem onClick={() => veiwBeneficiaries(beneficiary)}>
+                                    <Flex direction="row" cursor="pointer" p="12px">
+                                        <Icon as={FaUserPlus} mr="8px"/>
+                                        <Text fontSize="sm" fontWeight="semibold">détails</Text>
+                                    </Flex>
+                                </MenuItem>
+                                <MenuItem onClick={() => editBeneficiaries(beneficiary)}>
+                                    <Flex direction="row" cursor="pointer" p="12px">
+                                        <Icon as={FaPencilAlt} mr="8px"/>
+                                        <Text fontSize="sm" fontWeight="semibold">Modifier</Text>
+                                    </Flex>
+                                </MenuItem>
+                                {beneficiary.isValidated && <MenuItem onClick={() => onProduct(beneficiary)}>
+                                    <Flex direction="row" cursor="pointer" p="12px">
+                                        <Icon as={MdReceipt} mr="8px"/>
+                                        <Text fontSize="sm" fontWeight="semibold">Voir les produits</Text>
+                                    </Flex>
+                                </MenuItem>}
+                                {getBeneficiaryCardValidateMenItem(beneficiary)}
+                                <MenuItem onClick={() => deleteBeneficiaries(beneficiary)}>
+                                    <Flex direction="row" cursor="pointer" p="12px">
+                                        <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                        <Text color="red.500" fontSize="sm" fontWeight="semibold">Supprimer</Text>
+                                    </Flex>
+                                </MenuItem>
+                            </Flex>
+                        </MenuList>
+                    </Menu>
+                </HStack>
+            </Card>
         );
     }
 
     return (
         <BeneficiariesContext.Provider value={{beneficiaries, setBeneficiaries}}>
-            <VStack pt={{base: "120px", md: "75px"}} mr='32px' align={'stretch'}>
+            <VStack pt={{base: "120px", md: "75px"}} mr='32px' align={'stretch'} overflow={'hidden'}>
                 <Card>
                     <Flex justify="space-between">
                         <Text fontSize="xl" fontWeight="bold">Gestion des bénéficiaires</Text>
                         <Button onClick={onOpenCreationModal} colorScheme="green">Ajouter un bénéficiaire</Button>
                     </Flex>
                 </Card>
-                <Text fontSize="xl" fontWeight="bold">Bénéficiares validés</Text>
-                <Wrap>
-                    {beneficiaries.filter(b => b.isValidated).map((beneficiary) => getBeneficiariesCards(beneficiary))}
-                </Wrap>
-                <Text fontSize="xl" fontWeight="bold">Bénéficiares non validés</Text>
-                <Wrap>
-                    {beneficiaries.filter(b => !b.isValidated).map((beneficiary) => getBeneficiariesCards(beneficiary))}
-                </Wrap>
+                <HStack>
+                    <Text fontSize="xl" fontWeight="bold">Recherche</Text>
+                    <Input type="text" value={search} onChange={(e) => setSearch(e.target.value)}/>
+                </HStack>
+                <Card>
+                    <Text fontSize="xl" fontWeight="bold">Bénéficiares non validés</Text>
+                    <SimpleGrid columns={{sm: 1, md: 3, xl: 6}} spacing='24px' mb='8px'>
+                        {getFilteredBeneficiaries(false).map((beneficiary) => getBeneficiariesCards(beneficiary))}
+                    </SimpleGrid>
+                </Card>
+                <Card>
+                    <Text fontSize="xl" fontWeight="bold">Bénéficiares validés</Text>
+                    <SimpleGrid columns={{sm: 1, md: 3, xl: 6}} spacing='24px' mb='8px'>
+                        {getFilteredBeneficiaries(true).map((beneficiary) => getBeneficiariesCards(beneficiary))}
+                    </SimpleGrid>
+                </Card>
             </VStack>
 
             <BeneficiaryProduct isOpen={isOpenProductModal} onClose={onCloseProductModal} size="6xl"
@@ -405,18 +427,21 @@ function Beneficiaries() {
                                    value={selectedBeneficiary.username}/>
 
                             <FormLabel>Nom</FormLabel>
-                            <Input type="text" placeholder="nom" readOnly={true} isDisabled={true} value={selectedBeneficiary.lastName}/>
+                            <Input type="text" placeholder="nom" readOnly={true} isDisabled={true}
+                                   value={selectedBeneficiary.lastName}/>
 
                             <FormLabel>Prenom</FormLabel>
                             <Input flex={1} type="text" placeholder="prenom" readOnly={true} isDisabled={true}
                                    value={selectedBeneficiary.firstName}/>
 
                             <FormLabel>Date de naissance</FormLabel>
-                            <Input flex={1} type="date" placeholder="Date de naissance" readOnly={true} isDisabled={true}
+                            <Input flex={1} type="date" placeholder="Date de naissance" readOnly={true}
+                                   isDisabled={true}
                                    value={selectedBeneficiary.birthDate}/>
 
                             <FormLabel>Numéro de téléphone</FormLabel>
-                            <Input flex={1} type="text" placeholder="Numéro de téléphone" readOnly={true} isDisabled={true}
+                            <Input flex={1} type="text" placeholder="Numéro de téléphone" readOnly={true}
+                                   isDisabled={true}
                                    value={selectedBeneficiary.phoneNumber}/>
 
                             <FormLabel>Numéro de sécu</FormLabel>

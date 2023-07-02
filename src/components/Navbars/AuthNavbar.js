@@ -1,15 +1,12 @@
 // Chakra imports
 import {
-  Box,
   Button,
   Flex,
   HStack, Image,
-  Link, Stack, Text, useColorModeValue
+  Link, Stack, Text
 } from "@chakra-ui/react";
-import { SidebarResponsive } from "../Sidebar/Sidebar";
 import React from "react";
 import { NavLink } from "react-router-dom";
-import routes from "./../../routes.js";
 import croixRougeLogoHr from "../../assets/img/hr_Croix-Rouge_française_Logo.png";
 import {FaSignInAlt, FaUserPlus} from "react-icons/fa";
 
@@ -24,21 +21,8 @@ export default function AuthNavbar(props) {
   let navbarFilter = "initial";
   let navbarBackdrop = "none";
   let navbarPosition = "absolute";
-  let hamburgerColor = {
-    base: useColorModeValue("gray.700", "white"),
-    md: "white",
-  };
   let brand = (
-    <Link
-      href={`${process.env.PUBLIC_URL}/#/`}
-      target="_blank"
-      display="flex"
-      lineHeight="100%"
-      fontWeight="bold"
-      justifyContent="center"
-      alignItems="center"
-      color={mainText}
-    >
+    <Link href={`${process.env.PUBLIC_URL}/#/`} target="_blank" display="flex" lineHeight="100%" fontWeight="bold" justifyContent="center" alignItems="center" color={mainText} >
       <Stack direction="row" spacing="12px" align="center" justify="center">
         <Image src={croixRougeLogoHr} w='157px' h='57px' />
       </Stack>
@@ -47,36 +31,15 @@ export default function AuthNavbar(props) {
       </Text>
     </Link>
   );
-  hamburgerColor = { base: "white" };
   const linksAuth = (
-      <HStack display={{sm: "none", lg: "flex"}}>
+      <HStack display="flex">
         <NavLink to="/auth/signup">
-          <Button
-              fontSize="sm"
-              ms="0px"
-              px="0px"
-              me={{sm: "2px", md: "16px"}}
-              color={navbarIcon}
-              variant="no-effects"
-              leftIcon={
-                <FaUserPlus color={navbarIcon} w="12px" h="12px" me="0px"/>
-              }
-          >
+          <Button fontSize="sm" ms="0px" px="0px" me={{sm: "2px", md: "16px"}} color={navbarIcon} variant="no-effects" leftIcon={<FaUserPlus color={navbarIcon} w="12px" h="12px" me="0px"/>}>
             <Text>Sign Up</Text>
           </Button>
         </NavLink>
         <NavLink to="/auth/signin">
-          <Button
-              fontSize="sm"
-              ms="0px"
-              px="0px"
-              me={{sm: "2px", md: "16px"}}
-              color={navbarIcon}
-              variant="no-effects"
-              leftIcon={
-                <FaSignInAlt color={navbarIcon} w="12px" h="12px" me="0px"/>
-              }
-          >
+          <Button fontSize="sm" ms="0px" px="0px" me={{sm: "2px", md: "16px"}} color={navbarIcon} variant="no-effects" leftIcon={<FaSignInAlt color={navbarIcon} w="12px" h="12px" me="0px"/>}>
             <Text>Sign In</Text>
           </Button>
         </NavLink>
@@ -102,30 +65,8 @@ export default function AuthNavbar(props) {
       alignItems="center"
       zIndex="3"
     >
-      <Flex w="100%" justifyContent={{ sm: "start", lg: "space-between" }}>
+      <Flex w="100%" justifyContent="space-between">
         {brand}
-        <Box
-          ms={{ base: "auto", lg: "0px" }}
-          display={{ base: "flex", lg: "none" }}
-        >
-          <SidebarResponsive
-            hamburgerColor={hamburgerColor}
-            logoText={props.logoText}
-            secondary={props.secondary}
-            routes={routes}
-            logo={
-              <Stack
-                direction="row"
-                spacing="12px"
-                align="center"
-                justify="center"
-              >
-                <Image src={croixRougeLogoHr} w='157px' h='57px' />
-              </Stack>
-            }
-            {...rest}
-          />
-        </Box>
         {linksAuth}
       </Flex>
     </Flex>
