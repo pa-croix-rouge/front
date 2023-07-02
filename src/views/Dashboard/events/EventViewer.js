@@ -12,7 +12,7 @@ import {
     Progress,
     SimpleGrid,
     Text,
-    useDisclosure
+    useDisclosure, useToast
 } from "@chakra-ui/react";
 import Card from "../../../components/Card/Card";
 import EventEdition from "./EventEdition";
@@ -27,6 +27,7 @@ export default function EventViewer(props) {
     const [loadedBeneficiaries, setLoadedBeneficiaries] = useState(false);
     const [volunteers, setVolunteers] = useState([]);
     const [loadedVolunteers, setLoadedVolunteers] = useState(false);
+    const toast = useToast();
 
     const loadBeneficiaries = () => {
         setLoadedBeneficiaries(true);
@@ -35,7 +36,14 @@ export default function EventViewer(props) {
                 setBeneficiaries(res);
             })
             .catch((err) => {
-                console.log(err);
+                setTimeout(() => {setLoadedBeneficiaries(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des bénéficiaires.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -54,7 +62,14 @@ export default function EventViewer(props) {
                 setVolunteers(res);
             })
             .catch((err) => {
-                console.log(err);
+                setTimeout(() => {setLoadedVolunteers(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des volontaires.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 

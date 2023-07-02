@@ -24,7 +24,7 @@ import {
   Th,
   Thead,
   Tr,
-  useDisclosure,
+  useDisclosure, useToast,
   VStack
 } from "@chakra-ui/react";
 import Card from "../../../components/Card/Card";
@@ -47,6 +47,7 @@ export default function Role(props) {
   const [error, setError] = useState("");
   const [roleVolunteerLoaded, setRoleVolunteerLoaded] = useState(false);
   const [roleDeletionProgress, setRoleDeleteProgress] = useState(false);
+  const toast = useToast();
 
   if (!roleVolunteerLoaded) {
     getRoleVolunteers(role.id).then(value => {
@@ -57,8 +58,14 @@ export default function Role(props) {
       });
       setRoleVolunteerLoaded(true);
     }).catch(error => {
-      console.log(error.message);
-      setRoleVolunteerLoaded(false);
+      setTimeout(() => {setRoleVolunteerLoaded(false)}, 3000);
+      toast({
+        title: 'Erreur',
+        description: "Echec du chargement des volontaires de rôle.",
+        status: 'error',
+        duration: 10_000,
+        isClosable: true,
+      });
     });
   }
 

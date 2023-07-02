@@ -30,7 +30,7 @@ import {
     Thead,
     Tr,
     useColorModeValue,
-    useDisclosure
+    useDisclosure, useToast
 } from "@chakra-ui/react";
 import CardBody from "../../../components/Card/CardBody";
 import React, {useContext, useEffect, useState} from "react";
@@ -67,39 +67,26 @@ export default function ManageEvents() {
     const [volunteerNameList, setVolunteerNameList] = useState([]);
     const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
     const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
-
     // Modal variables
     const [selectedEvent, setSelectedEvent] = useState(undefined);
     const [selectedEventSessionId, setSelectedEventSessionId] = useState(undefined);
-
     const [eventSessions, setEventSessions] = useState([]);
-
-    const {
-        isOpen: isOpenVisualizationModal,
-        onOpen: onOpenVisualizationModal,
-        onClose: onCloseVisualizationModal
-    } = useDisclosure();
+    const {isOpen: isOpenVisualizationModal, onOpen: onOpenVisualizationModal, onClose: onCloseVisualizationModal} = useDisclosure();
     const {isOpen: isOpenCreationModal, onOpen: onOpenCreationModal, onClose: onCloseCreationModal} = useDisclosure();
-
     const {isOpen: isOpenEditionModal, onOpen: onOpenEditionModal, onClose: onCloseEditionModal} = useDisclosure();
     const [modifiedEvent, setModifiedEvent] = useState(undefined);
-
     const {isOpen: isOpenDeletionModal, onOpen: onOpenDeletionModal, onClose: onCloseDeletionModal} = useDisclosure();
     const [callDeleteEvent, setCallDeleteEvent] = useState(false);
-    const {
-        isOpen: isOpenDeletionAllModal,
-        onOpen: onOpenDeletionAllModal,
-        onClose: onCloseDeletionAllModal
-    } = useDisclosure();
+    const {isOpen: isOpenDeletionAllModal, onOpen: onOpenDeletionAllModal, onClose: onCloseDeletionAllModal} = useDisclosure();
     const [deleteAllSessions, setDeleteAllSessions] = useState(false);
     const [callDeleteAllSessions, setCallDeleteAllSessions] = useState(false);
+    const toast = useToast();
 
     useEffect(() => {
         if (selectedEvent !== modifiedEvent) {
             setModifiedEvent(selectedEvent);
         }
     }, [selectedEvent]);
-
 
     useEffect(() => {
         setLoadedEvents(false);
@@ -169,9 +156,16 @@ export default function ManageEvents() {
                 setReferrersId(Array.from(new Set(allReferrersId)));
             })
             .catch((err) => {
-                console.log(err);
                 setLoadingEvents(false);
                 setLoadedEvents(false);
+                setTimeout(() => {setLoadedEvents(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des événements.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -183,6 +177,14 @@ export default function ManageEvents() {
                     setReferrersName([...referrersName, volunteer.firstName + ' ' + volunteer.lastName]);
                 })
                 .catch((_) => {
+                    setTimeout(() => {setLoadedReferrers(false)}, 3000);
+                    toast({
+                        title: 'Erreur',
+                        description: "Echec du chargement des référents.",
+                        status: 'error',
+                        duration: 10_000,
+                        isClosable: true,
+                    });
                 });
         });
     }
@@ -195,6 +197,14 @@ export default function ManageEvents() {
                 setVolunteerNameList(volunteers.map((el) => el.firstName + ' ' + el.lastName));
             })
             .catch((_) => {
+                setTimeout(() => {setLoadVolunteerList(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des volontaires.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -203,7 +213,6 @@ export default function ManageEvents() {
         setSelectedEvent(events.find((el) => el.sessionId == event));
         onOpenModal();
     }
-
 
     const onNewEvent = (eventId) => {
         setLoadedEvents(false);
@@ -374,6 +383,7 @@ export default function ManageEvents() {
             </>
         );
     }
+
     const reloadEvents = () => {
         setLoadedEvents(false);
         setLoadedReferrers(false);

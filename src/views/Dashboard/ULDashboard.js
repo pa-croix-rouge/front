@@ -1,6 +1,6 @@
 import {
   Box,
-  Button,
+  Button, CircularProgress,
   Flex,
   Grid,
   SimpleGrid,
@@ -14,7 +14,7 @@ import {
   Th,
   Thead,
   Tr,
-  useColorModeValue,
+  useColorModeValue, useToast,
 } from "@chakra-ui/react";
 import Card from "components/Card/Card.js";
 import IconBox from "components/Icons/IconBox";
@@ -46,12 +46,15 @@ export default function ULDashboard() {
   const [loadedEventStats, setLoadedEventStats] = useState(false);
   const [loadedProductStats, setLoadedProductStats] = useState(false);
   const [loadedSoonExpiredFood, setLoadedSoonExpiredFood] = useState(false);
+  const [endLoadingSoonExpiredFood, setEndLoadingSoonExpiredFood] = useState(false);
   const [loadedVolunteers, setLoadedVolunteers] = useState(false);
+  const [endLoadingVolunteers, setEndLoadingVolunteers] = useState(false);
   const {volunteer, setVolunteer} = useContext(VolunteerContext);
   const [tableMaxHeight, setTableMaxHeight] = useState('320px');
   const [isInitialRender, setIsInitialRender] = useState(true);
   const calendarContainerRef = useRef(null);
   const [loadedEvents, setLoadedEvents] = useState(false);
+  const [endLoadingEvents, setEndLoadingEvents] = useState(false);
   const [loadedReferrers, setLoadedReferrers] = useState(false);
   const [localUnit, setLocalUnit] = useState({});
   const [events, setEvents] = useState([]);
@@ -59,12 +62,13 @@ export default function ULDashboard() {
   const [referrersName, setReferrersName] = useState([]);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
-  const [localUnitStats, setLocalUnitStats] = useState(new LocalUnitStats(0, 0));
-  const [eventStats, setEventStats] = useState(new EventsStats(0, 0, 0, 0));
-  const [productStats, setProductStats] = useState(new ProductsStats(0, 0));
+  const [localUnitStats, setLocalUnitStats] = useState(new LocalUnitStats(-1, -1));
+  const [eventStats, setEventStats] = useState(new EventsStats(-1, -1, -1, -1));
+  const [productStats, setProductStats] = useState(new ProductsStats(-1, -1));
   const [soonExpiredFood, setSoonExpiredFood] = useState([]);
   const [volunteers, setVolunteers] = useState([]);
   const history = useHistory();
+  const toast = useToast();
 
   useEffect(() => {
     setLoadedEvents(false);
@@ -107,7 +111,14 @@ export default function ULDashboard() {
           setLocalUnit(localUnit);
         })
         .catch((_) => {
-          setLoadedLocalUnit(false);
+          setTimeout(() => {setLoadedLocalUnit(false)}, 3000);
+          toast({
+            title: 'Erreur',
+            description: "Echec du chargement de l'unité locale.",
+            status: 'error',
+            duration: 10_000,
+            isClosable: true,
+          });
         });
   }
 
@@ -118,9 +129,17 @@ export default function ULDashboard() {
           setEvents(events);
           const allReferrersId = events.map((el) => el.referrerId);
           setReferrersId(Array.from(new Set(allReferrersId)));
+          setEndLoadingEvents(true)
         })
         .catch((_) => {
-          setLoadedEvents(false);
+          setTimeout(() => {setLoadedEvents(false)}, 3000);
+          toast({
+            title: 'Erreur',
+            description: "Echec du chargement des événements.",
+            status: 'error',
+            duration: 10_000,
+            isClosable: true,
+          });
         });
   }
 
@@ -132,6 +151,14 @@ export default function ULDashboard() {
             setReferrersName([...referrersName, volunteer.firstName + ' ' + volunteer.lastName]);
           })
           .catch((_) => {
+            setTimeout(() => {setLoadedReferrers(false)}, 3000);
+            toast({
+              title: 'Erreur',
+              description: "Echec du chargement des référents.",
+              status: 'error',
+              duration: 10_000,
+              isClosable: true,
+            });
           });
     });
   }
@@ -149,7 +176,14 @@ export default function ULDashboard() {
             setLocalUnitStats(stats);
         })
         .catch((_) => {
-            setLoadedLocalUnitStats(false);
+          setTimeout(() => {setLoadedLocalUnitStats(false)}, 3000);
+          toast({
+            title: 'Erreur',
+            description: "Echec du chargement des statisques de l'unité locale.",
+            status: 'error',
+            duration: 10_000,
+            isClosable: true,
+          });
         });
   }
 
@@ -160,7 +194,14 @@ export default function ULDashboard() {
           setEventStats(stats);
         })
         .catch((_) => {
-          setLoadedEventStats(false);
+          setTimeout(() => {setLoadedEventStats(false)}, 3000);
+          toast({
+            title: 'Erreur',
+            description: "Echec du chargement des statisques des événements.",
+            status: 'error',
+            duration: 10_000,
+            isClosable: true,
+          });
         });
   }
 
@@ -171,7 +212,14 @@ export default function ULDashboard() {
             setProductStats(stats);
         })
         .catch((_) => {
-            setLoadedProductStats(false);
+          setTimeout(() => {setLoadedProductStats(false)}, 3000);
+          toast({
+            title: 'Erreur',
+            description: "Echec du chargement des statisques des produits.",
+            status: 'error',
+            duration: 10_000,
+            isClosable: true,
+          });
         });
   }
 
@@ -180,9 +228,17 @@ export default function ULDashboard() {
     getSoonExpiredFood()
         .then((food) => {
             setSoonExpiredFood(food);
+            setEndLoadingSoonExpiredFood(true);
         })
         .catch((_) => {
-            setLoadedSoonExpiredFood(false);
+          setTimeout(() => {setLoadedSoonExpiredFood(false)}, 3000);
+          toast({
+            title: 'Erreur',
+            description: "Echec du chargement des produits bientôt périmés.",
+            status: 'error',
+            duration: 10_000,
+            isClosable: true,
+          });
         });
   }
 
@@ -191,9 +247,17 @@ export default function ULDashboard() {
     getVolunteers()
         .then((volunteers) => {
             setVolunteers(volunteers);
+            setEndLoadingVolunteers(true);
         })
         .catch((_) => {
-            setLoadedVolunteers(false);
+          setTimeout(() => {setLoadedVolunteers(false)}, 3000);
+          toast({
+            title: 'Erreur',
+            description: "Echec du chargement des volontaires.",
+            status: 'error',
+            duration: 10_000,
+            isClosable: true,
+          });
         });
   }
 
@@ -225,9 +289,14 @@ export default function ULDashboard() {
                     Nombre de bénévoles
                   </StatLabel>
                   <Flex>
-                    <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
-                      {localUnitStats.numberOfVolunteers}
-                    </StatNumber>
+                    {localUnitStats.numberOfVolunteers === -1 && (
+                        <CircularProgress isIndeterminate color='green.300'/>
+                    )}
+                    {localUnitStats.numberOfVolunteers !== -1  && (
+                        <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
+                          {localUnitStats.numberOfVolunteers}
+                        </StatNumber>
+                    )}
                   </Flex>
                 </Stat>
                 <IconBox
@@ -260,9 +329,14 @@ export default function ULDashboard() {
                     Nombre de bénéficiaires
                   </StatLabel>
                   <Flex>
-                    <StatNumber fontSize='lg' color={textColor} fontWeight='bold' href='/local-unit'>
-                        {localUnitStats.numberOfBeneficiaries}
-                    </StatNumber>
+                    {localUnitStats.numberOfBeneficiaries === -1 && (
+                        <CircularProgress isIndeterminate color='green.300'/>
+                    )}
+                    {localUnitStats.numberOfBeneficiaries !== -1  && (
+                        <StatNumber fontSize='lg' color={textColor} fontWeight='bold' href='/local-unit'>
+                          {localUnitStats.numberOfBeneficiaries}
+                        </StatNumber>
+                    )}
                   </Flex>
                 </Stat>
                 <IconBox
@@ -295,9 +369,14 @@ export default function ULDashboard() {
                     Nombres d'événements ce mois
                   </StatLabel>
                   <Flex>
-                    <StatNumber fontSize='lg' color={textColor} fontWeight='bold' href='/events'>
-                      {eventStats.numberOfEventsOverTheMonth}
-                    </StatNumber>
+                    {eventStats.numberOfEventsOverTheMonth === -1 && (
+                        <CircularProgress isIndeterminate color='green.300'/>
+                    )}
+                    {eventStats.numberOfEventsOverTheMonth !== -1  && (
+                        <StatNumber fontSize='lg' color={textColor} fontWeight='bold' href='/events'>
+                          {eventStats.numberOfEventsOverTheMonth}
+                        </StatNumber>
+                    )}
                   </Flex>
                 </Stat>
                 <IconBox
@@ -330,9 +409,14 @@ export default function ULDashboard() {
                     Etat des stocks
                   </StatLabel>
                   <Flex>
-                    <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
-                      {productStats.totalFoodQuantity + productStats.totalClothesQuantity} produits
-                    </StatNumber>
+                    {productStats.totalFoodQuantity === -1 && (
+                        <CircularProgress isIndeterminate color='green.300'/>
+                    )}
+                    {productStats.totalFoodQuantity !== -1  && (
+                        <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
+                          {productStats.totalFoodQuantity + productStats.totalClothesQuantity} produits
+                        </StatNumber>
+                    )}
                   </Flex>
                 </Stat>
                 <IconBox
@@ -349,12 +433,8 @@ export default function ULDashboard() {
             </Flex>
           </Card>
         </SimpleGrid>
-        <Flex
-            flexDirection='row' overflow="auto">
-          <Card
-              p='8px'
-              maxW={{ sm: "320px", md: "100%" }}
-              m='24px'>
+        <Flex flexDirection='row' overflow="auto">
+          <Card p='8px' maxW={{ sm: "320px", md: "100%" }} m='24px'>
             <Box minH='320px' margin='8px' ref={calendarContainerRef}>
               <FullCalendar
                   plugins={[ dayGridPlugin ]}
@@ -401,7 +481,10 @@ export default function ULDashboard() {
                     </Tr>
                   </Thead>
                   <Tbody w="100%">
-                    {events.length === 0 && (
+                    {!endLoadingEvents && (
+                        <CircularProgress isIndeterminate color='green.300' m="50% 140%"/>
+                    )}
+                    {endLoadingEvents && events.length === 0 && (
                         <Tr>
                           <Td colSpan={4} textAlign="center">
                             <Text color={textTableColor} fontSize="md">
@@ -410,7 +493,7 @@ export default function ULDashboard() {
                           </Td>
                         </Tr>
                     )}
-                    {events.map((el, index, arr) => {
+                    {endLoadingEvents && events.map((el, index, arr) => {
                       return (
                           <Tr key={index}>
                             <Td
@@ -484,7 +567,10 @@ export default function ULDashboard() {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {soonExpiredFood.map((el, index, arr) => {
+                  {!endLoadingSoonExpiredFood && (
+                      <CircularProgress isIndeterminate color='green.300' m="30% 130%"/>
+                  )}
+                  {endLoadingSoonExpiredFood && soonExpiredFood.map((el, index, arr) => {
                     return (
                         <Tr key={index}>
                           <Td
@@ -532,10 +618,10 @@ export default function ULDashboard() {
                 <Thead>
                   <Tr bg={tableRowColor}>
                     <Th color='gray.400' borderColor={borderColor}>
-                      Nom
+                      Prénom
                     </Th>
                     <Th color='gray.400' borderColor={borderColor}>
-                      Prénom
+                      Nom
                     </Th>
                     <Th color='gray.400' borderColor={borderColor}>
                       Téléphone
@@ -543,7 +629,10 @@ export default function ULDashboard() {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {volunteers.filter(v => v.isValidated).map((el, index, arr) => {
+                  {!endLoadingVolunteers && (
+                      <CircularProgress isIndeterminate color='green.300' m="30% 130%"/>
+                  )}
+                  {endLoadingVolunteers && volunteers.filter(v => v.isValidated).map((el, index, arr) => {
                     return (
                         <Tr key={index}>
                           <Td

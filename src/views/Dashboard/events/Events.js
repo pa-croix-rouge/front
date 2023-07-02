@@ -17,7 +17,7 @@ import {
     Thead,
     Tr,
     useColorModeValue,
-    useDisclosure,
+    useDisclosure, useToast,
 } from "@chakra-ui/react";
 import Card from "../../../components/Card/Card.js";
 import React, {useContext, useEffect, useRef, useState} from "react";
@@ -47,7 +47,8 @@ export default function Events() {
     const [isInitialRender, setIsInitialRender] = useState(true);
 
     const {volunteer, setVolunteer} = useContext(VolunteerContext);
-    const [stats, setStats] = useState(new EventsStats(0, 0, 0, 0));
+    const [loadedStats, setLoadedStats] = useState(false);
+    const [stats, setStats] = useState(new EventsStats(-1, -1, -1, -1));
 
     const [selectedDate, setSelectedDate] = useState(new Date());
 
@@ -60,11 +61,8 @@ export default function Events() {
     const [localUnitVolunteerLoading, setLocalUnitVolunteerLoading] = useState(false);
 
     const [selectedEventSessionId, setSelectedEventSessionId] = useState(undefined);
-    const {
-        isOpen: isOpenVisualizationModal,
-        onOpen: onOpenVisualizationModal,
-        onClose: onCloseVisualizationModal
-    } = useDisclosure();
+    const {isOpen: isOpenVisualizationModal, onOpen: onOpenVisualizationModal, onClose: onCloseVisualizationModal} = useDisclosure();
+    const toast = useToast();
 
     const updateTableMaxHeight = () => {
         if(calendarContainerRef.current === null) return;
@@ -159,7 +157,14 @@ export default function Events() {
                 setStats(stats);
             })
             .catch((_) => {
-                setLoadedStats(false);
+                setTimeout(() => {setLoadedStats(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des statistiques d'événements.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -174,6 +179,7 @@ export default function Events() {
 
     return (
         <EventContext.Provider value={{events, setEvents, reloadEvents}}>
+            {!loadedStats && loadStats()}
             <Flex flexDirection='column' pt={{base: "120px", md: "75px"}} mr='32px'>
                 <SimpleGrid columns={{sm: 1, md: 2, xl: 4}} spacing='24px' mb='8px'>
                     <Card minH='100px'>
@@ -193,9 +199,14 @@ export default function Events() {
                                         Nombre d'événements dans le mois
                                     </StatLabel>
                                     <Flex>
-                                        <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
-                                            {stats.numberOfEventsOverTheMonth}
-                                        </StatNumber>
+                                        {stats.numberOfEventsOverTheMonth === -1 && (
+                                            <CircularProgress isIndeterminate color='green.300'/>
+                                        )}
+                                        {stats.numberOfEventsOverTheMonth !== -1  && (
+                                            <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
+                                                {stats.numberOfEventsOverTheMonth}
+                                            </StatNumber>
+                                        )}
                                     </Flex>
                                 </Stat>
                                 <IconBox
@@ -225,9 +236,14 @@ export default function Events() {
                                         Nombres de bénéficiaires ce mois
                                     </StatLabel>
                                     <Flex>
-                                        <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
-                                            {stats.totalParticipantsOverTheMonth}
-                                        </StatNumber>
+                                        {stats.totalParticipantsOverTheMonth === -1 && (
+                                            <CircularProgress isIndeterminate color='green.300'/>
+                                        )}
+                                        {stats.totalParticipantsOverTheMonth !== -1  && (
+                                            <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
+                                                {stats.totalParticipantsOverTheMonth}
+                                            </StatNumber>
+                                        )}
                                     </Flex>
                                 </Stat>
                                 <IconBox
@@ -257,9 +273,14 @@ export default function Events() {
                                         Nombre d'événements sur 12 mois
                                     </StatLabel>
                                     <Flex>
-                                        <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
-                                            {stats.numberOfEventsOverTheYear}
-                                        </StatNumber>
+                                        {stats.numberOfEventsOverTheYear === -1 && (
+                                            <CircularProgress isIndeterminate color='green.300'/>
+                                        )}
+                                        {stats.numberOfEventsOverTheYear !== -1  && (
+                                            <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
+                                                {stats.numberOfEventsOverTheYear}
+                                            </StatNumber>
+                                        )}
                                     </Flex>
                                 </Stat>
                                 <IconBox
@@ -289,9 +310,14 @@ export default function Events() {
                                         Nombre de bénéficiaires sur 12 mois
                                     </StatLabel>
                                     <Flex>
-                                        <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
-                                            {stats.totalParticipantsOverTheYear}
-                                        </StatNumber>
+                                        {stats.totalParticipantsOverTheYear === -1 && (
+                                            <CircularProgress isIndeterminate color='green.300'/>
+                                        )}
+                                        {stats.totalParticipantsOverTheYear !== -1  && (
+                                            <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
+                                                {stats.totalParticipantsOverTheYear}
+                                            </StatNumber>
+                                        )}
                                     </Flex>
                                 </Stat>
                                 <IconBox

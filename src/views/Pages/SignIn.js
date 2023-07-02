@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from "react";
+import React, {useState} from "react";
 import {
     Box,
     Button,
@@ -13,7 +13,6 @@ import {
 import signInImage from "./../../assets/img/signInImage.jpg";
 import {User} from "../../model/User";
 import {login} from "../../controller/LoginController";
-import TokenContext from "../../contexts/TokenContext";
 import {useHistory} from "react-router-dom";
 
 function SignIn() {
@@ -25,7 +24,6 @@ function SignIn() {
     const [loading, setLoading] = useState(false);
     const [isError, setIsError] = useState(false);
     const [loadTokenSuccess, setLoadTokenSuccess] = useState(false);
-    // const {token, setToken} = useContext(TokenContext);
     const history = useHistory();
 
     const handleUsernameChange = (event) => {
@@ -55,17 +53,9 @@ function SignIn() {
             });
     }
 
-    // useEffect(() => {
-    //
-    // }, [token]);
-
     const goToSignUp = () => {
         history.push("/auth/signup");
     }
-
-    console.log("signin");
-
-
 
     return (
         <Flex position='relative'>
