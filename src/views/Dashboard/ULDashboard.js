@@ -14,7 +14,7 @@ import {
   Th,
   Thead,
   Tr,
-  useColorModeValue,
+  useColorModeValue, useToast,
 } from "@chakra-ui/react";
 import Card from "components/Card/Card.js";
 import IconBox from "components/Icons/IconBox";
@@ -68,6 +68,7 @@ export default function ULDashboard() {
   const [soonExpiredFood, setSoonExpiredFood] = useState([]);
   const [volunteers, setVolunteers] = useState([]);
   const history = useHistory();
+  const toast = useToast();
 
   useEffect(() => {
     setLoadedEvents(false);
@@ -110,7 +111,14 @@ export default function ULDashboard() {
           setLocalUnit(localUnit);
         })
         .catch((_) => {
-          setLoadedLocalUnit(false);
+          setTimeout(() => {setLoadedLocalUnit(false)}, 3000);
+          toast({
+            title: 'Erreur',
+            description: "Echec du chargement de l'unité locale.",
+            status: 'error',
+            duration: 10_000,
+            isClosable: true,
+          });
         });
   }
 
@@ -124,7 +132,14 @@ export default function ULDashboard() {
           setEndLoadingEvents(true)
         })
         .catch((_) => {
-          setLoadedEvents(false);
+          setTimeout(() => {setLoadedEvents(false)}, 3000);
+          toast({
+            title: 'Erreur',
+            description: "Echec du chargement des événements.",
+            status: 'error',
+            duration: 10_000,
+            isClosable: true,
+          });
         });
   }
 
@@ -136,6 +151,14 @@ export default function ULDashboard() {
             setReferrersName([...referrersName, volunteer.firstName + ' ' + volunteer.lastName]);
           })
           .catch((_) => {
+            setTimeout(() => {setLoadedReferrers(false)}, 3000);
+            toast({
+              title: 'Erreur',
+              description: "Echec du chargement des référents.",
+              status: 'error',
+              duration: 10_000,
+              isClosable: true,
+            });
           });
     });
   }
@@ -153,7 +176,14 @@ export default function ULDashboard() {
             setLocalUnitStats(stats);
         })
         .catch((_) => {
-            setLoadedLocalUnitStats(false);
+          setTimeout(() => {setLoadedLocalUnitStats(false)}, 3000);
+          toast({
+            title: 'Erreur',
+            description: "Echec du chargement des statisques de l'unité locale.",
+            status: 'error',
+            duration: 10_000,
+            isClosable: true,
+          });
         });
   }
 
@@ -164,7 +194,14 @@ export default function ULDashboard() {
           setEventStats(stats);
         })
         .catch((_) => {
-          setLoadedEventStats(false);
+          setTimeout(() => {setLoadedEventStats(false)}, 3000);
+          toast({
+            title: 'Erreur',
+            description: "Echec du chargement des statisques des événements.",
+            status: 'error',
+            duration: 10_000,
+            isClosable: true,
+          });
         });
   }
 
@@ -175,7 +212,14 @@ export default function ULDashboard() {
             setProductStats(stats);
         })
         .catch((_) => {
-            setLoadedProductStats(false);
+          setTimeout(() => {setLoadedProductStats(false)}, 3000);
+          toast({
+            title: 'Erreur',
+            description: "Echec du chargement des statisques des produits.",
+            status: 'error',
+            duration: 10_000,
+            isClosable: true,
+          });
         });
   }
 
@@ -187,7 +231,14 @@ export default function ULDashboard() {
             setEndLoadingSoonExpiredFood(true);
         })
         .catch((_) => {
-            setLoadedSoonExpiredFood(false);
+          setTimeout(() => {setLoadedSoonExpiredFood(false)}, 3000);
+          toast({
+            title: 'Erreur',
+            description: "Echec du chargement des produits bientôt périmés.",
+            status: 'error',
+            duration: 10_000,
+            isClosable: true,
+          });
         });
   }
 
@@ -199,7 +250,14 @@ export default function ULDashboard() {
             setEndLoadingVolunteers(true);
         })
         .catch((_) => {
-            setLoadedVolunteers(false);
+          setTimeout(() => {setLoadedVolunteers(false)}, 3000);
+          toast({
+            title: 'Erreur',
+            description: "Echec du chargement des volontaires.",
+            status: 'error',
+            duration: 10_000,
+            isClosable: true,
+          });
         });
   }
 
