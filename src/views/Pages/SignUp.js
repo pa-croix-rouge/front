@@ -62,6 +62,48 @@ function SignUp() {
         setIsError(false);
         setIsSuccess(false);
 
+        if (lastName === "") {
+            setLoading(false);
+            setIsError(true);
+            setErrorMessage('Le nom est obligatoire');
+            return;
+        }
+
+        if (firstName === "") {
+            setLoading(false);
+            setIsError(true);
+            setErrorMessage('Le prénom est obligatoire');
+            return;
+        }
+
+        if (email === "") {
+            setLoading(false);
+            setIsError(true);
+            setErrorMessage('L\'address mail est obligatoire');
+            return;
+        }
+
+        if (phoneNumber === "") {
+            setLoading(false);
+            setIsError(true);
+            setErrorMessage('Le numéro de téléphone est obligatoire');
+            return;
+        }
+
+        if (/^((?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\W]).{8,})$/.test(password) === false) {
+            setLoading(false);
+            setIsError(true);
+            setErrorMessage('Le mot de passe est obligatoire et doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial');
+            return;
+        }
+
+        if (/^\d{1}(A|B|\d)\d{3}-\d{3}$/.test(localUnitCode) === false) {
+            setLoading(false);
+            setIsError(true);
+            setErrorMessage('Le code de l\'unité local est invalide');
+            return;
+        }
+
         const passwordValidity = checkPasswordValidity();
 
         if (!passwordValidity) {
@@ -86,6 +128,7 @@ function SignUp() {
             .catch((_) => {
                 setLoading(false);
                 setIsError(true);
+                setErrorMessage('Erreur lors de l\'inscription, veuillez réessayer plus tard');
             });
     }
 
@@ -314,13 +357,13 @@ function SignUp() {
                         <Progress size="xs" isIndeterminate mb='12px'/>
                     )}
                     {isError && (
-                        <Text color='red.500' fontSize='sm' fontWeight='normal' mb='12px'>
+                        <Text color='red.500' fontSize='sm' fontWeight='semibold' mb='12px'>
                             {errorMessage}
                         </Text>
                     )}
                     {isSuccess && (
-                        <Text color='green.500' fontSize='sm' fontWeight='normal' mb='12px'>
-                            Inscription réussie ! Veuillez vous rapprocher du responsable de votre unité locale pour valider votre compte.
+                        <Text color='green.500' fontSize='sm' fontWeight='bold' mb='12px'>
+                            Demande d'inscription réussie ! Veuillez vous rapprocher du responsable de votre unité locale pour valider votre compte.
                         </Text>
                     )}
                     <Flex
