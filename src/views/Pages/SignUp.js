@@ -76,17 +76,17 @@ function SignUp() {
             return;
         }
 
-        if (email === "") {
+        if (/^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(email) === false) {
             setLoading(false);
             setIsError(true);
-            setErrorMessage('L\'address mail est obligatoire');
+            setErrorMessage('L\'address mail est invalide');
             return;
         }
 
-        if (phoneNumber === "") {
+        if (/^\+33 [1-9] \d{2} \d{2} \d{2} \d{2}$/.test(phoneNumber) === false) {
             setLoading(false);
             setIsError(true);
-            setErrorMessage('Le numéro de téléphone est obligatoire');
+            setErrorMessage('Le numéro de téléphone doit respecter le format +33 X XX XX XX XX');
             return;
         }
 
@@ -265,7 +265,7 @@ function SignUp() {
                                     fontSize='sm'
                                     ms='4px'
                                     type='phone'
-                                    placeholder='06 01 02 03 04'
+                                    placeholder='+33 6 01 02 03 04'
                                     mb='24px'
                                     size='lg'
                                     value={phoneNumber}
