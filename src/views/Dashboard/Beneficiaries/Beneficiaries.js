@@ -112,7 +112,6 @@ function Beneficiaries() {
     }
 
     const createBeneficiary = () => {
-        console.log(newBeneficiary)
         setCreatingNewBeneficiaries(true);
         registerBeneficiary(newBeneficiary)
             .then((res) => {
@@ -126,7 +125,6 @@ function Beneficiaries() {
     }
 
     const onUpdateBeneficiary = () => {
-        console.log(selectedBeneficiary)
         setCreatingNewBeneficiaries(true);
         updateBeneficiary(selectedBeneficiary.id, selectedBeneficiary)
             .then((res) => {
@@ -159,8 +157,6 @@ function Beneficiaries() {
     }
 
     const editBeneficiaries = (beneficiary) => {
-        console.log('editBeneficiaries')
-        console.log(beneficiary)
         setSelectedBeneficiary(beneficiary);
         onOpenEditionModal();
     }
