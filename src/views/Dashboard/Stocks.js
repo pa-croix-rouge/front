@@ -1,7 +1,7 @@
 import React, {useContext, useEffect, useRef, useState} from "react";
 import {
     Badge,
-    Button,
+    Button, CircularProgress,
     Flex,
     FormControl,
     FormLabel,
@@ -76,9 +76,11 @@ export default function Stocks() {
     const iconBlue = useColorModeValue("orange.500", "orange.500");
     const {volunteer, setVolunteer} = useContext(VolunteerContext);
     const [loadedStorages, setLoadedStorages] = useState(false);
+    const [endLoadingStorages, setEndLoadingStorages] = useState(false);
     const [loadedDepartments, setLoadedDepartments] = useState(false);
     const [loadedSizes, setLoadedSizes] = useState(false);
     const [loadedAllProducts, setLoadedAllProducts] = useState(false);
+    const [endLoadingAllProducts, setEndLoadingAllProducts] = useState(false);
     const [loadedProductsByStorage, setLoadedProductsByStorage] = useState(true);
     const [loadedUnits, setLoadedUnits] = useState(false);
     const [loadedConservations, setLoadedConservations] = useState(false);
@@ -92,33 +94,13 @@ export default function Stocks() {
     const [units, setUnits] = useState([]);
     const [conservations, setConservations] = useState([]);
     const [genders, setGenders] = useState([]);
-    const [storageStats, setStorageStats] = useState(new ProductsStats(0, 0, 0));
+    const [storageStats, setStorageStats] = useState(new ProductsStats(-1, -1, -1));
     const [soonExpiredProducts, setSoonExpiredProducts] = useState([]);
-    const {
-        isOpen: isOpenSoonExpiredProductsModal,
-        onOpen: onOpenSoonExpiredProductsModal,
-        onClose: onCloseSoonExpiredProductsModal
-    } = useDisclosure();
-    const {
-        isOpen: isOpenAddStorageModal,
-        onOpen: onOpenAddStorageModal,
-        onClose: onCloseAddStorageModal
-    } = useDisclosure();
-    const {
-        isOpen: isOpenDeleteStorageModal,
-        onOpen: onOpenDeleteStorageModal,
-        onClose: onCloseDeleteStorageModal
-    } = useDisclosure();
-    const {
-        isOpen: isOpenUpdateStorageModal,
-        onOpen: onOpenUpdateStorageModal,
-        onClose: onCloseUpdateStorageModal
-    } = useDisclosure();
-    const {
-        isOpen: isOpenViewStorageModal,
-        onOpen: onOpenViewStorageModal,
-        onClose: onCloseViewStorageModal
-    } = useDisclosure();
+    const {isOpen: isOpenSoonExpiredProductsModal, onOpen: onOpenSoonExpiredProductsModal, onClose: onCloseSoonExpiredProductsModal} = useDisclosure();
+    const {isOpen: isOpenAddStorageModal, onOpen: onOpenAddStorageModal, onClose: onCloseAddStorageModal} = useDisclosure();
+    const {isOpen: isOpenDeleteStorageModal, onOpen: onOpenDeleteStorageModal, onClose: onCloseDeleteStorageModal} = useDisclosure();
+    const {isOpen: isOpenUpdateStorageModal, onOpen: onOpenUpdateStorageModal, onClose: onCloseUpdateStorageModal} = useDisclosure();
+    const {isOpen: isOpenViewStorageModal, onOpen: onOpenViewStorageModal, onClose: onCloseViewStorageModal} = useDisclosure();
     const [storageName, setStorageName] = useState("");
     const [storageDepartment, setStorageDepartment] = useState("");
     const [storagePostalCode, setStoragePostalCode] = useState("");
@@ -136,11 +118,7 @@ export default function Stocks() {
     const [updatedStorageAddress, setUpdatedStorageAddress] = useState("");
     const [errorUpdatingStorage, setErrorUpdatingStorage] = useState("");
     //Add new product
-    const {
-        isOpen: isOpenAddProductModal,
-        onOpen: onOpenAddProductModal,
-        onClose: onCloseAddProductModal
-    } = useDisclosure();
+    const {isOpen: isOpenAddProductModal, onOpen: onOpenAddProductModal, onClose: onCloseAddProductModal} = useDisclosure();
     const [callAddStockage, setCallAddStockage] = useState(false);
     const [callUpdateStockage, setCallUpdateStockage] = useState(false);
     const [addProductType, setAddProductType] = useState("food");
@@ -157,11 +135,7 @@ export default function Stocks() {
     const [addProductGender, setAddProductGender] = useState("");
     const [addProductError, setAddProductError] = useState("");
     //Update product
-    const {
-        isOpen: isOpenUpdateProductModal,
-        onOpen: onOpenUpdateProductModal,
-        onClose: onCloseUpdateProductModal
-    } = useDisclosure();
+    const {isOpen: isOpenUpdateProductModal, onOpen: onOpenUpdateProductModal, onClose: onCloseUpdateProductModal} = useDisclosure();
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [selectedProductType, setSelectedProductType] = useState("");
     const [updatedProductName, setUpdatedProductName] = useState("");
@@ -177,11 +151,7 @@ export default function Stocks() {
     const [updatedProductGender, setUpdatedProductGender] = useState("");
     const [updatedProductError, setUpdatedProductError] = useState("");
     //Delete product
-    const {
-        isOpen: isOpenDeleteProductModal,
-        onOpen: onOpenDeleteProductModal,
-        onClose: onCloseDeleteProductModal
-    } = useDisclosure();
+    const {isOpen: isOpenDeleteProductModal, onOpen: onOpenDeleteProductModal, onClose: onCloseDeleteProductModal} = useDisclosure();
     //Quagga scanner
     const {isOpen: isOpenScannerModal, onOpen: onOpenScannerModal, onClose: onCloseScannerModal} = useDisclosure();
     const scannerRef = useRef(null);
@@ -323,6 +293,7 @@ export default function Stocks() {
         getStockages()
             .then((storages) => {
                 setStorages(storages);
+                setEndLoadingStorages(true);
             })
             .catch((_) => {
                 setLoadedStorages(false);
@@ -367,6 +338,7 @@ export default function Stocks() {
         getAllProducts()
             .then((products) => {
                 setAllProducts(products);
+                setEndLoadingAllProducts(true)
             })
             .catch((e) => {
                 console.log(e);
@@ -772,9 +744,14 @@ export default function Stocks() {
                                         Quantité total de nourriture
                                     </StatLabel>
                                     <Flex>
-                                        <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
-                                            {storageStats.totalFoodQuantity}
-                                        </StatNumber>
+                                        {storageStats.totalFoodQuantity === -1 && (
+                                            <CircularProgress isIndeterminate color='green.300'/>
+                                        )}
+                                        {storageStats.totalFoodQuantity !== -1  && (
+                                            <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
+                                                {storageStats.totalFoodQuantity}
+                                            </StatNumber>
+                                        )}
                                     </Flex>
                                 </Stat>
                                 <IconBox
@@ -804,10 +781,14 @@ export default function Stocks() {
                                         Quantité total de vêtements
                                     </StatLabel>
                                     <Flex>
-                                        <StatNumber fontSize='lg' color={textColor} fontWeight='bold'
-                                                    href='/local-unit'>
-                                            {storageStats.totalClothesQuantity}
-                                        </StatNumber>
+                                        {storageStats.totalClothesQuantity === -1 && (
+                                            <CircularProgress isIndeterminate color='green.300'/>
+                                        )}
+                                        {storageStats.totalClothesQuantity !== -1  && (
+                                            <StatNumber fontSize='lg' color={textColor} fontWeight='bold' href='/local-unit'>
+                                                {storageStats.totalClothesQuantity}
+                                            </StatNumber>
+                                        )}
                                     </Flex>
                                 </Stat>
                                 <IconBox
@@ -828,6 +809,9 @@ export default function Stocks() {
                                 justify='center'
                                 w='100%'
                                 mb='25px'>
+                                {storageStats.totalClothesQuantity === -1 && (
+                                    <CircularProgress isIndeterminate color='green.300'/>
+                                )}
                                 {storageStats.soonExpiredFood > 0 && (
                                     <Flex direction="column" m="auto">
                                         <Text fontWeight="bold" mb="8px" textAlign="center">
@@ -861,7 +845,10 @@ export default function Stocks() {
                             Produits alimentaires
                         </Text>
                         <SimpleGrid columns={{sm: 2, md: 3, lg: 4, xl: 5}} spacing="24px" m="12px">
-                            {allProducts.foods.map((foodStorageProduct, key) => (
+                            {!endLoadingAllProducts && (
+                                <CircularProgress isIndeterminate color='green.300'/>
+                            )}
+                            {endLoadingAllProducts && allProducts.foods.map((foodStorageProduct, key) => (
                                 <Card key={key}>
                                     <CardHeader>
                                         <Flex direction="row" justify="space-between">
@@ -929,7 +916,7 @@ export default function Stocks() {
                                     </CardBody>
                                 </Card>
                             ))}
-                            {allProducts.foods.length === 0 && (
+                            {endLoadingAllProducts && allProducts.foods.length === 0 && (
                                 <Text>Aucun produit en stock</Text>
                             )}
                         </SimpleGrid>
@@ -937,7 +924,10 @@ export default function Stocks() {
                             Vêtements
                         </Text>
                         <SimpleGrid columns={{sm: 2, md: 3, lg: 4, xl: 5}} spacing="24px" m="12px">
-                            {allProducts.clothes.map((clothStorageProduct, key) => (
+                            {!endLoadingAllProducts && (
+                                <CircularProgress isIndeterminate color='green.300'/>
+                            )}
+                            {endLoadingAllProducts && allProducts.clothes.map((clothStorageProduct, key) => (
                                 <Card key={key}>
                                     <CardHeader>
                                         <Flex direction="row" justify="space-between">
@@ -981,7 +971,7 @@ export default function Stocks() {
                                     </CardBody>
                                 </Card>
                             ))}
-                            {allProducts.clothes.length === 0 && (
+                            {endLoadingAllProducts && allProducts.clothes.length === 0 && (
                                 <Text>Aucun produit en stock</Text>
                             )}
                         </SimpleGrid>
@@ -998,7 +988,10 @@ export default function Stocks() {
                     </CardHeader>
                     <CardBody>
                         <SimpleGrid columns={{sm: 1, md: 2, xl: 3}} spacing="40px" mb="16px">
-                            {storages.map((storage) => (
+                            {!endLoadingStorages && (
+                                <CircularProgress isIndeterminate color='green.300'/>
+                            )}
+                            {endLoadingStorages && storages.map((storage) => (
                                 <Card key={storage.id}>
                                     <CardHeader>
                                         <Flex justify="space-between">
@@ -1056,7 +1049,7 @@ export default function Stocks() {
                                     </CardBody>
                                 </Card>
                             ))}
-                            {storages.length === 0 && (
+                            {endLoadingStorages && storages.length === 0 && (
                                 <Text>Aucun espace de stockage</Text>
                             )}
                         </SimpleGrid>
