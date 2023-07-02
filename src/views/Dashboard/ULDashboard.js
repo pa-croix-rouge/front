@@ -527,7 +527,7 @@ export default function ULDashboard() {
                 </Button>
               </Flex>
             </Flex>
-            <Box overflow={{ sm: "scroll", lg: "hidden" }}>
+            <Box h="320px" overflow="scroll">
               <Table>
                 <Thead>
                   <Tr bg={tableRowColor}>
