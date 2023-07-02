@@ -1,4 +1,4 @@
-import React, {useContext} from "react";
+import React, {useContext, useState} from "react";
 import {
     Button,
     Flex,
@@ -17,21 +17,51 @@ import {
 import Card from "../../../components/Card/Card";
 import EventEdition from "./EventEdition";
 import EventContext from "../../../contexts/EventContext";
+import {getBeneficiaries} from "../../../controller/BeneficiariesController";
+import {getVolunteers} from "../../../controller/VolunteerController";
 
 export default function EventViewer(props) {
+    const {isOpen: isOpenEditionModal, onOpen: onOpenEditionModal, onClose: onCloseEditionModal} = useDisclosure();
+    const {events} = useContext(EventContext);
+    const [beneficiaries, setBeneficiaries] = useState([]);
+    const [loadedBeneficiaries, setLoadedBeneficiaries] = useState(false);
+    const [volunteers, setVolunteers] = useState([]);
+    const [loadedVolunteers, setLoadedVolunteers] = useState(false);
+
+    const loadBeneficiaries = () => {
+        setLoadedBeneficiaries(true);
+        getBeneficiaries()
+            .then((res) => {
+                setBeneficiaries(res);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    }
 
     if(props.eventSessionId === undefined){
         return null;
     }
-    const {events} = useContext(EventContext);
-    const event = events.find((ev) => ev.sessionId == props.eventSessionId);
+    const event = events.find((ev) => ev.sessionId === props.eventSessionId);
     if(event === undefined){
         return null;
     }
-    const {isOpen: isOpenEditionModal, onOpen: onOpenEditionModal, onClose: onCloseEditionModal} = useDisclosure();
+
+    const loadVolunteers = () => {
+        setLoadedVolunteers(true);
+        getVolunteers()
+            .then((res) => {
+                setVolunteers(res);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    }
 
     return (
         <>
+            {!loadedBeneficiaries && loadBeneficiaries()}
+            {!loadedVolunteers && loadVolunteers()}
             <Modal isOpen={props.isOpen} onClose={props.onClose} size="6xl" scrollBehavior="outside">
                 <ModalOverlay/>
                 <ModalContent>
@@ -43,7 +73,12 @@ export default function EventViewer(props) {
                                 <Text fontSize="2xl" fontWeight="bold">{event.name}</Text>
                                 <Text><i>{event.description}</i></Text>
                                 <Text>Du {event.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")} au {event.endDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}</Text>
-                                <Text>Référent: {event.referrerId}</Text>
+                                {volunteers.length === 0 && (
+                                    <Text>Référent: {event.referrerId}</Text>
+                                )}
+                                {volunteers.length > 0 && (
+                                    <Text>Référent: {volunteers.filter(volunteer => volunteer.id === event.referrerId)[0].firstName} {volunteers.filter(volunteer => volunteer.id === event.referrerId)[0].lastName}</Text>
+                                )}
                                 <Text>Participants: {event.numberOfParticipants} / {event.maxParticipants}</Text>
                                 <Text>Plage{event.timeWindows.length > 1 ? "s" : ""} horaire{event.timeWindows.length > 1 ? "s" : ""}</Text>
                                 <SimpleGrid columns={{sm: 1, md: 2, xl: 3}} spacing='24px'>
@@ -56,13 +91,20 @@ export default function EventViewer(props) {
                                                 </Flex>
                                                 <Text>Participants: {timeWindow.participants.length} / {timeWindow.maxParticipants}</Text>
                                                 <Progress
-                                                    colorScheme={(timeWindow.participants.length / timeWindow.maxParticipants) * 100 > 50 ? "green" : (timeWindow.participants.length / timeWindow.maxParticipants) * 100 > 85 ? "orange" : "red"}
+                                                    colorScheme={(timeWindow.participants.length / timeWindow.maxParticipants) * 100 < 50 ? "green" : (timeWindow.participants.length / timeWindow.maxParticipants) * 100 < 85 ? "orange" : "red"}
                                                     size="xs"
                                                     value={timeWindow.participants.length / timeWindow.maxParticipants * 100}
                                                     borderRadius="15px"
                                                 />
                                                 {timeWindow.participants.map((participant, index) => (
-                                                    <Text key={index}>{participant}</Text>
+                                                    <>
+                                                        {beneficiaries.length === 0 && (
+                                                            <Text key={index}>{participant}</Text>
+                                                        )}
+                                                        {beneficiaries.length > 0 && (
+                                                            <Text key={index}>{beneficiaries.filter(beneficiary => beneficiary.id === participant)[0].firstName} {beneficiaries.filter(beneficiary => beneficiary.id === participant)[0].lastName}</Text>
+                                                        )}
+                                                    </>
                                                 ))}
                                             </Flex>
                                         </Card>
