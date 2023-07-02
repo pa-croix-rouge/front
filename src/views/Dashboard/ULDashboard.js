@@ -155,7 +155,7 @@ export default function ULDashboard() {
 
   const loadEventStats = () => {
     setLoadedEventStats(true);
-    getEventsStats(localUnit.id)
+    getEventsStats()
         .then((stats) => {
           setEventStats(stats);
         })
@@ -200,11 +200,11 @@ export default function ULDashboard() {
   return (
       <Flex flexDirection='column' pt={{ base: "120px", md: "75px" }}>
         {volunteer && !loadedLocalUnit && loadLocalUnit()}
-        {!loadedLocalUnit && !loadedEvents && volunteer && loadEvents()}
+        {loadedLocalUnit && !loadedEvents && volunteer && loadEvents()}
         {!loadedReferrers && referrersId.length > 0 && loadReferrersName()}
-        {!loadedLocalUnit && !loadedLocalUnitStats && loadLocalUnitStats()}
-        {!loadedLocalUnit && !loadedEventStats  && loadEventStats()}
-        {!loadedLocalUnit && !loadedProductStats && loadProductStats()}
+        {loadedLocalUnit && !loadedLocalUnitStats && loadLocalUnitStats()}
+        {!loadedEventStats  && loadEventStats()}
+        {loadedLocalUnit && !loadedProductStats && loadProductStats()}
         {!loadedSoonExpiredFood && loadSoonExpiredFood()}
         {!loadedVolunteers && loadVolunteers()}
         <SimpleGrid columns={{ sm: 1, md: 2, xl: 4 }} spacing='24px' mb='20px'>
