@@ -47,6 +47,7 @@ export default function Events() {
     const [isInitialRender, setIsInitialRender] = useState(true);
 
     const {volunteer, setVolunteer} = useContext(VolunteerContext);
+    const [loadedStats, setLoadedStats] = useState(false);
     const [stats, setStats] = useState(new EventsStats(0, 0, 0, 0));
 
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -174,6 +175,7 @@ export default function Events() {
 
     return (
         <EventContext.Provider value={{events, setEvents, reloadEvents}}>
+            {!loadedStats && loadStats()}
             <Flex flexDirection='column' pt={{base: "120px", md: "75px"}} mr='32px'>
                 <SimpleGrid columns={{sm: 1, md: 2, xl: 4}} spacing='24px' mb='8px'>
                     <Card minH='100px'>
