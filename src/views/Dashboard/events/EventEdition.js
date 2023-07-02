@@ -29,7 +29,7 @@ import {
     Switch,
     Text,
     Textarea,
-    useDisclosure
+    useDisclosure, useToast
 } from "@chakra-ui/react";
 import Card from "../../../components/Card/Card";
 import {FaArrowRight, FaUser} from "react-icons/fa";
@@ -79,6 +79,7 @@ export default function EventEdition(props) {
 
     const [beneficiaries, setBeneficiaries] = useState([]);
     const [loadedBeneficiaries, setLoadedBeneficiaries] = useState(false);
+    const toast = useToast();
 
     const loadBeneficiaries = () => {
         setLoadedBeneficiaries(true);
@@ -86,8 +87,15 @@ export default function EventEdition(props) {
             .then((res) => {
                 setBeneficiaries(res);
             })
-            .catch((err) => {
-                console.log(err);
+            .catch((_) => {
+                setTimeout(() => {setLoadedBeneficiaries(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des bénéficiaires.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 

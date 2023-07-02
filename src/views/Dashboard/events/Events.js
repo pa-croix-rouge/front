@@ -17,7 +17,7 @@ import {
     Thead,
     Tr,
     useColorModeValue,
-    useDisclosure,
+    useDisclosure, useToast,
 } from "@chakra-ui/react";
 import Card from "../../../components/Card/Card.js";
 import React, {useContext, useEffect, useRef, useState} from "react";
@@ -61,11 +61,8 @@ export default function Events() {
     const [localUnitVolunteerLoading, setLocalUnitVolunteerLoading] = useState(false);
 
     const [selectedEventSessionId, setSelectedEventSessionId] = useState(undefined);
-    const {
-        isOpen: isOpenVisualizationModal,
-        onOpen: onOpenVisualizationModal,
-        onClose: onCloseVisualizationModal
-    } = useDisclosure();
+    const {isOpen: isOpenVisualizationModal, onOpen: onOpenVisualizationModal, onClose: onCloseVisualizationModal} = useDisclosure();
+    const toast = useToast();
 
     const updateTableMaxHeight = () => {
         if(calendarContainerRef.current === null) return;
@@ -160,7 +157,14 @@ export default function Events() {
                 setStats(stats);
             })
             .catch((_) => {
-                setLoadedStats(false);
+                setTimeout(() => {setLoadedStats(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des statistiques d'événements.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
