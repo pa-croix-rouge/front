@@ -70,8 +70,8 @@ export const getEventSessions = async (eventId: string): Promise<Event[]> => {
     return mapJsonEventToEvent(data);
 }
 
-export const getEventsStats = async (localUnitId: string): Promise<EventsStats> => {
-    const response = await getWithToken(`event/stats/${localUnitId}`);
+export const getEventsStats = async (): Promise<EventsStats> => {
+    const response = await getWithToken(`event/stats`);
 
     if (!response.ok) {
         throw new Error(`Fetching events stats failed with status ${response.status}`);

@@ -318,7 +318,7 @@ export default function ManageEvents() {
                                             pb=".2rem"
                                         >{`${(event.numberOfParticipants / event.maxParticipants * 100).toFixed(1)}%`}</Text>
                                         <Progress
-                                            colorScheme={(event.numberOfParticipants / event.maxParticipants) * 100 > 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 > 85 ? "orange" : "red"}
+                                            colorScheme={(event.numberOfParticipants / event.maxParticipants) * 100 < 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 < 85 ? "orange" : "red"}
                                             size="xs"
                                             value={event.numberOfParticipants / event.maxParticipants * 100}
                                             borderRadius="15px"

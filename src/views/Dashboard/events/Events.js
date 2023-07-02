@@ -2,7 +2,7 @@ import {
     Box,
     Button,
     Center,
-    CircularProgress, Container,
+    CircularProgress,
     Flex,
     SimpleGrid,
     Skeleton,
@@ -18,8 +18,6 @@ import {
     Tr,
     useColorModeValue,
     useDisclosure,
-    Wrap,
-    WrapItem,
 } from "@chakra-ui/react";
 import Card from "../../../components/Card/Card.js";
 import React, {useContext, useEffect, useRef, useState} from "react";
@@ -70,9 +68,11 @@ export default function Events() {
 
     const updateTableMaxHeight = () => {
         if(calendarContainerRef.current === null) return;
-        const calendarContainerHeight = calendarContainerRef.current.offsetHeight;
-        const newTableMaxHeight = `${calendarContainerHeight}px`;
-        setTableMaxHeight(newTableMaxHeight);
+        setTimeout(() => {
+            const calendarContainerHeight = calendarContainerRef.current.offsetHeight;
+            const newTableMaxHeight = `${calendarContainerHeight}px`;
+            setTableMaxHeight(newTableMaxHeight);
+        }, 100);
     };
 
     useEffect(() => {
@@ -130,7 +130,6 @@ export default function Events() {
             </Center>
         );
     }
-
 
     const getReferrerName = (id) => {
         const vol = localUnitVolunteer.find((vol) => vol.id === volunteer.localUnitId);
@@ -347,7 +346,7 @@ export default function Events() {
                                     GERER TOUT LES EVENEMENTS
                                 </Button>
                             </Flex>
-                            <Box maxH={tableMaxHeight} overflow="auto">
+                            <Box maxH={calendarContainerRef.current !== null ? calendarContainerRef.current.offsetHeight : tableMaxHeight} overflow="auto">
                                 <Skeleton isLoaded={loadedEvents}>
                                     <Table>
                                         <Thead>

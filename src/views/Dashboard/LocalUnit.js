@@ -193,7 +193,7 @@ function LocalUnit() {
                                     Aucune demande en attente
                                 </Text>
                             )}
-                            <SimpleGrid columns={{ sm: 1, md: 3, xl: 6 }} spacing='24px' mb='8px'>
+                            <SimpleGrid columns={{ sm: 1, md: 3, xl: 5 }} spacing='24px' mb='8px'>
                                 {volunteers.filter(v => !v.isValidated).map((v, key) => (
                                     <Card minH='72px' key={key}>
                                         <Text fontWeight="bold" textAlign="center">
@@ -234,7 +234,7 @@ function LocalUnit() {
                         <Text>
                             Bénévoles: {volunteers.filter(v => v.isValidated).length}
                         </Text>
-                        <SimpleGrid columns={{ sm: 1, md: 3, xl: 6 }} spacing='24px' mb='8px'>
+                        <SimpleGrid columns={{ sm: 1, md: 3, xl: 5 }} spacing='24px' mb='8px'>
                             {volunteers.filter(v => v.isValidated).map((v, key) => (
                                 <Card minH='72px' key={key}>
                                     <Text fontWeight="bold" textAlign="center">
