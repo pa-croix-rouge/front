@@ -48,7 +48,7 @@ export default function Events() {
 
     const {volunteer, setVolunteer} = useContext(VolunteerContext);
     const [loadedStats, setLoadedStats] = useState(false);
-    const [stats, setStats] = useState(new EventsStats(0, 0, 0, 0));
+    const [stats, setStats] = useState(new EventsStats(-1, -1, -1, -1));
 
     const [selectedDate, setSelectedDate] = useState(new Date());
 
@@ -195,9 +195,14 @@ export default function Events() {
                                         Nombre d'événements dans le mois
                                     </StatLabel>
                                     <Flex>
-                                        <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
-                                            {stats.numberOfEventsOverTheMonth}
-                                        </StatNumber>
+                                        {stats.numberOfEventsOverTheMonth === -1 && (
+                                            <CircularProgress isIndeterminate color='green.300'/>
+                                        )}
+                                        {stats.numberOfEventsOverTheMonth !== -1  && (
+                                            <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
+                                                {stats.numberOfEventsOverTheMonth}
+                                            </StatNumber>
+                                        )}
                                     </Flex>
                                 </Stat>
                                 <IconBox
@@ -227,9 +232,14 @@ export default function Events() {
                                         Nombres de bénéficiaires ce mois
                                     </StatLabel>
                                     <Flex>
-                                        <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
-                                            {stats.totalParticipantsOverTheMonth}
-                                        </StatNumber>
+                                        {stats.totalParticipantsOverTheMonth === -1 && (
+                                            <CircularProgress isIndeterminate color='green.300'/>
+                                        )}
+                                        {stats.totalParticipantsOverTheMonth !== -1  && (
+                                            <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
+                                                {stats.totalParticipantsOverTheMonth}
+                                            </StatNumber>
+                                        )}
                                     </Flex>
                                 </Stat>
                                 <IconBox
@@ -259,9 +269,14 @@ export default function Events() {
                                         Nombre d'événements sur 12 mois
                                     </StatLabel>
                                     <Flex>
-                                        <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
-                                            {stats.numberOfEventsOverTheYear}
-                                        </StatNumber>
+                                        {stats.numberOfEventsOverTheYear === -1 && (
+                                            <CircularProgress isIndeterminate color='green.300'/>
+                                        )}
+                                        {stats.numberOfEventsOverTheYear !== -1  && (
+                                            <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
+                                                {stats.numberOfEventsOverTheYear}
+                                            </StatNumber>
+                                        )}
                                     </Flex>
                                 </Stat>
                                 <IconBox
@@ -291,9 +306,14 @@ export default function Events() {
                                         Nombre de bénéficiaires sur 12 mois
                                     </StatLabel>
                                     <Flex>
-                                        <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
-                                            {stats.totalParticipantsOverTheYear}
-                                        </StatNumber>
+                                        {stats.totalParticipantsOverTheYear === -1 && (
+                                            <CircularProgress isIndeterminate color='green.300'/>
+                                        )}
+                                        {stats.totalParticipantsOverTheYear !== -1  && (
+                                            <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
+                                                {stats.totalParticipantsOverTheYear}
+                                            </StatNumber>
+                                        )}
                                     </Flex>
                                 </Stat>
                                 <IconBox
