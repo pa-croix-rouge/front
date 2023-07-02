@@ -260,7 +260,7 @@ export default function BeneficiaryProduct(props) {
                             <Text> Total {Number(foodProduct.product.quantityQuantifier) * quantity} {foodProduct.product.quantifierName}</Text>
                             <VStack>
                                 <Text fontWeight="semibold">Limitation {productLimit.name}</Text>
-                                <Text> {productLimit.currentQuantity + ' / ' + productLimit.quantity.value + productLimit.quantity.measurementUnit} </Text>
+                                <Text color={productLimit.currentQuantity >= productLimit.quantity.value ? 'red' : 'black'}> {productLimit.currentQuantity + ' / ' + productLimit.quantity.value + productLimit.quantity.measurementUnit} </Text>
                                 <Text> {'tous les ' + productLimit.duration + ' jours'} </Text>
                             </VStack>
                         </HStack>
@@ -287,9 +287,9 @@ export default function BeneficiaryProduct(props) {
                     <CardBody>
                         <HStack>
                             <Text> Total {Number(clothProduct.product.quantityQuantifier) * quantity} {clothProduct.product.quantifierName}</Text>
-                            <VStack>
+                            <VStack >
                                 <Text fontWeight="semibold">Limitation {productLimit.name}</Text>
-                                <Text> {productLimit.currentQuantity + ' / ' + productLimit.quantity.value + productLimit.quantity.measurementUnit} </Text>
+                                <Text color={productLimit.currentQuantity >= productLimit.quantity.value ? 'red' : 'black'} > {productLimit.currentQuantity + ' / ' + productLimit.quantity.value + productLimit.quantity.measurementUnit} </Text>
                                 <Text> {'tous les ' + productLimit.duration + ' jours'} </Text>
                             </VStack>
                         </HStack>
@@ -341,8 +341,9 @@ export default function BeneficiaryProduct(props) {
                                     })}
                                     {products.clothes.map((clothStorageProduct) => {
                                         return (
-                                            <option
-                                                value={clothStorageProduct.product.storageProductId}> {clothStorageProduct.product.name + ' ' + clothStorageProduct.size} </option>
+                                            <option value={clothStorageProduct.product.storageProductId}>
+                                                {clothStorageProduct.product.name + ' ' + clothStorageProduct.size + ' ' + clothStorageProduct.product.quantityQuantifier + clothStorageProduct.product.quantifierName}
+                                            </option>
                                         );
                                     })}
                                 </Select>
