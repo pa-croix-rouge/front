@@ -4,8 +4,8 @@ import {
     HStack,
     Icon, IconButton, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay,
     SimpleGrid,
-    Text,
-    useColorModeValue, useDisclosure
+    Text, toast,
+    useColorModeValue, useDisclosure, useToast
 } from "@chakra-ui/react";
 
 import crLogo from "assets/img/croix-rouge/logo-croix-rouge-cercle.png";
@@ -46,6 +46,7 @@ function LocalUnit() {
     const [callInvalidateVolunteer, setCallInvalidateVolunteer] = useState(false);
     const [callDeleteVolunteer, setCallDeleteVolunteer] = useState(false);
     const [selectedVolunteerId, setSelectedVolunteerId] = useState('');
+    const toast = useToast();
 
     const loadLocalUnit = () => {
         setLoadedLocalUnit(true);
@@ -59,7 +60,14 @@ function LocalUnit() {
                 setEndLoadingLocalUnit(true);
             })
             .catch((_) => {
-                setLoadedLocalUnit(false);
+                setTimeout(() => {setLoadedLocalUnit(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement de l'unité locale.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -71,7 +79,14 @@ function LocalUnit() {
                 setEndLoadingVolunteers(true);
             })
             .catch((_) => {
-                // setLoadedVolunteers(false);
+                setTimeout(() => {setLoadedVolunteers(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des volontaires.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -85,6 +100,14 @@ function LocalUnit() {
                 setRegenerateCodeLoading(false);
             })
             .catch((_) => {
+                setRegenerateCodeLoading(false);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec de regénération du code, veuillez réessayer plus tard.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
