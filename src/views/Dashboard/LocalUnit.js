@@ -133,6 +133,13 @@ function LocalUnit() {
                 setSelectedVolunteerId('')
                 setLoadedVolunteers(false);
             }).catch((_) => {
+                toast({
+                    title: 'Erreur',
+                    description: "Echec de validation du volontaire, veuillez réessayer plus tard.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -143,6 +150,13 @@ function LocalUnit() {
                 setSelectedVolunteerId('')
                 setLoadedVolunteers(false);
             }).catch((_) => {
+            toast({
+                title: 'Erreur',
+                description: "Echec d'invalidation du volontaire, veuillez réessayer plus tard.",
+                status: 'error',
+                duration: 10_000,
+                isClosable: true,
+            });
             });
     }
 
@@ -153,6 +167,13 @@ function LocalUnit() {
                 setSelectedVolunteerId('')
                 setLoadedVolunteers(false);
             }).catch((_) => {
+            toast({
+                title: 'Erreur',
+                description: "Echec de suppréssion du volontaire, veuillez réessayer plus tard.",
+                status: 'error',
+                duration: 10_000,
+                isClosable: true,
+            });
             });
     }
 
