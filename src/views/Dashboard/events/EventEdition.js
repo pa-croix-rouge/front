@@ -451,7 +451,7 @@ export default function EventEdition(props) {
                         <Button colorScheme="blue" mr={3} onClick={props.onClose}>
                             Annuler
                         </Button>
-                        <Button variant="outline" isLoading={updateInProgress} onClick={modifyEvent} isDisabled={
+                        <Button variant="outline" colorScheme="green" isLoading={updateInProgress} onClick={modifyEvent} isDisabled={
                             modifiedEvent === initialEvent &&
                             modifiedEvent !== undefined &&
                             modifiedEventStartDate === modifiedEvent.startDate.toISOString().substring(0, 10) &&

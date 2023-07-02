@@ -134,6 +134,7 @@ export default function Stocks() {
     const [addProductSize, setAddProductSize] = useState("");
     const [addProductGender, setAddProductGender] = useState("");
     const [addProductError, setAddProductError] = useState("");
+    const [isCallingAddProduct, setIsCallingAddProduct] = useState(false);
     //Update product
     const {isOpen: isOpenUpdateProductModal, onOpen: onOpenUpdateProductModal, onClose: onCloseUpdateProductModal} = useDisclosure();
     const [selectedProduct, setSelectedProduct] = useState(null);
@@ -150,6 +151,7 @@ export default function Stocks() {
     const [updatedProductSize, setUpdatedProductSize] = useState("");
     const [updatedProductGender, setUpdatedProductGender] = useState("");
     const [updatedProductError, setUpdatedProductError] = useState("");
+    const [isCallingUpdateProduct, setIsCallingUpdateProduct] = useState(false);
     //Delete product
     const {isOpen: isOpenDeleteProductModal, onOpen: onOpenDeleteProductModal, onClose: onCloseDeleteProductModal} = useDisclosure();
     //Quagga scanner
@@ -589,13 +591,16 @@ export default function Stocks() {
             setAddProductError("Veuillez renseigner une date optimale de consommation valide pour le produit");
             return;
         }
+        setIsCallingAddProduct(true)
         createFoodProduct(addProductName, addProductQuantity, addProductUnit, addProductConservation, expirationDate, optimalDate, addProductPrice, addProductStorageId, addProductAmount, selectedProductLimit)
             .then((_) => {
+                setIsCallingAddProduct(false)
                 onCloseAddProductModal();
                 setLoadedAllProducts(false);
             })
             .catch((_) => {
-                setAddProductError("Une erreur est survenue lors de l'ajout du produit");
+                setIsCallingAddProduct(false)
+                setAddProductError("Une erreur serveur est survenue lors de l'ajout du produit, veuillez réessayer plus tard");
             });
     }
 
@@ -608,13 +613,16 @@ export default function Stocks() {
             setAddProductError("Veuillez renseigner un genre pour le produit");
             return;
         }
+        setIsCallingAddProduct(true)
         createClothProduct(addProductName, addProductQuantity, addProductSize, addProductStorageId, addProductAmount, addProductGender, selectedProductLimit)
             .then((_) => {
+                setIsCallingAddProduct(false)
                 onCloseAddProductModal();
                 setLoadedAllProducts(false);
             })
             .catch((_) => {
-                setAddProductError("Une erreur est survenue lors de l'ajout du produit");
+                setIsCallingAddProduct(false)
+                setAddProductError("Une erreur est survenue lors de l'ajout du produit, veuillez réessayer plus tard");
             });
     }
 
@@ -661,13 +669,16 @@ export default function Stocks() {
             setUpdatedProductError("Veuillez renseigner une date optimale de consommation valide pour le produit");
             return;
         }
+        setIsCallingUpdateProduct(true)
         updateFoodProduct(selectedProduct.id, updatedProductName, updatedProductQuantity, updatedProductUnit, updatedProductConservation, expirationDate, optimalDate, updatedProductPrice, updatedProductStorageId, updatedProductAmount, selectedProductLimit)
             .then((_) => {
+                setIsCallingUpdateProduct(false)
                 onCloseUpdateProductModal();
                 setLoadedAllProducts(false);
             })
             .catch((_) => {
-                setUpdatedProductError("Une erreur est survenue lors de la modification du produit");
+                setIsCallingUpdateProduct(false)
+                setUpdatedProductError("Une erreur serveur est survenue lors de la modification du produit, veuillez réessayer plus tard");
             });
     }
 
@@ -680,13 +691,16 @@ export default function Stocks() {
             setUpdatedProductError("Veuillez renseigner un genre pour le produit");
             return;
         }
+        setIsCallingUpdateProduct(true)
         updateClothProduct(selectedProduct.id, updatedProductName, updatedProductQuantity, updatedProductSize, updatedProductStorageId, updatedProductAmount, updatedProductGender, selectedProductLimit)
             .then((_) => {
+                setIsCallingUpdateProduct(false)
                 onCloseUpdateProductModal();
                 setLoadedAllProducts(false);
             })
             .catch((_) => {
-                setUpdatedProductError("Une erreur est survenue lors de la modification du produit");
+                setIsCallingUpdateProduct(false)
+                setUpdatedProductError("Une erreur serveur est survenue lors de la modification du produit, veuillez réessayer plus tard");
             });
     }
 
@@ -1189,7 +1203,7 @@ export default function Stocks() {
                         <Button colorScheme="blue" mr={3} onClick={onCloseAddProductModal}>
                             Fermer
                         </Button>
-                        <Button colorScheme="green" mr={3} onClick={() => addProduct()}>
+                        <Button colorScheme="green" mr={3} onClick={() => addProduct()} disabled={isCallingAddProduct}>
                             Ajouter
                         </Button>
                     </ModalFooter>
@@ -1329,7 +1343,7 @@ export default function Stocks() {
                         <Button colorScheme="blue" mr={3} onClick={onCloseUpdateProductModal}>
                             Fermer
                         </Button>
-                        <Button colorScheme="green" mr={3} onClick={() => modifyProduct()}>
+                        <Button colorScheme="green" variant="outline" mr={3} onClick={() => modifyProduct()} disabled={isCallingUpdateProduct}>
                             Modifier
                         </Button>
                     </ModalFooter>
