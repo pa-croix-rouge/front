@@ -41,11 +41,12 @@ import {getBeneficiaries} from "../../../controller/BeneficiariesController";
 
 export default function EventEdition(props) {
 
+    const {events, setEvents, reloadEvents} = useContext(EventContext);
+
     if(props.eventSessionId === undefined){
         return null;
     }
 
-    const {events, setEvents, reloadEvents} = useContext(EventContext);
     const initialEvent = events.find((event) => event.sessionId == props.eventSessionId);
     if(initialEvent === undefined){
         return null;
@@ -101,18 +102,19 @@ export default function EventEdition(props) {
     }
 
     useEffect(() => {
-            setModifiedEvent(initialEvent)
+            const event = events.find((event) => event.sessionId == props.eventSessionId);
+            setModifiedEvent(event)
 
-            setModifiedEventStartDate(initialEvent.startDate.toISOString().substring(0, 10));
-            setModifiedEventStartTime(initialEvent.startDate.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}));
-            setModifiedEventEndDate(initialEvent.endDate.toISOString().substring(0, 10));
-            setModifiedEventEndTime(initialEvent.endDate.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}));
+            setModifiedEventStartDate(event.startDate.toISOString().substring(0, 10));
+            setModifiedEventStartTime(event.startDate.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}));
+            setModifiedEventEndDate(event.endDate.toISOString().substring(0, 10));
+            setModifiedEventEndTime(event.endDate.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}));
 
-            setModifiedEventMaxParticipants(initialEvent.timeWindows.length > 0 ? initialEvent.timeWindows[0].maxParticipants : 10);
-            setModifiedEventTimeWindowDuration(initialEvent.timeWindows.length > 0 ? (initialEvent.timeWindows[0].endTime.getTime() - initialEvent.timeWindows[0].startTime.getTime()) / (60 * 1000) : 20);
-            setModifiedEventNumberOfTimeWindow(initialEvent.timeWindows.length > 0 ? initialEvent.timeWindows.length : 3);
+            setModifiedEventMaxParticipants(event.timeWindows.length > 0 ? event.timeWindows[0].maxParticipants : 10);
+            setModifiedEventTimeWindowDuration(event.timeWindows.length > 0 ? (event.timeWindows[0].endTime.getTime() - event.timeWindows[0].startTime.getTime()) / (60 * 1000) : 20);
+            setModifiedEventNumberOfTimeWindow(event.timeWindows.length > 0 ? event.timeWindows.length : 3);
         }
-        ,[props.eventSessionId])
+        ,[props.eventSessionId, events])
 
     const {isOpen: isOpenModifyAllModal, onOpen: onOpenModifyAllModal, onClose: onCloseModifyAllModal} = useDisclosure();
 
