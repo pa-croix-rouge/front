@@ -182,6 +182,7 @@ export default function EventEdition(props) {
                 })
                 .catch((_) => {
                     setUpdateInProgress(false);
+                    setModifyEventError("Une erreur server est survenue lors de la modification de l'évènement, veuillez réessayer plus tard");
                 });
         }
     }
@@ -201,7 +202,7 @@ export default function EventEdition(props) {
             setModifyEventError("Veuillez sélectionner un référent");
             return;
         }
-        if (modifiedEventMaxParticipants < modifiedEvent.timeWindows.reduce((acc, el) => acc + el.participants.length, 0)) {
+        if ((modifiedEventMaxParticipants * modifiedEventNumberOfTimeWindow) < modifiedEvent.timeWindows.reduce((acc, el) => acc + el.participants.length, 0)) {
             setModifyEventError("Le nombre maximum de participants ne peut pas être inférieur au nombre de participants déjà inscrits");
             return;
         }
@@ -238,6 +239,7 @@ export default function EventEdition(props) {
                 .catch((e) => {
                     console.log(e)
                     setUpdateInProgress(false);
+                    setModifyEventError("Une erreur server est survenue lors de la modification de l'évènement, veuillez réessayer plus tard");
                 });
         } else {
             getAllSessions();
