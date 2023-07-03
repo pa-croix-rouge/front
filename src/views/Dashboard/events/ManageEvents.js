@@ -278,6 +278,14 @@ export default function ManageEvents() {
                             <Td pl="0px" borderColor={borderColor}
                                 borderBottom={index === arr.length - 1 ? "none" : null}>
                                 <Flex align="center" py=".8rem" minWidth="100%" flexWrap="nowrap">
+                                    <Text fontSize="md" fontWeight="bold" color="orange.500" m="auto">
+                                        {event.startDate.getDate()}
+                                    </Text>
+                                </Flex>
+                            </Td>
+                            <Td borderColor={borderColor}
+                                borderBottom={index === arr.length - 1 ? "none" : null}>
+                                <Flex align="center" py=".8rem" minWidth="100%" flexWrap="nowrap">
                                     <Text fontSize="md" color={textColor} fontWeight="bold">
                                         {event.name}
                                     </Text>
@@ -295,7 +303,7 @@ export default function ManageEvents() {
                             </Td>
                             <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
                                 <Text>
-                                    {event.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}
+                                    {event.startDate.toLocaleString().substring(11, 16).replace(":", "h")}
                                 </Text>
                             </Td>
                             <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
@@ -471,12 +479,11 @@ export default function ManageEvents() {
                         <Table variant="simple" color={textColor}>
                             <Thead>
                                 <Tr my=".8rem" pl="0px" color="gray.400">
-                                    <Th pl="0px" borderColor={borderColor} color="gray.400">
-                                        Nom
-                                    </Th>
+                                    <Th pl="0px" borderColor={borderColor} color="gray.400">Jour</Th>
+                                    <Th borderColor={borderColor} color="gray.400">Nom</Th>
                                     <Th borderColor={borderColor} color="gray.400">Description</Th>
                                     <Th borderColor={borderColor} color="gray.400">Référent</Th>
-                                    <Th borderColor={borderColor} color="gray.400">Date</Th>
+                                    <Th borderColor={borderColor} color="gray.400">Horaire</Th>
                                     <Th borderColor={borderColor} color="gray.400">Inscriptions</Th>
                                     <Th borderColor={borderColor}></Th>
                                 </Tr>
