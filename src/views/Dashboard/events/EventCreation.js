@@ -11,34 +11,19 @@ import {
     ModalFooter,
     ModalHeader,
     ModalOverlay,
-    Table,
     Text,
-    Tbody,
-    Th,
-    Thead,
-    Tr,
-    useDisclosure,
-    Spacer,
-    VStack,
-    HStack,
-    Grid,
-    GridItem,
     SimpleGrid,
-    Checkbox,
     Flex,
     RadioGroup,
     Radio,
     Textarea,
     Select, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, Box, Icon
 } from "@chakra-ui/react";
-import { createRole, getRole, updateRole } from "../../../controller/RoleController";
-import { Role, RoleCreation } from "../../../model/Role";
 import Card from "../../../components/Card/Card";
 import {FaPlus} from "react-icons/fa";
 import {createRecurrentEvent, createSingleEvent} from "../../../controller/EventController";
 import {SingleEventCreation} from "../../../model/event/SingleEventCreation";
 import {RecurrentEventCreation} from "../../../model/event/RecurrentEventCreation";
-import {getVolunteers} from "../../../controller/VolunteerController";
 import VolunteerContext from "../../../contexts/VolunteerContext";
 
 export default function EventCreation(props) {
@@ -57,6 +42,7 @@ export default function EventCreation(props) {
     const [eventLastDate, setEventLastDate] = useState(new Date().toISOString().substring(0, 10));
     const [eventRecurrence, setEventRecurrence] = useState(7);
     const [eventError, setEventError] = useState("");
+    const [isCreatingEvent, setIsCreatingEvent] = useState(false);
 
     const createEvent = () => {
         setEventError("");
@@ -105,13 +91,17 @@ export default function EventCreation(props) {
         }
 
         if (eventType === "unique") {
+            setIsCreatingEvent(true)
             createSingleEvent(new SingleEventCreation(eventName, eventDescription, eventStart.getTime(), eventReferrer, volunteer.localUnitId, eventTimeWindowDuration, eventNumberOfTimeWindow, eventMaxParticipants))
                 .then((id) => {
+                    setIsCreatingEvent(false)
                     props.onNewEvent(id);
                     props.onClose();
                     // setLoadedEvents(false);
                 })
                 .catch((_) => {
+                    setIsCreatingEvent(false)
+                    setEventError("Impossible de créer l'évènement, une erreur serveur c'est produite, veuillez réessayer plus tard");
                 });
         } else {
             try {
@@ -135,13 +125,17 @@ export default function EventCreation(props) {
                 setEventError("La date de fin doit être après la date de début");
                 return;
             }
+            setIsCreatingEvent(true)
             createRecurrentEvent(new RecurrentEventCreation(eventName, eventDescription, eventReferrer, volunteer.localUnitId, eventStart.getTime(), eventEnd.getTime(), eventRecurrence, eventTimeWindowDuration, eventNumberOfTimeWindow, eventMaxParticipants))
                 .then((id) => {
+                    setIsCreatingEvent(false)
                     props.onNewEvent(id);
                     props.onClose();
                     // setLoadedEvents(false);
                 })
                 .catch((_) => {
+                    setIsCreatingEvent(false)
+                    setEventError("Impossible de créer l'évènement, une erreur serveur c'est produite, veuillez réessayer plus tard");
                 });
         }
     }
@@ -311,7 +305,7 @@ export default function EventCreation(props) {
                     <Button colorScheme="blue" mr={3} onClick={props.onClose}>
                         Annuler
                     </Button>
-                    <Button p="0px" variant="outline" colorScheme="green" mr="10%" onClick={createEvent}>
+                    <Button p="0px" variant="outline" colorScheme="green" mr="10%" onClick={createEvent} disabled={isCreatingEvent}>
                         <Flex cursor="pointer" align="center" p="12px">
                             <Icon as={FaPlus} mr="8px"/>
                             <Text fontSize="sm" fontWeight="semibold">

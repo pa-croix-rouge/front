@@ -62,6 +62,48 @@ function SignUp() {
         setIsError(false);
         setIsSuccess(false);
 
+        if (lastName === "") {
+            setLoading(false);
+            setIsError(true);
+            setErrorMessage('Le nom est obligatoire');
+            return;
+        }
+
+        if (firstName === "") {
+            setLoading(false);
+            setIsError(true);
+            setErrorMessage('Le prénom est obligatoire');
+            return;
+        }
+
+        if (/^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(email) === false) {
+            setLoading(false);
+            setIsError(true);
+            setErrorMessage('L\'address mail est invalide');
+            return;
+        }
+
+        if (/^\+33 [1-9] \d{2} \d{2} \d{2} \d{2}$/.test(phoneNumber) === false) {
+            setLoading(false);
+            setIsError(true);
+            setErrorMessage('Le numéro de téléphone doit respecter le format +33 X XX XX XX XX');
+            return;
+        }
+
+        if (/^((?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\W]).{8,})$/.test(password) === false) {
+            setLoading(false);
+            setIsError(true);
+            setErrorMessage('Le mot de passe est obligatoire et doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial');
+            return;
+        }
+
+        if (/^\d{1}(A|B|\d)\d{3}-\d{3}$/.test(localUnitCode) === false) {
+            setLoading(false);
+            setIsError(true);
+            setErrorMessage('Le code de l\'unité local est invalide');
+            return;
+        }
+
         const passwordValidity = checkPasswordValidity();
 
         if (!passwordValidity) {
@@ -86,6 +128,7 @@ function SignUp() {
             .catch((_) => {
                 setLoading(false);
                 setIsError(true);
+                setErrorMessage('Erreur lors de l\'inscription, veuillez réessayer plus tard');
             });
     }
 
@@ -222,7 +265,7 @@ function SignUp() {
                                     fontSize='sm'
                                     ms='4px'
                                     type='phone'
-                                    placeholder='06 01 02 03 04'
+                                    placeholder='+33 6 01 02 03 04'
                                     mb='24px'
                                     size='lg'
                                     value={phoneNumber}
@@ -314,13 +357,13 @@ function SignUp() {
                         <Progress size="xs" isIndeterminate mb='12px'/>
                     )}
                     {isError && (
-                        <Text color='red.500' fontSize='sm' fontWeight='normal' mb='12px'>
+                        <Text color='red.500' fontSize='sm' fontWeight='semibold' mb='12px'>
                             {errorMessage}
                         </Text>
                     )}
                     {isSuccess && (
-                        <Text color='green.500' fontSize='sm' fontWeight='normal' mb='12px'>
-                            Inscription réussie ! Veuillez vous rapprocher du responsable de votre unité locale pour valider votre compte.
+                        <Text color='green.500' fontSize='sm' fontWeight='bold' mb='12px'>
+                            Demande d'inscription réussie ! Veuillez vous rapprocher du responsable de votre unité locale pour valider votre compte.
                         </Text>
                     )}
                     <Flex

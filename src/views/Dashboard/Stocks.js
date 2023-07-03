@@ -1,7 +1,7 @@
 import React, {useContext, useEffect, useRef, useState} from "react";
 import {
     Badge,
-    Button,
+    Button, CircularProgress,
     Flex,
     FormControl,
     FormLabel,
@@ -27,8 +27,8 @@ import {
     RadioGroup,
     Select,
     SimpleGrid, Skeleton, Stat, StatLabel, StatNumber,
-    Text, useColorModeValue,
-    useDisclosure
+    Text, toast, useColorModeValue,
+    useDisclosure, useToast
 } from "@chakra-ui/react";
 import {
     createStockage,
@@ -76,9 +76,11 @@ export default function Stocks() {
     const iconBlue = useColorModeValue("orange.500", "orange.500");
     const {volunteer, setVolunteer} = useContext(VolunteerContext);
     const [loadedStorages, setLoadedStorages] = useState(false);
+    const [endLoadingStorages, setEndLoadingStorages] = useState(false);
     const [loadedDepartments, setLoadedDepartments] = useState(false);
     const [loadedSizes, setLoadedSizes] = useState(false);
     const [loadedAllProducts, setLoadedAllProducts] = useState(false);
+    const [endLoadingAllProducts, setEndLoadingAllProducts] = useState(false);
     const [loadedProductsByStorage, setLoadedProductsByStorage] = useState(true);
     const [loadedUnits, setLoadedUnits] = useState(false);
     const [loadedConservations, setLoadedConservations] = useState(false);
@@ -92,33 +94,13 @@ export default function Stocks() {
     const [units, setUnits] = useState([]);
     const [conservations, setConservations] = useState([]);
     const [genders, setGenders] = useState([]);
-    const [storageStats, setStorageStats] = useState(new ProductsStats(0, 0, 0));
+    const [storageStats, setStorageStats] = useState(new ProductsStats(-1, -1, -1));
     const [soonExpiredProducts, setSoonExpiredProducts] = useState([]);
-    const {
-        isOpen: isOpenSoonExpiredProductsModal,
-        onOpen: onOpenSoonExpiredProductsModal,
-        onClose: onCloseSoonExpiredProductsModal
-    } = useDisclosure();
-    const {
-        isOpen: isOpenAddStorageModal,
-        onOpen: onOpenAddStorageModal,
-        onClose: onCloseAddStorageModal
-    } = useDisclosure();
-    const {
-        isOpen: isOpenDeleteStorageModal,
-        onOpen: onOpenDeleteStorageModal,
-        onClose: onCloseDeleteStorageModal
-    } = useDisclosure();
-    const {
-        isOpen: isOpenUpdateStorageModal,
-        onOpen: onOpenUpdateStorageModal,
-        onClose: onCloseUpdateStorageModal
-    } = useDisclosure();
-    const {
-        isOpen: isOpenViewStorageModal,
-        onOpen: onOpenViewStorageModal,
-        onClose: onCloseViewStorageModal
-    } = useDisclosure();
+    const {isOpen: isOpenSoonExpiredProductsModal, onOpen: onOpenSoonExpiredProductsModal, onClose: onCloseSoonExpiredProductsModal} = useDisclosure();
+    const {isOpen: isOpenAddStorageModal, onOpen: onOpenAddStorageModal, onClose: onCloseAddStorageModal} = useDisclosure();
+    const {isOpen: isOpenDeleteStorageModal, onOpen: onOpenDeleteStorageModal, onClose: onCloseDeleteStorageModal} = useDisclosure();
+    const {isOpen: isOpenUpdateStorageModal, onOpen: onOpenUpdateStorageModal, onClose: onCloseUpdateStorageModal} = useDisclosure();
+    const {isOpen: isOpenViewStorageModal, onOpen: onOpenViewStorageModal, onClose: onCloseViewStorageModal} = useDisclosure();
     const [storageName, setStorageName] = useState("");
     const [storageDepartment, setStorageDepartment] = useState("");
     const [storagePostalCode, setStoragePostalCode] = useState("");
@@ -136,11 +118,7 @@ export default function Stocks() {
     const [updatedStorageAddress, setUpdatedStorageAddress] = useState("");
     const [errorUpdatingStorage, setErrorUpdatingStorage] = useState("");
     //Add new product
-    const {
-        isOpen: isOpenAddProductModal,
-        onOpen: onOpenAddProductModal,
-        onClose: onCloseAddProductModal
-    } = useDisclosure();
+    const {isOpen: isOpenAddProductModal, onOpen: onOpenAddProductModal, onClose: onCloseAddProductModal} = useDisclosure();
     const [callAddStockage, setCallAddStockage] = useState(false);
     const [callUpdateStockage, setCallUpdateStockage] = useState(false);
     const [addProductType, setAddProductType] = useState("food");
@@ -156,12 +134,9 @@ export default function Stocks() {
     const [addProductSize, setAddProductSize] = useState("");
     const [addProductGender, setAddProductGender] = useState("");
     const [addProductError, setAddProductError] = useState("");
+    const [isCallingAddProduct, setIsCallingAddProduct] = useState(false);
     //Update product
-    const {
-        isOpen: isOpenUpdateProductModal,
-        onOpen: onOpenUpdateProductModal,
-        onClose: onCloseUpdateProductModal
-    } = useDisclosure();
+    const {isOpen: isOpenUpdateProductModal, onOpen: onOpenUpdateProductModal, onClose: onCloseUpdateProductModal} = useDisclosure();
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [selectedProductType, setSelectedProductType] = useState("");
     const [updatedProductName, setUpdatedProductName] = useState("");
@@ -176,12 +151,9 @@ export default function Stocks() {
     const [updatedProductSize, setUpdatedProductSize] = useState("");
     const [updatedProductGender, setUpdatedProductGender] = useState("");
     const [updatedProductError, setUpdatedProductError] = useState("");
+    const [isCallingUpdateProduct, setIsCallingUpdateProduct] = useState(false);
     //Delete product
-    const {
-        isOpen: isOpenDeleteProductModal,
-        onOpen: onOpenDeleteProductModal,
-        onClose: onCloseDeleteProductModal
-    } = useDisclosure();
+    const {isOpen: isOpenDeleteProductModal, onOpen: onOpenDeleteProductModal, onClose: onCloseDeleteProductModal} = useDisclosure();
     //Quagga scanner
     const {isOpen: isOpenScannerModal, onOpen: onOpenScannerModal, onClose: onCloseScannerModal} = useDisclosure();
     const scannerRef = useRef(null);
@@ -192,6 +164,8 @@ export default function Stocks() {
     const [productLimits, setProductLimits] = useState([]);
 
     const [selectedProductLimit, setSelectedProductLimit] = useState(undefined);
+
+    const toast = useToast();
 
     if (loadedProductLimits === false && loadingProductLimits === false) {
         setLoadingProductLimits(true);
@@ -323,9 +297,17 @@ export default function Stocks() {
         getStockages()
             .then((storages) => {
                 setStorages(storages);
+                setEndLoadingStorages(true);
             })
             .catch((_) => {
-                setLoadedStorages(false);
+                setTimeout(() => {setLoadedStorages(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des espaces de stockage.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -336,7 +318,14 @@ export default function Stocks() {
                 setDepartments(departments);
             })
             .catch((_) => {
-                setLoadedDepartments(false);
+                setTimeout(() => {setLoadedDepartments(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des départements.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -347,7 +336,14 @@ export default function Stocks() {
                 setUnits(units);
             })
             .catch((_) => {
-                setLoadedUnits(false);
+                setTimeout(() => {setLoadedUnits(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des unités de mesures.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -358,7 +354,14 @@ export default function Stocks() {
                 setConservations(conservations.conservations);
             })
             .catch((_) => {
-                setLoadedConservations(false);
+                setTimeout(() => {setLoadedConservations(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des méthodes de conservations.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -367,10 +370,17 @@ export default function Stocks() {
         getAllProducts()
             .then((products) => {
                 setAllProducts(products);
+                setEndLoadingAllProducts(true)
             })
             .catch((e) => {
-                console.log(e);
-                setLoadedAllProducts(false);
+                setTimeout(() => {setLoadedAllProducts(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des produits.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             })
     }
 
@@ -381,8 +391,14 @@ export default function Stocks() {
                 setSelectedStorageProducts(products);
             })
             .catch((e) => {
-                console.log(e);
-                setLoadedProductsByStorage(false);
+                setTimeout(() => {setLoadedProductsByStorage(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des stocks de produits.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -393,7 +409,14 @@ export default function Stocks() {
                 setSizes(sizes);
             })
             .catch((_) => {
-                setLoadedSizes(false);
+                setTimeout(() => {setLoadedSizes(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des tailles de vêtements.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -404,7 +427,14 @@ export default function Stocks() {
                 setGenders(genders);
             })
             .catch((_) => {
-                setLoadedGenders(false);
+                setTimeout(() => {setLoadedGenders(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des genres de vêtements.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -415,7 +445,14 @@ export default function Stocks() {
                 setStorageStats(stats);
             })
             .catch((_) => {
-                setLoadedStorageStats(false);
+                setTimeout(() => {setLoadedStorageStats(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des statistiques des espaces de stockage.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -427,7 +464,14 @@ export default function Stocks() {
                 setSoonExpiredProducts(products);
             })
             .catch((_) => {
-                setLoadedSoonExpiredProducts(false);
+                setTimeout(() => {setLoadedSoonExpiredProducts(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des produits bientôt expirés.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -617,13 +661,16 @@ export default function Stocks() {
             setAddProductError("Veuillez renseigner une date optimale de consommation valide pour le produit");
             return;
         }
+        setIsCallingAddProduct(true)
         createFoodProduct(addProductName, addProductQuantity, addProductUnit, addProductConservation, expirationDate, optimalDate, addProductPrice, addProductStorageId, addProductAmount, selectedProductLimit)
             .then((_) => {
+                setIsCallingAddProduct(false)
                 onCloseAddProductModal();
                 setLoadedAllProducts(false);
             })
             .catch((_) => {
-                setAddProductError("Une erreur est survenue lors de l'ajout du produit");
+                setIsCallingAddProduct(false)
+                setAddProductError("Une erreur serveur est survenue lors de l'ajout du produit, veuillez réessayer plus tard");
             });
     }
 
@@ -636,13 +683,16 @@ export default function Stocks() {
             setAddProductError("Veuillez renseigner un genre pour le produit");
             return;
         }
+        setIsCallingAddProduct(true)
         createClothProduct(addProductName, addProductQuantity, addProductSize, addProductStorageId, addProductAmount, addProductGender, selectedProductLimit)
             .then((_) => {
+                setIsCallingAddProduct(false)
                 onCloseAddProductModal();
                 setLoadedAllProducts(false);
             })
             .catch((_) => {
-                setAddProductError("Une erreur est survenue lors de l'ajout du produit");
+                setIsCallingAddProduct(false)
+                setAddProductError("Une erreur est survenue lors de l'ajout du produit, veuillez réessayer plus tard");
             });
     }
 
@@ -689,13 +739,16 @@ export default function Stocks() {
             setUpdatedProductError("Veuillez renseigner une date optimale de consommation valide pour le produit");
             return;
         }
+        setIsCallingUpdateProduct(true)
         updateFoodProduct(selectedProduct.id, updatedProductName, updatedProductQuantity, updatedProductUnit, updatedProductConservation, expirationDate, optimalDate, updatedProductPrice, updatedProductStorageId, updatedProductAmount, selectedProductLimit)
             .then((_) => {
+                setIsCallingUpdateProduct(false)
                 onCloseUpdateProductModal();
                 setLoadedAllProducts(false);
             })
             .catch((_) => {
-                setUpdatedProductError("Une erreur est survenue lors de la modification du produit");
+                setIsCallingUpdateProduct(false)
+                setUpdatedProductError("Une erreur serveur est survenue lors de la modification du produit, veuillez réessayer plus tard");
             });
     }
 
@@ -708,13 +761,16 @@ export default function Stocks() {
             setUpdatedProductError("Veuillez renseigner un genre pour le produit");
             return;
         }
+        setIsCallingUpdateProduct(true)
         updateClothProduct(selectedProduct.id, updatedProductName, updatedProductQuantity, updatedProductSize, updatedProductStorageId, updatedProductAmount, updatedProductGender, selectedProductLimit)
             .then((_) => {
+                setIsCallingUpdateProduct(false)
                 onCloseUpdateProductModal();
                 setLoadedAllProducts(false);
             })
             .catch((_) => {
-                setUpdatedProductError("Une erreur est survenue lors de la modification du produit");
+                setIsCallingUpdateProduct(false)
+                setUpdatedProductError("Une erreur serveur est survenue lors de la modification du produit, veuillez réessayer plus tard");
             });
     }
 
@@ -772,9 +828,14 @@ export default function Stocks() {
                                         Quantité total de nourriture
                                     </StatLabel>
                                     <Flex>
-                                        <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
-                                            {storageStats.totalFoodQuantity}
-                                        </StatNumber>
+                                        {storageStats.totalFoodQuantity === -1 && (
+                                            <CircularProgress isIndeterminate color='green.300'/>
+                                        )}
+                                        {storageStats.totalFoodQuantity !== -1  && (
+                                            <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
+                                                {storageStats.totalFoodQuantity}
+                                            </StatNumber>
+                                        )}
                                     </Flex>
                                 </Stat>
                                 <IconBox
@@ -804,10 +865,14 @@ export default function Stocks() {
                                         Quantité total de vêtements
                                     </StatLabel>
                                     <Flex>
-                                        <StatNumber fontSize='lg' color={textColor} fontWeight='bold'
-                                                    href='/local-unit'>
-                                            {storageStats.totalClothesQuantity}
-                                        </StatNumber>
+                                        {storageStats.totalClothesQuantity === -1 && (
+                                            <CircularProgress isIndeterminate color='green.300'/>
+                                        )}
+                                        {storageStats.totalClothesQuantity !== -1  && (
+                                            <StatNumber fontSize='lg' color={textColor} fontWeight='bold' href='/local-unit'>
+                                                {storageStats.totalClothesQuantity}
+                                            </StatNumber>
+                                        )}
                                     </Flex>
                                 </Stat>
                                 <IconBox
@@ -828,6 +893,9 @@ export default function Stocks() {
                                 justify='center'
                                 w='100%'
                                 mb='25px'>
+                                {storageStats.totalClothesQuantity === -1 && (
+                                    <CircularProgress isIndeterminate color='green.300'/>
+                                )}
                                 {storageStats.soonExpiredFood > 0 && (
                                     <Flex direction="column" m="auto">
                                         <Text fontWeight="bold" mb="8px" textAlign="center">
@@ -861,7 +929,10 @@ export default function Stocks() {
                             Produits alimentaires
                         </Text>
                         <SimpleGrid columns={{sm: 2, md: 3, lg: 4, xl: 5}} spacing="24px" m="12px">
-                            {allProducts.foods.map((foodStorageProduct, key) => (
+                            {!endLoadingAllProducts && (
+                                <CircularProgress isIndeterminate color='green.300'/>
+                            )}
+                            {endLoadingAllProducts && allProducts.foods.map((foodStorageProduct, key) => (
                                 <Card key={key}>
                                     <CardHeader>
                                         <Flex direction="row" justify="space-between">
@@ -929,7 +1000,7 @@ export default function Stocks() {
                                     </CardBody>
                                 </Card>
                             ))}
-                            {allProducts.foods.length === 0 && (
+                            {endLoadingAllProducts && allProducts.foods.length === 0 && (
                                 <Text>Aucun produit en stock</Text>
                             )}
                         </SimpleGrid>
@@ -937,7 +1008,10 @@ export default function Stocks() {
                             Vêtements
                         </Text>
                         <SimpleGrid columns={{sm: 2, md: 3, lg: 4, xl: 5}} spacing="24px" m="12px">
-                            {allProducts.clothes.map((clothStorageProduct, key) => (
+                            {!endLoadingAllProducts && (
+                                <CircularProgress isIndeterminate color='green.300'/>
+                            )}
+                            {endLoadingAllProducts && allProducts.clothes.map((clothStorageProduct, key) => (
                                 <Card key={key}>
                                     <CardHeader>
                                         <Flex direction="row" justify="space-between">
@@ -981,7 +1055,7 @@ export default function Stocks() {
                                     </CardBody>
                                 </Card>
                             ))}
-                            {allProducts.clothes.length === 0 && (
+                            {endLoadingAllProducts && allProducts.clothes.length === 0 && (
                                 <Text>Aucun produit en stock</Text>
                             )}
                         </SimpleGrid>
@@ -998,7 +1072,10 @@ export default function Stocks() {
                     </CardHeader>
                     <CardBody>
                         <SimpleGrid columns={{sm: 1, md: 2, xl: 3}} spacing="40px" mb="16px">
-                            {storages.map((storage) => (
+                            {!endLoadingStorages && (
+                                <CircularProgress isIndeterminate color='green.300'/>
+                            )}
+                            {endLoadingStorages && storages.map((storage) => (
                                 <Card key={storage.id}>
                                     <CardHeader>
                                         <Flex justify="space-between">
@@ -1056,7 +1133,7 @@ export default function Stocks() {
                                     </CardBody>
                                 </Card>
                             ))}
-                            {storages.length === 0 && (
+                            {endLoadingStorages && storages.length === 0 && (
                                 <Text>Aucun espace de stockage</Text>
                             )}
                         </SimpleGrid>
@@ -1196,7 +1273,7 @@ export default function Stocks() {
                         <Button colorScheme="blue" mr={3} onClick={onCloseAddProductModal}>
                             Fermer
                         </Button>
-                        <Button colorScheme="green" mr={3} onClick={() => addProduct()}>
+                        <Button colorScheme="green" mr={3} onClick={() => addProduct()} disabled={isCallingAddProduct}>
                             Ajouter
                         </Button>
                     </ModalFooter>
@@ -1336,7 +1413,7 @@ export default function Stocks() {
                         <Button colorScheme="blue" mr={3} onClick={onCloseUpdateProductModal}>
                             Fermer
                         </Button>
-                        <Button colorScheme="green" mr={3} onClick={() => modifyProduct()}>
+                        <Button colorScheme="green" variant="outline" mr={3} onClick={() => modifyProduct()} disabled={isCallingUpdateProduct}>
                             Modifier
                         </Button>
                     </ModalFooter>
