@@ -378,7 +378,7 @@ export default function EventEdition(props) {
                             <Text> Plage{modifiedEvent.timeWindows.length > 1 ? "s" : ""} horaire{modifiedEvent.timeWindows.length > 1 ? "s" : ""} avant
                                 modification</Text>
                             <SimpleGrid columns={{sm: 1, md: 2, xl: 3}} spacing='24px'>
-                                {modifiedEvent.timeWindows.map((timeWindow, index) => (
+                                {modifiedEvent.timeWindows.sort((a, b) => a.startTime.getTime() > b.startTime.getTime()).map((timeWindow, index) => (
                                     <Card key={index}>
                                         <Flex direction="column">
                                             <Flex direction="row">
