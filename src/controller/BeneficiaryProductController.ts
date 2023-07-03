@@ -3,7 +3,6 @@ import {BeneficiaryAddProductRequestDTO} from "../model/Beneficiaries/Beneficiar
 import {BeneficiaryProductCounterResponse} from "../model/Beneficiaries/BeneficiaryProductCounterResponse";
 import {FoodProductResponse} from "../model/Beneficiaries/FoodProductResponse";
 import {ClothProductResponse} from "../model/Beneficiaries/ClothProductResponse";
-import {Quantifier} from "../model/Quantifier";
 
 function formatDate(date) {
     var d = new Date(date),
@@ -66,21 +65,12 @@ export const getAllBeneficiaryProduct = async (beneficiaryID: string, from: Date
 }
 
 export const getAllBeneficiaryProductQuantity = async (beneficiaryID: string, from: Date, to: Date) => {
-    const response = await getWithToken(`product/beneficiary/${beneficiaryID}/quantity?from=${formatDate(from)}&to=${formatDate(to)}`,);
+    const response = await getWithToken(`product/beneficiary/${beneficiaryID}?from=${formatDate(from)}&to=${formatDate(to)}`,);
 
     if (!response.ok) {
         throw new Error(`Registering beneficiary failed with status ${response.status}`);
     }
 
-    const data = await response.json();
-
-    const products = new Map<string, Quantifier>();
-
-
-    Object.entries(data).forEach(([key, value]) => {
-        products.set(key, value as Quantifier);
-    });
-
-    return products;
+    return await response.json();
 }
 
