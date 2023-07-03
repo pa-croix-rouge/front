@@ -157,7 +157,6 @@ export default function ManageEvents() {
             })
             .catch((err) => {
                 setLoadingEvents(false);
-                setLoadedEvents(false);
                 setTimeout(() => {setLoadedEvents(false)}, 3000);
                 toast({
                     title: 'Erreur',
