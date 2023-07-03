@@ -210,7 +210,7 @@ export default function ManageEvents() {
 
     const selectEventForModal = (event, onOpenModal) => {
         setSelectedEventSessionId(event);
-        setSelectedEvent(events.find((el) => el.sessionId == event));
+        setSelectedEvent(events.find((el) => el.sessionId === event));
         onOpenModal();
     }
 

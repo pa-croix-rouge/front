@@ -79,6 +79,7 @@ export default function EventEdition(props) {
 
     const [beneficiaries, setBeneficiaries] = useState([]);
     const [loadedBeneficiaries, setLoadedBeneficiaries] = useState(false);
+    const [isCallingGetAllSessions, setIsCallingGetAllSessions] = useState(false);
     const toast = useToast();
 
     const loadBeneficiaries = () => {
@@ -149,31 +150,20 @@ export default function EventEdition(props) {
     }, [modifiedEventStartDate, modifiedEventStartTime, modifiedEventEndDate, modifiedEventEndTime]);
 
     const modifyAllEventSessions = () => {
-
         const [yearsStart, monthsStart, daysStart] = modifiedEventStartDate.split("-");
         const [hoursStart, minutesStart] = modifiedEventStartTime.split(":");
-        let eventStart = new Date(
-            parseInt(yearsStart),
-            parseInt(monthsStart) - 1,
-            parseInt(daysStart),
-            parseInt(hoursStart),
-            parseInt(minutesStart),
-        );
+        let eventStart = new Date(parseInt(yearsStart), parseInt(monthsStart) - 1, parseInt(daysStart), parseInt(hoursStart), parseInt(minutesStart));
 
         const [yearsEnd, monthsEnd, daysEnd] = modifiedEventEndDate.split("-");
         const [hoursEnd, minutesEnd] = modifiedEventEndTime.split(":");
-        let eventEnd = new Date(
-            parseInt(yearsEnd),
-            parseInt(monthsEnd) - 1,
-            parseInt(daysEnd),
-            parseInt(hoursEnd),
-            parseInt(minutesEnd),
-        );
+        let eventEnd = new Date(parseInt(yearsEnd), parseInt(monthsEnd) - 1, parseInt(daysEnd), parseInt(hoursEnd), parseInt(minutesEnd));
 
         if (modifiedEvent !== undefined) {
             setUpdateInProgress(true);
+            setIsCallingGetAllSessions(true);
             updateAllEventSessions(modifiedEvent, eventStart, eventEnd, modifiedEventTimeWindowDuration, modifiedEventNumberOfTimeWindow, modifiedEventMaxParticipants)
                 .then(() => {
+                    setIsCallingGetAllSessions(false);
                     reloadEvents();
                     setUpdateInProgress(false);
                     onCloseModifyAllModal();
@@ -181,6 +171,7 @@ export default function EventEdition(props) {
                     setModifyAllSessions(false);
                 })
                 .catch((_) => {
+                    setIsCallingGetAllSessions(false);
                     setUpdateInProgress(false);
                     setModifyEventError("Une erreur server est survenue lors de la modification de l'évènement, veuillez réessayer plus tard");
                 });
@@ -188,7 +179,6 @@ export default function EventEdition(props) {
     }
 
     const modifyEvent = () => {
-
         setModifyEventError("");
         if (modifiedEvent === undefined) {
             setModifyEventError("ERREUR: Merci de re-sélectionner l'évènement à modifier");
@@ -212,13 +202,7 @@ export default function EventEdition(props) {
         try {
             const [years, months, days] = modifiedEventStartDate.split("-");
             const [hours, minutes] = modifiedEventStartTime.split(":");
-            eventStart = new Date(
-                parseInt(years),
-                parseInt(months) - 1,
-                parseInt(days),
-                parseInt(hours),
-                parseInt(minutes),
-            );
+            eventStart = new Date(parseInt(years), parseInt(months) - 1, parseInt(days), parseInt(hours), parseInt(minutes));
             if (eventStart < new Date()) {
                 setModifyEventError("La date de début doit être dans le futur");
                 return;
@@ -258,11 +242,21 @@ export default function EventEdition(props) {
 
     const getAllSessions = () => {
         const eventId = modifiedEvent.eventId;
+        setIsCallingGetAllSessions(true);
         getEventSessions(eventId)
             .then((sessions) => {
                 setEventSessions(sessions);
+                setIsCallingGetAllSessions(false);
             })
             .catch((_) => {
+                setIsCallingGetAllSessions(false);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des sessions de l'événement.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -486,46 +480,53 @@ export default function EventEdition(props) {
             <Modal isOpen={isOpenModifyAllModal} onClose={onCloseModifyAllModal} size="xl" scrollBehavior="outside">
                 <ModalOverlay/>
                 <ModalContent>
-                    <ModalHeader>Confirmer la modification de {eventSessions.length} événements</ModalHeader>
+                    <ModalHeader>Confirmer la modification de {eventSessions.filter(event => event.startDate.getTime() > Date.now()).length} événements</ModalHeader>
                     <ModalCloseButton/>
                     <ModalBody>
-                        <Flex direction="column">
-                            <Text fontSize="sm" color="red.500" fontWeight="semibold">
-                                Attention, vous êtes sur le point de modifier {eventSessions.length} événements pour la
-                                raison suivante:
-                            </Text>
-                            {modifiedEvent?.name !== initialEvent.name && (
-                                <Text fontSize="sm" color="red.500">Mise à jour du nom de l'événement</Text>
-                            )}
-                            {modifiedEvent?.description !== initialEvent.description && (
-                                <Text fontSize="sm" color="red.500">Mise à jour de la description de l'événement</Text>
-                            )}
-                            {modifiedEvent?.referrerId !== initialEvent.referrerId && (
-                                <Text fontSize="sm" color="red.500">Mise à jour du référent de l'événement</Text>
-                            )}
-                            {modifyAllSessions && (modifiedEventMaxParticipants * modifiedEventNumberOfTimeWindow !== initialEvent.maxParticipants || modifiedEventNumberOfTimeWindow !== initialEvent.timeWindows.length) && (
-                                <Text fontSize="sm" color="red.500">Mise à jour demandé des sessions pour l'événement. Seuls les événements futurs seront impactées.</Text>
-                            )}
-                            {eventSessions.map((event, index, arr) => {
-                                return (
-                                    <TimelineRow
-                                        logo={event.endDate.getTime() < Date.now() ? CheckIcon : CalendarIcon}
-                                        title={event.name}
-                                        date={event.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}
-                                        color={event.endDate.getTime() < Date.now() ? "green.500" : "blue.500"}
-                                        index={index}
-                                        arrLength={arr.length}
-                                        key={index}
-                                    />
-                                )
-                            })}
-                        </Flex>
+                        {isCallingGetAllSessions && (
+                            <Flex direction="column">
+                                <Progress isIndeterminate="true" />
+                            </Flex>
+                        )}
+                        {!isCallingGetAllSessions && (
+                            <Flex direction="column">
+                                <Text fontSize="sm" color="red.500" fontWeight="semibold">
+                                    Attention, vous êtes sur le point de modifier {eventSessions.filter(event => event.startDate.getTime() > Date.now()).length} événements pour la
+                                    raison suivante:
+                                </Text>
+                                {modifiedEvent?.name !== initialEvent.name && (
+                                    <Text fontSize="sm" color="red.500">Mise à jour du nom de l'événement</Text>
+                                )}
+                                {modifiedEvent?.description !== initialEvent.description && (
+                                    <Text fontSize="sm" color="red.500">Mise à jour de la description de l'événement</Text>
+                                )}
+                                {modifiedEvent?.referrerId !== initialEvent.referrerId && (
+                                    <Text fontSize="sm" color="red.500">Mise à jour du référent de l'événement</Text>
+                                )}
+                                {modifyAllSessions && (modifiedEventMaxParticipants * modifiedEventNumberOfTimeWindow !== initialEvent.maxParticipants || modifiedEventNumberOfTimeWindow !== initialEvent.timeWindows.length) && (
+                                    <Text fontSize="sm" color="red.500">Mise à jour demandé des sessions pour l'événement. Seuls les événements futurs seront impactées.</Text>
+                                )}
+                                {eventSessions.filter(event => event.startDate.getTime() > Date.now()).map((event, index, arr) => {
+                                    return (
+                                        <TimelineRow
+                                            logo={event.endDate.getTime() < Date.now() ? CheckIcon : CalendarIcon}
+                                            title={event.name}
+                                            date={event.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}
+                                            color={event.endDate.getTime() < Date.now() ? "green.500" : "blue.500"}
+                                            index={index}
+                                            arrLength={arr.length}
+                                            key={index}
+                                        />
+                                    )
+                                })}
+                            </Flex>
+                        )}
                     </ModalBody>
                     <ModalFooter>
                         <Button colorScheme="blue" mr={3} onClick={onCloseModifyAllModal}>
                             Annuler
                         </Button>
-                        <Button variant="outline" onClick={modifyAllEventSessions}>
+                        <Button variant="outline" onClick={modifyAllEventSessions} disabled={isCallingGetAllSessions}>
                             Modifier tout les événements
                         </Button>
                     </ModalFooter>
