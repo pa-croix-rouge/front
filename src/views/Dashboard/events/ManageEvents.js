@@ -64,7 +64,6 @@ export default function ManageEvents() {
     const {volunteer, setVolunteer} = useContext(VolunteerContext);
     const [loadVolunteerList, setLoadVolunteerList] = useState(false);
     const [volunteerList, setVolunteerList] = useState([]);
-    const [volunteerNameList, setVolunteerNameList] = useState([]);
     const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
     const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
     // Modal variables
@@ -77,9 +76,11 @@ export default function ManageEvents() {
     const [modifiedEvent, setModifiedEvent] = useState(undefined);
     const {isOpen: isOpenDeletionModal, onOpen: onOpenDeletionModal, onClose: onCloseDeletionModal} = useDisclosure();
     const [callDeleteEvent, setCallDeleteEvent] = useState(false);
+    const [isCallingDeleteEvent, setIsCallingDeleteEvent] = useState(false);
     const {isOpen: isOpenDeletionAllModal, onOpen: onOpenDeletionAllModal, onClose: onCloseDeletionAllModal} = useDisclosure();
     const [deleteAllSessions, setDeleteAllSessions] = useState(false);
     const [callDeleteAllSessions, setCallDeleteAllSessions] = useState(false);
+    const [isCallingDeleteAllSessions, setIsCallingDeleteAllSessions] = useState(false);
     const toast = useToast();
 
     useEffect(() => {
@@ -193,7 +194,6 @@ export default function ManageEvents() {
         getVolunteers()
             .then((volunteers) => {
                 setVolunteerList(volunteers);
-                setVolunteerNameList(volunteers.map((el) => el.firstName + ' ' + el.lastName));
             })
             .catch((_) => {
                 setTimeout(() => {setLoadVolunteerList(false)}, 3000);
@@ -219,6 +219,7 @@ export default function ManageEvents() {
 
     const deleteEvent = () => {
         setCallDeleteEvent(false);
+        setIsCallingDeleteEvent(true);
         if (selectedEvent !== undefined) {
             const eventId = selectedEvent.eventId;
             const sessionId = selectedEvent.sessionId;
@@ -228,15 +229,25 @@ export default function ManageEvents() {
                     onCloseDeletionModal();
                     setSelectedEvent(undefined);
                     setEvents(events.filter((el) => el.id !== eventId));
+                    setIsCallingDeleteEvent(false);
                     setLoadedEvents(false);
                 })
                 .catch((_) => {
+                    setIsCallingDeleteEvent(false);
+                    toast({
+                        title: 'Erreur',
+                        description: "Echec de la suppression de l'événement. Veuillez réessayer plus tard.",
+                        status: 'error',
+                        duration: 10_000,
+                        isClosable: true,
+                    });
                 });
         }
     }
 
     const deleteAllEventSessions = () => {
         setCallDeleteAllSessions(false);
+        setIsCallingDeleteAllSessions(true);
         if (selectedEvent !== undefined) {
             const eventId = selectedEvent.eventId;
             deleteEventSessions(eventId)
@@ -247,18 +258,18 @@ export default function ManageEvents() {
                     setEvents(events.filter((el) => el.id !== eventId));
                     setLoadedEvents(false);
                     setDeleteAllSessions(false);
+                    setIsCallingDeleteAllSessions(false);
                 })
                 .catch((_) => {
+                    setIsCallingDeleteAllSessions(false);
+                    toast({
+                        title: 'Erreur',
+                        description: "Echec de la suppression de l'événement récurrent. Veuillez réessayer plus tard.",
+                        status: 'error',
+                        duration: 10_000,
+                        isClosable: true,
+                    });
                 });
-        }
-    }
-
-    const getReferrerName = (id) => {
-        const vol = volunteerList.find((vol) => vol.id === id);
-        if (vol === undefined) {
-            return id;
-        } else {
-            return vol.firstName + ' ' + vol.lastName;
         }
     }
 
@@ -296,9 +307,16 @@ export default function ManageEvents() {
                                 </Text>
                             </Td>
                             <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                <Text>
-                                    {getReferrerName(event.referrerId)}
-                                </Text>
+                                {volunteerList.length === 0 && (
+                                    <Text>
+                                        {event.referrerId}
+                                    </Text>
+                                )}
+                                {volunteerList.length !== 0 && (
+                                    <Text>
+                                        {volunteerList.filter(v => v.id === event.referrerId)[0].firstName + ' ' + volunteerList.filter(v => v.id === event.referrerId)[0].lastName}
+                                    </Text>
+                                )}
                             </Td>
                             <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
                                 <Text>
@@ -365,7 +383,7 @@ export default function ManageEvents() {
                                                     </Text>
                                                 </Flex>
                                             </MenuItem>
-                                            <MenuItem onClick={() => selectEventForModal(event.sessionId, onOpenDeletionModal)} isDisabled={event.startDate.getTime() < Date.now()}>
+                                            <MenuItem onClick={() => selectEventForModal(event.sessionId, onOpenDeletionModal)}>
                                                 <Flex cursor="pointer" align="center" p="12px">
                                                     <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
                                                     <Text fontSize="sm" fontWeight="semibold" color="red.500">
@@ -398,14 +416,20 @@ export default function ManageEvents() {
     }
 
     const openDeleteEventModal = () => {
+        onOpenDeletionAllModal();
+        setEventSessions([]);
         const eventId = selectedEvent.eventId;
         getEventSessions(eventId)
             .then((sessions) => {
                 setEventSessions(sessions);
-                onOpenDeletionAllModal();
             })
-            .catch((e) => {
-                console.log(e);
+            .catch((_) => {
+                toast({
+                    title: "Erreur lors de la récupération des sessions de l'événement",
+                    status: "error",
+                    duration: 10000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -519,8 +543,16 @@ export default function ManageEvents() {
                                     <StatLabel>{selectedEvent.name} le {selectedEvent.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}</StatLabel>
                                     <StatNumber><Icon
                                         as={FaUser}/> {selectedEvent.numberOfParticipants} / {selectedEvent.maxParticipants} participants</StatNumber>
-                                    <StatHelpText>{selectedEvent.description}<br/>Référent: {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(selectedEvent.referrerId)] : selectedEvent.referrerId}
-                                    </StatHelpText>
+                                    {volunteerList.length === 0 && (
+                                        <StatHelpText>
+                                            {selectedEvent.referrerId}
+                                        </StatHelpText>
+                                    )}
+                                    {volunteerList.length !== 0 && (
+                                        <StatHelpText>
+                                            {volunteerList.filter(v => v.id === selectedEvent.referrerId)[0].firstName + ' ' + volunteerList.filter(v => v.id === selectedEvent.referrerId)[0].lastName}
+                                        </StatHelpText>
+                                    )}
                                 </Stat>
                             )}
                             {selectedEvent !== undefined && selectedEvent.recurring && (
@@ -541,11 +573,7 @@ export default function ManageEvents() {
                         <Button colorScheme="blue" mr={3} onClick={onCloseDeletionModal}>
                             Annuler
                         </Button>
-                        <Button variant="outline" colorScheme="red"
-                                onClick={() => {
-                                    deleteAllSessions ? openDeleteEventModal() : setCallDeleteEvent(true);
-                                }
-                                }>
+                        <Button variant="outline" colorScheme="red" disabled={isCallingDeleteEvent} onClick={() => {deleteAllSessions ? openDeleteEventModal() : setCallDeleteEvent(true);}}>
                             Supprimer
                         </Button>
                     </ModalFooter>
@@ -558,6 +586,9 @@ export default function ManageEvents() {
                     <ModalHeader>Confirmer la suppression de {eventSessions.length} événements</ModalHeader>
                     <ModalCloseButton/>
                     <ModalBody>
+                        {eventSessions.length === 0 && (
+                            <Progress isIndeterminate="true" />
+                        )}
                         {eventSessions.map((event, index, arr) => {
                             return (
                                 <TimelineRow
@@ -575,7 +606,7 @@ export default function ManageEvents() {
                         <Button colorScheme="blue" mr={3} onClick={onCloseDeletionAllModal}>
                             Annuler
                         </Button>
-                        <Button variant="outline" colorScheme="red" onClick={() => setCallDeleteAllSessions(true)}>
+                        <Button variant="outline" colorScheme="red" onClick={() => setCallDeleteAllSessions(true)} disabled={isCallingDeleteAllSessions}>
                             Supprimer tout les événements
                         </Button>
                     </ModalFooter>

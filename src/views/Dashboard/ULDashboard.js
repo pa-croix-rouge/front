@@ -55,10 +55,8 @@ export default function ULDashboard() {
   const calendarContainerRef = useRef(null);
   const [loadedEvents, setLoadedEvents] = useState(false);
   const [endLoadingEvents, setEndLoadingEvents] = useState(false);
-  const [loadedReferrers, setLoadedReferrers] = useState(false);
   const [localUnit, setLocalUnit] = useState({});
   const [events, setEvents] = useState([]);
-  const [referrersId, setReferrersId] = useState([]);
   const [referrersName, setReferrersName] = useState([]);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
@@ -96,6 +94,10 @@ export default function ULDashboard() {
     history.push("/admin/local-unit");
   }
 
+  const goToBeneficiaries = () => {
+    history.push("/admin/beneficiaries");
+  }
+
   const goToManageEvent = () => {
     history.push("/admin/manage-events");
   }
@@ -127,8 +129,6 @@ export default function ULDashboard() {
     getEventForSpecificMonth(volunteer.localUnitId, currentMonth, currentYear)
         .then((events) => {
           setEvents(events);
-          const allReferrersId = events.map((el) => el.referrerId);
-          setReferrersId(Array.from(new Set(allReferrersId)));
           setEndLoadingEvents(true)
         })
         .catch((_) => {
@@ -141,26 +141,6 @@ export default function ULDashboard() {
             isClosable: true,
           });
         });
-  }
-
-  const loadReferrersName = () => {
-    setLoadedReferrers(true);
-    referrersId.forEach(el => {
-      getVolunteerById(el)
-          .then((volunteer) => {
-            setReferrersName([...referrersName, volunteer.firstName + ' ' + volunteer.lastName]);
-          })
-          .catch((_) => {
-            setTimeout(() => {setLoadedReferrers(false)}, 3000);
-            toast({
-              title: 'Erreur',
-              description: "Echec du chargement des référents.",
-              status: 'error',
-              duration: 10_000,
-              isClosable: true,
-            });
-          });
-    });
   }
 
   const handleDateChange = (arg) => {
@@ -265,7 +245,6 @@ export default function ULDashboard() {
       <Flex flexDirection='column' pt={{ base: "120px", md: "75px" }}>
         {volunteer && !loadedLocalUnit && loadLocalUnit()}
         {loadedLocalUnit && !loadedEvents && volunteer && loadEvents()}
-        {!loadedReferrers && referrersId.length > 0 && loadReferrersName()}
         {loadedLocalUnit && !loadedLocalUnitStats && loadLocalUnitStats()}
         {!loadedEventStats  && loadEventStats()}
         {loadedLocalUnit && !loadedProductStats && loadProductStats()}
@@ -347,7 +326,7 @@ export default function ULDashboard() {
                   <FaMedkit h={"24px"} w={"24px"} color={iconBoxInside} />
                 </IconBox>
               </Flex>
-              <Button variant="link" color='gray.400' fontSize='sm' onClick={goToLocalUnit}>
+              <Button variant="link" color='gray.400' fontSize='sm' onClick={goToBeneficiaries}>
                 Voir la liste
               </Button>
             </Flex>
@@ -511,13 +490,24 @@ export default function ULDashboard() {
                                 borderColor={borderColor}>
                               {`${el.startDate.getDate().toString().padStart(2, '0')}/${(el.startDate.getMonth() + 1).toString().padStart(2, '0')}/${el.startDate.getFullYear()} - ${el.startDate.getHours().toString().padStart(2, '0')}h${el.startDate.getMinutes().toString().padStart(2, '0')}`}
                             </Td>
-                            <Td
-                                color={textTableColor}
-                                fontSize='sm'
-                                border={index === arr.length - 1 ? "none" : null}
-                                borderColor={borderColor}>
-                              {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(el.referrerId)] : el.referrerId}
-                            </Td>
+                            {volunteers.length === 0 && (
+                                <Td
+                                    color={textTableColor}
+                                    fontSize='sm'
+                                    border={index === arr.length - 1 ? "none" : null}
+                                    borderColor={borderColor}>
+                                  {el.referrerId}
+                                </Td>
+                            )}
+                            {volunteers.length !== 0 && (
+                              <Td
+                                  color={textTableColor}
+                                  fontSize='sm'
+                                  border={index === arr.length - 1 ? "none" : null}
+                                  borderColor={borderColor}>
+                                {volunteers.filter(v => v.id === el.referrerId)[0].firstName} {volunteers.filter(v => v.id === el.referrerId)[0].lastName}
+                              </Td>
+                            )}
                             <Td
                                 color={textTableColor}
                                 fontSize='sm'
@@ -570,7 +560,7 @@ export default function ULDashboard() {
                   {!endLoadingSoonExpiredFood && (
                       <CircularProgress isIndeterminate color='green.300' m="30% 130%"/>
                   )}
-                  {endLoadingSoonExpiredFood && soonExpiredFood.map((el, index, arr) => {
+                  {endLoadingSoonExpiredFood && soonExpiredFood.sort((a, b) => a.expirationDate.getTime() > b.expirationDate.getTime()).map((el, index, arr) => {
                     return (
                         <Tr key={index}>
                           <Td

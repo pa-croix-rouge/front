@@ -154,6 +154,7 @@ export default function Stocks() {
     const [isCallingUpdateProduct, setIsCallingUpdateProduct] = useState(false);
     //Delete product
     const {isOpen: isOpenDeleteProductModal, onOpen: onOpenDeleteProductModal, onClose: onCloseDeleteProductModal} = useDisclosure();
+    const [isCallingDeleteProduct, setIsCallingDeleteProduct] = useState(false);
     //Quagga scanner
     const {isOpen: isOpenScannerModal, onOpen: onOpenScannerModal, onClose: onCloseScannerModal} = useDisclosure();
     const scannerRef = useRef(null);
@@ -176,7 +177,6 @@ export default function Stocks() {
                 setLoadingProductLimits(false);
             })
             .catch((e) => {
-                console.log(e)
                 setLoadedProductLimits(false);
                 setLoadingProductLimits(false);
             });
@@ -270,24 +270,21 @@ export default function Stocks() {
         if (storagePostalCode.length === 5) {
             getCitiesFromPostalCode(storagePostalCode)
                 .then((cities) => {
-                    console.log(cities);
                     setAddStorageCityList(cities);
                 })
                 .catch((err) => {
-                    console.log(err);
                 });
         }
     }, [storagePostalCode]);
 
     useEffect(() => {
-        if (storagePostalCode.length === 5) {
-            getCitiesFromPostalCode(storagePostalCode)
+        setUpdatedStorageCity("");
+        if (updatedStoragePostalCode.length === 5) {
+            getCitiesFromPostalCode(updatedStoragePostalCode)
                 .then((cities) => {
-                    console.log(cities);
                     setAddStorageCityList(cities);
                 })
                 .catch((err) => {
-                    console.log(err);
                 });
         }
     }, [updatedStoragePostalCode]);
@@ -460,7 +457,6 @@ export default function Stocks() {
         setLoadedSoonExpiredProducts(true);
         getSoonExpiredFood()
             .then((products) => {
-                console.log(products);
                 setSoonExpiredProducts(products);
             })
             .catch((_) => {
@@ -489,25 +485,21 @@ export default function Stocks() {
             setCreateEventLoading(false);
             return;
         }
-
         if (storageDepartment === "") {
             setErrorAddingStorage("Veuillez renseigner un département pour l'espace de stockage");
             setCreateEventLoading(false);
             return;
         }
-
         if (storagePostalCode === "" || storagePostalCode.length !== 5) {
             setErrorAddingStorage("Veuillez renseigner un code postale valide pour l'espace de stockage");
             setCreateEventLoading(false);
             return;
         }
-
         if (storageCity === "") {
             setErrorAddingStorage("Veuillez renseigner une ville pour l'espace de stockage");
             setCreateEventLoading(false);
             return;
         }
-
         if (storageAddress === "") {
             setErrorAddingStorage("Veuillez renseigner une adresse pour l'espace de stockage");
             setCreateEventLoading(false);
@@ -519,6 +511,12 @@ export default function Stocks() {
                 onCloseAddStorageModal();
                 setLoadedStorages(false);
                 setCreateEventLoading(false);
+                setStorageName("");
+                setStorageDepartment("");
+                setStoragePostalCode("");
+                setStorageCity("");
+                setStorageAddress("");
+                setAddStorageCityList([]);
             })
             .catch((_) => {
                 setCreateEventLoading(false);
@@ -563,12 +561,15 @@ export default function Stocks() {
     }
 
     const deleteStorage = () => {
+        setIsCallingDeleteProduct(true);
         deleteStockage(selectedStorage.id)
             .then((_) => {
                 onCloseDeleteStorageModal();
                 setLoadedStorages(false);
+                setIsCallingDeleteProduct(false);
             })
             .catch((_) => {
+                setIsCallingDeleteProduct(false);
             });
     }
 
@@ -589,7 +590,7 @@ export default function Stocks() {
             setUpdatedProductConservation(product.conservation);
             setUpdatedProductExpirationDate(product.expirationDate.toISOString().substring(0, 10));
             setUpdatedProductOptimalDate(product.optimalConsumptionDate.toISOString().substring(0, 10));
-            setUpdatedProductPrice(product.product.price);
+            setUpdatedProductPrice(product.price);
         }
         if (type === "cloth") {
             setUpdatedProductSize(product.size);
@@ -599,7 +600,6 @@ export default function Stocks() {
     }
 
     const selectStorageForModal = (storage, onOpenModal) => {
-        console.log(storage)
         setSelectedStorage(storage);
         setLoadedProductsByStorage(false);
         setUpdatedStorageDepartment(Number(storage.address.departmentCode) - 2);
@@ -609,11 +609,9 @@ export default function Stocks() {
         setUpdatedStorageCity(storage.address.city);
         getCitiesFromPostalCode(storage.address.postalCode)
             .then((cities) => {
-                console.log(cities);
                 setAddStorageCityList(cities);
             })
             .catch((err) => {
-                console.log(err);
             });
         setTimeout(() => onOpenModal(), 500);
     }
@@ -667,6 +665,12 @@ export default function Stocks() {
                 setIsCallingAddProduct(false)
                 onCloseAddProductModal();
                 setLoadedAllProducts(false);
+                setAddProductName("");
+                setAddProductStorageId("");
+                setAddProductUnit("");
+                setAddProductConservation("");
+                setAddProductExpirationDate(new Date().toISOString().substring(0, 10));
+                setAddProductOptimalDate(new Date().toISOString().substring(0, 10));
             })
             .catch((_) => {
                 setIsCallingAddProduct(false)
@@ -920,8 +924,7 @@ export default function Stocks() {
                     <CardHeader>
                         <Flex justify="space-between" m="12px 8px">
                             <Text fontSize="2xl">Stock de l'unité locale</Text>
-                            <Button colorScheme="green" onClick={onOpenAddProductModal}>Ajouter un produit aux
-                                stocks</Button>
+                            <Button colorScheme="green" onClick={onOpenAddProductModal}>Ajouter un produit aux stocks</Button>
                         </Flex>
                     </CardHeader>
                     <CardBody>
@@ -1753,8 +1756,7 @@ export default function Stocks() {
                         <Button colorScheme="blue" mr={3} onClick={onCloseDeleteStorageModal}>
                             Annuler
                         </Button>
-                        <Button colorScheme="red" variant="outline" mr={3} onClick={() => deleteStorage()}
-                                disabled={selectedStorageProducts.foods.length > 0 || selectedStorageProducts.clothes.length > 0}>
+                        <Button colorScheme="red" variant="outline" mr={3} onClick={() => deleteStorage()} disabled={isCallingDeleteProduct}>
                             Supprimer
                         </Button>
                     </ModalFooter>
