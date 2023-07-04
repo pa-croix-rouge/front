@@ -71,7 +71,6 @@ export default function BeneficiaryProduct(props) {
         setLoadingProducts(true);
         getAllProducts().then((res) => {
             setProducts(res);
-            console.log(res);
 
             for (const temp of res.foods) {
                 if (temp.product.productLimit === undefined) {
@@ -92,8 +91,6 @@ export default function BeneficiaryProduct(props) {
                 }
                 productLimits.push({...temp.product.productLimit, currentQuantity: 0});
             }
-
-            console.log(productLimits);
 
             setLoadedProducts(true);
             setLoadingProducts(false);
@@ -165,8 +162,6 @@ export default function BeneficiaryProduct(props) {
                     }
                 }
 
-                console.log(productLimits)
-
                 const list = []
                 for (const temp of res) {
                     if (list.find((item) => item.productId === temp.productId) !== undefined) {
@@ -180,7 +175,6 @@ export default function BeneficiaryProduct(props) {
                     list.push({...dup[0], quantity: quantity});
                     res = res.filter((item) => !isSameProduct(item.productId, temp.productId));
                 }
-                console.log(list)
                 setBeneficiaryProducts(list);
                 setLoadingBeneficiaryProducts(false);
                 setLoadedBeneficiaryProducts(true);
