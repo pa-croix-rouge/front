@@ -28,8 +28,8 @@ import {
   VStack
 } from "@chakra-ui/react";
 import Card from "../../../components/Card/Card";
-import React, {useState} from "react";
-import {AddIcon, DeleteIcon} from "@chakra-ui/icons";
+import React, { useState } from "react";
+import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
 import {
   assignVolunteerToRole,
   deleteRole,
@@ -37,7 +37,7 @@ import {
   unassignVolunteerToRole
 } from "../../../controller/RoleController";
 import RoleCreationModal from "./RoleCreationModal";
-import {FaCog, FaPencilAlt, FaTrashAlt, FaUserPlus} from "react-icons/fa";
+import { FaCog, FaPencilAlt, FaTrashAlt, FaUserPlus } from "react-icons/fa";
 
 export default function Role(props) {
   const { isOpen: isOpenAddModal, onOpen: onOpenAddModal, onClose: onCloseAddModal } = useDisclosure();
@@ -49,6 +49,12 @@ export default function Role(props) {
   const [roleDeletionProgress, setRoleDeleteProgress] = useState(false);
   const toast = useToast();
 
+  if (props.localUnitVolunteer === undefined || props.localUnitVolunteer.length === 0) {
+    return (
+      <></>
+    );
+  }
+
   if (!roleVolunteerLoaded) {
     getRoleVolunteers(role.id).then(value => {
       setRole({
@@ -58,13 +64,15 @@ export default function Role(props) {
       });
       setRoleVolunteerLoaded(true);
     }).catch(error => {
-      setTimeout(() => {setRoleVolunteerLoaded(false)}, 3000);
+      setTimeout(() => {
+        setRoleVolunteerLoaded(false);
+      }, 3000);
       toast({
-        title: 'Erreur',
+        title: "Erreur",
         description: "Echec du chargement des volontaires de rôle.",
-        status: 'error',
+        status: "error",
         duration: 10_000,
-        isClosable: true,
+        isClosable: true
       });
     });
   }
@@ -101,6 +109,7 @@ export default function Role(props) {
     setRole(role);
   };
 
+  console.log(role);
   return (
     <>
       <Card>
@@ -112,28 +121,32 @@ export default function Role(props) {
             </Flex>
             <Menu>
               <MenuButton>
-                <Icon as={FaCog}/>
+                <Icon as={FaCog} />
               </MenuButton>
               <MenuList>
                 <Flex direction="column">
                   <MenuItem onClick={onOpenManageModal}>
                     <Flex direction="row" cursor="pointer" p="12px">
-                      <Icon as={FaUserPlus} mr="8px"/>
+                      <Icon as={FaUserPlus} mr="8px" />
                       <Text fontSize="sm" fontWeight="semibold">Gérer les utilisateurs</Text>
                     </Flex>
                   </MenuItem>
-                  <MenuItem onClick={onOpenAddModal}>
-                    <Flex direction="row" cursor="pointer" p="12px">
-                      <Icon as={FaPencilAlt} mr="8px"/>
-                      <Text fontSize="sm" fontWeight="semibold">Modifier</Text>
-                    </Flex>
-                  </MenuItem>
-                  <MenuItem onClick={onDelete}>
-                    <Flex direction="row" cursor="pointer" p="12px">
-                      <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
-                      <Text color="red.500" fontSize="sm" fontWeight="semibold">Supprimer</Text>
-                    </Flex>
-                  </MenuItem>
+                  {role.localUnitID !== undefined && role.localUnitID !== null &&
+                    <>
+                      <MenuItem onClick={onOpenAddModal}>
+                        <Flex direction="row" cursor="pointer" p="12px">
+                          <Icon as={FaPencilAlt} mr="8px" />
+                          <Text fontSize="sm" fontWeight="semibold">Modifier</Text>
+                        </Flex>
+                      </MenuItem>
+                      <MenuItem onClick={onDelete}>
+                        <Flex direction="row" cursor="pointer" p="12px">
+                          <Icon as={FaTrashAlt} mr="8px" color="red.500" />
+                          <Text color="red.500" fontSize="sm" fontWeight="semibold">Supprimer</Text>
+                        </Flex>
+                      </MenuItem>
+                    </>
+                  }
                 </Flex>
               </MenuList>
             </Menu>
@@ -155,15 +168,15 @@ export default function Role(props) {
               {props.roleAuth.resources.map((resource, index) => {
                 return (
                   <Tr key={index}>
-                    <Th  p="8px 8px 8px 2px">{resource}</Th>
+                    <Th p="8px 8px 8px 2px">{resource}</Th>
                     {props.roleAuth.operations.map((opt, idx) => {
                       return (
                         <Th key={idx} p="8px">
                           {role.authorizations[resource]?.find(v => v === opt) !== undefined && (
-                              <Text>✅</Text>
+                            <Text>✅</Text>
                           )}
                           {role.authorizations[resource]?.find(v => v === opt) === undefined && (
-                              <Text>❌</Text>
+                            <Text>❌</Text>
                           )}
                         </Th>
                       );
@@ -198,7 +211,7 @@ export default function Role(props) {
                 <VStack align="stretch" spacing={1}>
                   {props.localUnitVolunteer
                     ?.filter(luv =>
-                      role.volunteer?.find(v => v.id === luv.id) === undefined
+                      role.volunteer?.find(v => v.id == luv.id) === undefined
                       && (luv.firstName.search(searchVolunteer) !== -1 || luv.lastName.search(searchVolunteer) !== -1))
                     .map((volunteer, index) => {
                       return (

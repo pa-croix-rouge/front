@@ -104,7 +104,7 @@ export default function Roles(props) {
               <Button onClick={onOpenAddModal} colorScheme="green">Ajouter un rôle</Button>
             </Flex>
           </Card>
-          <SimpleGrid columns={{ sm: 1, md: 1, xl: 2 }} spacing='24px' mb='8px'>
+          <SimpleGrid columns={3} spacing={10}>
             {roles.map((role, index) => (
               <Role localUnitID={volunteer.localUnitId} localUnitVolunteer={localUnitVolunteer} role={role}
                     roleAuth={roleAuth} onDelete={onDeleteRole} key={index}></Role>
