@@ -1,4 +1,3 @@
-import TokenContext from "contexts/TokenContext";
 import React, { useState } from "react";
 import EventContext from "../contexts/EventContext";
 
