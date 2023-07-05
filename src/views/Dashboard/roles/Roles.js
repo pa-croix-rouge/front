@@ -29,6 +29,7 @@ export default function Roles(props) {
 
   const [localUnitVolunteer, setLocalUnitVolunteer] = useState([]);
   const [localUnitVolunteerLoaded, setLocalUnitVolunteerLoaded] = useState(false);
+  const [localUnitVolunteerLoading, setLocalUnitVolunteerLoading] = useState(false);
   const { volunteer, setVolunteer } = useContext(VolunteerContext);
   const { isOpen: isOpenAddModal, onOpen: onOpenAddModal, onClose: onCloseAddModal } = useDisclosure();
   const toast = useToast();
@@ -38,6 +39,9 @@ export default function Roles(props) {
   };
 
   const onDeleteRole = (roleId) => {
+    console.log('onDeleteRole');
+    console.log(roleId);
+    console.log(roles);
     setRoles(roles.filter(role => role.id !== roleId));
   };
 
@@ -57,15 +61,18 @@ export default function Roles(props) {
       });
   }
 
-  if (!localUnitVolunteerLoaded) {
+  if (!localUnitVolunteerLoaded && !localUnitVolunteerLoading) {
+    setLocalUnitVolunteerLoading(true);
     getVolunteers()
       .then((volunteers) => {
         setLocalUnitVolunteer(volunteers);
         setLocalUnitVolunteerLoaded(true);
+        setLocalUnitVolunteerLoading(false);
       })
       .catch((e) => {
         setTimeout(() => {
           setLocalUnitVolunteerLoaded(false);
+          setLocalUnitVolunteerLoading(false);
         }, 3000);
         toast({
           title: "Erreur",

@@ -31,15 +31,17 @@ export default function RoleCreationModal(props) {
   const [error, setError] = useState("");
 
   const onAddNewRole = () => {
+    console.log('onAddNewRole');
 
     setRoleCreationProgress(true);
     (props.role === undefined ? createRole(props.localUnitID, role) : updateRole(role, props.localUnitID)).then((roleId) => {
 
       if (props.role === undefined) {
-        getRole(roleId).then((role) => {
+        getRole(roleId.value).then((role) => {
           setRole({ ...role, id: roleId });
           props.onNewValidRole(role);
           setRoleCreationProgress(false);
+          props.onClose();
         }).catch((e) => {
           setRoleCreationProgress(false);
           setError(e.message);
@@ -47,8 +49,8 @@ export default function RoleCreationModal(props) {
       } else {
         props.onNewValidRole(role);
         setRoleCreationProgress(false);
+        props.onClose();
       }
-      props.onClose();
     }).catch((e) => {
       setRoleCreationProgress(false);
       setError(e.message);
