@@ -122,7 +122,6 @@ export default function Role(props) {
       }
       setAssignProgress(false);
     }).catch(error => {
-      console.log(error.message);
       setAssignProgress(false);
       toast({
         title: "Erreur",
@@ -137,7 +136,6 @@ export default function Role(props) {
   const onUnAssign = (e) => {
     setAssignProgress(true);
     unassignVolunteerToRole(role.id, e.id).then(value => {
-      console.log(role);
       setRole({
         ...role,
         volunteer: role.volunteer.filter(volunteer => volunteer.id !== e.id),
@@ -145,7 +143,6 @@ export default function Role(props) {
       });
       setAssignProgress(false);
     }).catch(error => {
-      console.log(error.message);
       setAssignProgress(false);
       toast({
         title: "Erreur",
@@ -161,7 +158,6 @@ export default function Role(props) {
     setRole(role);
   };
 
-  console.log(role);
   return (
     <>
       <Card>

@@ -47,7 +47,6 @@ export default function Roles(props) {
         setRoleAuth(roleAuth);
       })
       .catch((e) => {
-        console.log(e.message);
         toast({
           title: "Erreur",
           description: "Echec du chargement des rôles.",
@@ -77,7 +76,6 @@ export default function Roles(props) {
         });
       });
   }
-
 
   if (!localUnitBeneficiaryLoaded && !localUnitBeneficiaryLoading) {
     setLocalUnitBeneficiaryLoading(true);
