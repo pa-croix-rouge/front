@@ -16,7 +16,7 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
-  ModalOverlay,
+  ModalOverlay, Radio, RadioGroup,
   Spacer,
   Table,
   Tbody,
@@ -42,14 +42,20 @@ import { FaCog, FaPencilAlt, FaTrashAlt, FaUserPlus } from "react-icons/fa";
 export default function Role(props) {
   const { isOpen: isOpenAddModal, onOpen: onOpenAddModal, onClose: onCloseAddModal } = useDisclosure();
   const { isOpen: isOpenManageModal, onOpen: onOpenManageModal, onClose: onCloseManageModal } = useDisclosure();
+
+  const [userType, setUserType] = useState('volunteer');
+
   const [role, setRole] = useState(props.role);
   const [searchVolunteer, setSearchVolunteer] = useState("");
   const [error, setError] = useState("");
+
+  const [assignProgress, setAssignProgress] = useState(false);
+
   const [roleVolunteerLoaded, setRoleVolunteerLoaded] = useState(false);
   const [roleDeletionProgress, setRoleDeleteProgress] = useState(false);
   const toast = useToast();
 
-  if (props.localUnitVolunteer === undefined || props.localUnitVolunteer.length === 0) {
+  if (props.localUnitVolunteer === undefined || props.localUnitVolunteer.length === 0 || props.localUnitBeneficiary === undefined) {
     return (
       <></>
     );
@@ -60,7 +66,8 @@ export default function Role(props) {
       setRole({
         ...role,
         userIDs: value,
-        volunteer: props.localUnitVolunteer.filter(volunteer => value.includes(volunteer.id))
+        volunteer: props.localUnitVolunteer.filter(volunteer => value.includes(volunteer.id)),
+        beneficiary: props.localUnitBeneficiary.filter(beneficiary => value.includes(beneficiary.id)),
       });
       setRoleVolunteerLoaded(true);
     }).catch(error => {
@@ -85,23 +92,68 @@ export default function Role(props) {
     }).catch(error => {
       setError(error.message);
       setRoleDeleteProgress(false);
+      toast({
+        title: "Erreur",
+        description: "Echec de la suppression du role.",
+        status: "error",
+        duration: 10_000,
+        isClosable: true
+      });
     });
   };
 
   const onAssign = (e) => {
+    const isVolunteer = userType === 'volunteer';
+    setAssignProgress(true);
+
     assignVolunteerToRole(role.id, e.id).then(value => {
-      setRole({ ...role, volunteer: [...role.volunteer, e] });
+      if(isVolunteer){
+        setRole({
+          ...role,
+          volunteer: [...role.volunteer, e]
+
+        });
+      }else{
+        setRole({
+          ...role,
+          beneficiary: [...role.beneficiary, e]
+
+        });
+      }
+      setAssignProgress(false);
     }).catch(error => {
       console.log(error.message);
+      setAssignProgress(false);
+      toast({
+        title: "Erreur",
+        description: "Echec de l'assignement du role.",
+        status: "error",
+        duration: 10_000,
+        isClosable: true
+      });
     });
   };
 
   const onUnAssign = (e) => {
+    setAssignProgress(true);
     unassignVolunteerToRole(role.id, e.id).then(value => {
       console.log(role);
-      setRole({ ...role, volunteer: role.volunteer.filter(volunteer => volunteer.id !== e.id) });
+      setRole({
+        ...role,
+        volunteer: role.volunteer.filter(volunteer => volunteer.id !== e.id),
+        beneficiary: role.beneficiary.filter(beneficiary => beneficiary.id !== e.id)
+      });
+      setAssignProgress(false);
     }).catch(error => {
       console.log(error.message);
+      setAssignProgress(false);
+      toast({
+        title: "Erreur",
+        description: "Echec de l'assignement du role.",
+        status: "error",
+        duration: 10_000,
+        isClosable: true
+      });
     });
   };
 
@@ -205,13 +257,31 @@ export default function Role(props) {
                   <Input flex={1} type="text" placeholder="Recherche" value={searchVolunteer}
                          onChange={(e) => setSearchVolunteer(e.target.value)} />
                 </HStack>
-
+                <RadioGroup value={userType} onChange={setUserType}>
+                  <Radio value={'beneficiary'}>Bénéficiares</Radio>
+                  <Radio value={'volunteer'}>Volontaires</Radio>
+                </RadioGroup>
 
                 <FormLabel>Volontaire dans l'UL :</FormLabel>
                 <VStack align="stretch" spacing={1}>
-                  {props.localUnitVolunteer
+                  {userType === 'volunteer' && props.localUnitVolunteer
                     ?.filter(luv =>
                       role.volunteer?.find(v => v.id == luv.id) === undefined
+                      && (luv.firstName.search(searchVolunteer) !== -1 || luv.lastName.search(searchVolunteer) !== -1))
+                    .map((volunteer, index) => {
+                      return (
+                        <Flex direction="row" key={index}>
+                          <Text>{volunteer.id} {volunteer.firstName} {volunteer.lastName}</Text>
+                          <Spacer grow={"10"} />
+                          <IconButton isLoading={assignProgress} colorScheme="green" aria-label="assign" icon={<AddIcon />}
+                                      onClick={e => onAssign(volunteer)} />
+                        </Flex>
+                      );
+                    })
+                  }
+                  {userType === 'beneficiary' && props.localUnitBeneficiary
+                    ?.filter(luv =>
+                      role.beneficiary?.find(v => v.id == luv.id) === undefined
                       && (luv.firstName.search(searchVolunteer) !== -1 || luv.lastName.search(searchVolunteer) !== -1))
                     .map((volunteer, index) => {
                       return (
@@ -227,9 +297,22 @@ export default function Role(props) {
                 </VStack>
                 <FormLabel>Volontaire ayant le role :</FormLabel>
                 <VStack align="stretch" spacing={1}>
-                  {role.volunteer
-                    // ?.filter( rv => rv.firstName.search(searchVolunteer) !== -1 || rv.lastName.search(searchVolunteer) !== -1 )
-                    ?.map((volunteer, index) => {
+                  {userType === 'beneficiary' && role.beneficiary
+                    ?.filter(luv => (luv.firstName.search(searchVolunteer) !== -1 || luv.lastName.search(searchVolunteer) !== -1))
+                    .map((volunteer, index) => {
+                      return (
+                        <Flex direction="row" key={index}>
+                          <Text>{volunteer.id} {volunteer.firstName} {volunteer.lastName}</Text>
+                          <Spacer grow={"10"} />
+                          <IconButton colorScheme="red" aria-label="unassign" icon={<DeleteIcon />}
+                                      onClick={e => onUnAssign(volunteer)} />
+                        </Flex>
+                      );
+                    })
+                  }
+                  {userType === 'volunteer' && role.volunteer
+                    ?.filter(luv => (luv.firstName.search(searchVolunteer) !== -1 || luv.lastName.search(searchVolunteer) !== -1))
+                    .map((volunteer, index) => {
                       return (
                         <Flex direction="row" key={index}>
                           <Text>{volunteer.id} {volunteer.firstName} {volunteer.lastName}</Text>
