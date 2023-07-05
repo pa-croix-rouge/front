@@ -98,7 +98,6 @@ function Beneficiaries() {
         setLoadingBeneficiaries(true);
         getBeneficiaries().then((res) => {
             setBeneficiaries(res);
-            console.log(res)
             setLoadingBeneficiaries(false);
             setLoadedBeneficiaries(true);
         }).catch((err) => {
