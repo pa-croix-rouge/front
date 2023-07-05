@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {
   Button,
   Checkbox,
@@ -29,6 +29,10 @@ export default function RoleCreationModal(props) {
   const [role, setRole] = useState(props.role === undefined ? new Role(undefined, "", "", new Map(), [], "") : props.role);
   const [roleCreationProgress, setRoleCreationProgress] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    setRole(props.role === undefined ? new Role(undefined, "", "", new Map(), [], "") : props.role);
+  }, [props.role] );
 
   const onAddNewRole = () => {
     if (role.name === "") {

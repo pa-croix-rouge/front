@@ -57,7 +57,10 @@ export default function Role(props) {
   const toast = useToast();
 
   useEffect(() => {
-    setRole(props.role)
+    setRole({...props.role,
+      volunteer: props.role.volunteer === undefined ? [] :  props.role.volunteer,
+      beneficiary: props.role.beneficiary === undefined ? [] :  props.role.beneficiary,
+    })
   }, [props.role]);
 
   if (props.localUnitVolunteer === undefined || props.localUnitVolunteer.length === 0 || props.localUnitBeneficiary === undefined) {
