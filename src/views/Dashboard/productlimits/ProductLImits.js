@@ -43,6 +43,7 @@ export default function ProductLimits() {
 
     const [selectedProductLimit, setSelectedProductLimit] = useState(null);
 
+
     if (loadedUnits === false && loadingUnits === false) {
         setLoadingUnits(true);
         getMeasurementUnits()
@@ -82,29 +83,24 @@ export default function ProductLimits() {
     }
 
     const onCreateProductLimit = () => {
-        console.log("onCreateProductLimit")
         setModalEditionMode(true);
         setSelectedProductLimit(undefined);
         onOpenModal();
     }
 
     const onViewProductLimit = (productLimit) => {
-        console.log("onCreateProductLimit")
         setModalEditionMode(false);
         setSelectedProductLimit(productLimit);
         onOpenModal();
     }
 
     const onEditProductLimit = (productLimit) => {
-        console.log("onEditProductLimit")
         setModalEditionMode(true);
         setSelectedProductLimit(productLimit);
         onOpenModal();
     }
 
     const onDeleteProductLimit = (productLimit) => {
-        console.log("onDeleteProductLimit")
-        console.log(productLimit)
         deleteProductLimit(productLimit.id).then(() => {
             reloadProductLimits();
         }).catch((e) => {
