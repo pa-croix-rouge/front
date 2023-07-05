@@ -1,4 +1,4 @@
-import React, {useContext, useState} from "react";
+import React, { useContext, useState } from "react";
 import {
   Button,
   Center,
@@ -10,17 +10,23 @@ import {
   VStack
 } from "@chakra-ui/react";
 import VolunteerContext from "../../../contexts/VolunteerContext";
-import {getLocalUnitRoles, getRoleAuth} from "../../../controller/RoleController";
+import { getLocalUnitRoles, getRoleAuth } from "../../../controller/RoleController";
 import Role from "./Role";
 import RoleCreationModal from "./RoleCreationModal";
-import {getVolunteers} from "../../../controller/VolunteerController";
+import { getVolunteers } from "../../../controller/VolunteerController";
 import Card from "../../../components/Card/Card";
+import { getBeneficiaries } from "../../../controller/BeneficiariesController";
 
 export default function Roles(props) {
   const [rolesLoaded, setRolesLoaded] = useState(false);
   const [rolesLoadingError, setRolesLoadingError] = useState("");
   const [roleAuth, setRoleAuth] = useState(undefined);
   const [roles, setRoles] = useState([]);
+
+  const [localUnitBeneficiary, setLocalUnitBeneficiary] = useState([]);
+  const [localUnitBeneficiaryLoaded, setLocalUnitBeneficiaryLoaded] = useState(false);
+  const [localUnitBeneficiaryLoading, setLocalUnitBeneficiaryLoading] = useState(false);
+
   const [localUnitVolunteer, setLocalUnitVolunteer] = useState([]);
   const [localUnitVolunteerLoaded, setLocalUnitVolunteerLoaded] = useState(false);
   const { volunteer, setVolunteer } = useContext(VolunteerContext);
@@ -43,11 +49,11 @@ export default function Roles(props) {
       .catch((e) => {
         console.log(e.message);
         toast({
-          title: 'Erreur',
+          title: "Erreur",
           description: "Echec du chargement des rôles.",
-          status: 'error',
+          status: "error",
           duration: 10_000,
-          isClosable: true,
+          isClosable: true
         });
       });
   }
@@ -59,15 +65,38 @@ export default function Roles(props) {
         setLocalUnitVolunteerLoaded(true);
       })
       .catch((e) => {
-        setTimeout(() => {setLocalUnitVolunteerLoaded(false)}, 3000);
+        setTimeout(() => {
+          setLocalUnitVolunteerLoaded(false);
+        }, 3000);
         toast({
-          title: 'Erreur',
+          title: "Erreur",
           description: "Echec du chargement des volontaires.",
-          status: 'error',
+          status: "error",
           duration: 10_000,
-          isClosable: true,
+          isClosable: true
         });
       });
+  }
+
+
+  if (!localUnitBeneficiaryLoaded && !localUnitBeneficiaryLoading) {
+    setLocalUnitBeneficiaryLoading(true);
+    getBeneficiaries()
+      .then((beneficiaries) => {
+        setLocalUnitBeneficiary(beneficiaries);
+        setLocalUnitBeneficiaryLoaded(true);
+        setLocalUnitBeneficiaryLoading(false);
+      }).catch((e) => {
+      setLocalUnitVolunteerLoaded(false);
+      setLocalUnitBeneficiaryLoading(false);
+      toast({
+        title: "Erreur",
+        description: "Echec du chargement des bénéficiares.",
+        status: "error",
+        duration: 10_000,
+        isClosable: true
+      });
+    });
   }
 
   if (!rolesLoaded) {
@@ -77,13 +106,15 @@ export default function Roles(props) {
         setRolesLoaded(true);
       })
       .catch((e) => {
-        setTimeout(() => {setRolesLoaded(false)}, 3000);
+        setTimeout(() => {
+          setRolesLoaded(false);
+        }, 3000);
         toast({
-          title: 'Erreur',
+          title: "Erreur",
           description: "Echec du chargement des rôles.",
-          status: 'error',
+          status: "error",
           duration: 10_000,
-          isClosable: true,
+          isClosable: true
         });
       });
   }
@@ -104,9 +135,9 @@ export default function Roles(props) {
               <Button onClick={onOpenAddModal} colorScheme="green">Ajouter un rôle</Button>
             </Flex>
           </Card>
-          <SimpleGrid columns={{ sm: 1, md: 1, xl: 2 }} spacing='24px' mb='8px'>
+          <SimpleGrid columns={3} spacing={10}>
             {roles.map((role, index) => (
-              <Role localUnitID={volunteer.localUnitId} localUnitVolunteer={localUnitVolunteer} role={role}
+              <Role localUnitID={volunteer.localUnitId} localUnitVolunteer={localUnitVolunteer} localUnitBeneficiary={localUnitBeneficiary} role={role}
                     roleAuth={roleAuth} onDelete={onDeleteRole} key={index}></Role>
             ))}
           </SimpleGrid>
@@ -117,9 +148,9 @@ export default function Roles(props) {
     );
   } else {
     return (
-        <Center h="100%" w="100%">
-          <CircularProgress isIndeterminate color="green.300" />
-        </Center>
+      <Center h="100%" w="100%">
+        <CircularProgress isIndeterminate color="green.300" />
+      </Center>
     );
   }
 }
