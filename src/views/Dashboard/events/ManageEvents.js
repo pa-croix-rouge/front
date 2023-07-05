@@ -278,9 +278,21 @@ export default function ManageEvents() {
         return (
             <>
                 <Tr>
-                    <Td colSpan="8" textAlign="left" fontSize="2xl" fontWeight="bold" ml="24px">
-                        {currentYear} - {(new Date(currentYear, (month) % 12)).toLocaleString('fr-FR', {month: 'long'})}
-                    </Td>
+                    {month >= 12 && (
+                        <Td colSpan="8" textAlign="left" fontSize="2xl" fontWeight="bold" ml="24px">
+                            {currentYear + 1} - {(new Date(currentYear + 1, (month) % 12)).toLocaleString('fr-FR', {month: 'long'})}
+                        </Td>
+                    )}
+                    {month < 0 && (
+                        <Td colSpan="8" textAlign="left" fontSize="2xl" fontWeight="bold" ml="24px">
+                            {currentYear - 1} - {(new Date(currentYear - 1, (month) % 12)).toLocaleString('fr-FR', {month: 'long'})}
+                        </Td>
+                    )}
+                    {month < 12 && month >= 0 && (
+                        <Td colSpan="8" textAlign="left" fontSize="2xl" fontWeight="bold" ml="24px">
+                            {currentYear} - {(new Date(currentYear, (month) % 12)).toLocaleString('fr-FR', {month: 'long'})}
+                        </Td>
+                    )}
                 </Tr>
                 {filteredEvent.map((event, index, arr) => {
                     return (
@@ -447,8 +459,7 @@ export default function ManageEvents() {
                             <Text fontSize="xl" color={textColor} fontWeight="bold">
                                 Gestion des événements
                             </Text>
-                            <Button p="0px" variant="outline" colorScheme="green" mr="10%"
-                                    onClick={onOpenCreationModal}>
+                            <Button p="0px" colorScheme="green" mr="10%" ml="8px" onClick={onOpenCreationModal}>
                                 <Flex cursor="pointer" align="center" p="12px">
                                     <Icon as={FaPlus} mr="8px"/>
                                     <Text fontSize="sm" fontWeight="semibold">
@@ -460,7 +471,7 @@ export default function ManageEvents() {
                                 <Flex cursor="pointer" align="center">
                                     <Icon as={FaArrowLeft} mr="8px"/>
                                     <Text fontSize="sm" fontWeight="semibold">
-                                        3 mois précédents
+                                        3 précédents
                                     </Text>
                                 </Flex>
                             </Button>
@@ -468,7 +479,7 @@ export default function ManageEvents() {
                                 <Flex cursor="pointer" align="center">
                                     <Icon as={FaArrowLeft} mr="8px"/>
                                     <Text fontSize="sm" fontWeight="semibold">
-                                        Mois précédent
+                                        Précédent
                                     </Text>
                                 </Flex>
                             </Button>
@@ -482,7 +493,7 @@ export default function ManageEvents() {
                             <Button onClick={setToNextMonth}>
                                 <Flex cursor="pointer" align="center">
                                     <Text fontSize="sm" fontWeight="semibold">
-                                        Mois suivant
+                                        Suivant
                                     </Text>
                                     <Icon as={FaArrowRight} ml="8px"/>
                                 </Flex>
@@ -490,7 +501,7 @@ export default function ManageEvents() {
                             <Button onClick={setToNext3Months}>
                                 <Flex cursor="pointer" align="center">
                                     <Text fontSize="sm" fontWeight="semibold">
-                                        3 mois suivants
+                                        3 suivants
                                     </Text>
                                     <Icon as={FaArrowRight} ml="8px"/>
                                 </Flex>
@@ -522,14 +533,11 @@ export default function ManageEvents() {
                 </Card>
             </Flex>
 
-            <EventCreation isOpen={isOpenCreationModal} onClose={onCloseCreationModal} volunteers={volunteerList}
-                           onNewEvent={onNewEvent}> </EventCreation>
+            <EventCreation isOpen={isOpenCreationModal} onClose={onCloseCreationModal} volunteers={volunteerList} onNewEvent={onNewEvent}> </EventCreation>
 
-            <EventViewer isOpen={isOpenVisualizationModal} onClose={onCloseVisualizationModal}
-                         volunteers={volunteerList} eventSessionId={selectedEventSessionId}></EventViewer>
+            <EventViewer isOpen={isOpenVisualizationModal} onClose={onCloseVisualizationModal} volunteers={volunteerList} eventSessionId={selectedEventSessionId}></EventViewer>
 
-            <EventEdition isOpen={isOpenEditionModal} onClose={onCloseEditionModal} volunteers={volunteerList}
-                          eventSessionId={selectedEventSessionId}></EventEdition>
+            <EventEdition isOpen={isOpenEditionModal} onClose={onCloseEditionModal} volunteers={volunteerList} eventSessionId={selectedEventSessionId}></EventEdition>
 
             <Modal isOpen={isOpenDeletionModal} onClose={onCloseDeletionModal} size="xl" isCentered>
                 <ModalOverlay/>

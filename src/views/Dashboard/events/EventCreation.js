@@ -153,6 +153,7 @@ export default function EventCreation(props) {
             {isNaN(eventMaxParticipants) && setEventMaxParticipants(0)}
             {isNaN(eventTimeWindowDuration) && setEventTimeWindowDuration(1)}
             {isNaN(eventNumberOfTimeWindow) && setEventNumberOfTimeWindow(1)}
+            {isNaN(eventRecurrence) && setEventRecurrence(1)}
             <Modal isOpen={props.isOpen} onClose={props.onClose} size="6xl" scrollBehavior="outside">
                 <ModalOverlay />
                 <ModalContent>
@@ -224,11 +225,9 @@ export default function EventCreation(props) {
                                     <Box>
                                         <SimpleGrid columns={{ sm: 1, md: 2, xl: 4 }} spacing='8px' mt="8px" ml="16px" mr="16px">
                                             <FormLabel m="auto">Date de début</FormLabel>
-                                            <Input type="date" value={eventStartDate}
-                                                   onChange={(e) => setEventStartDate(e.target.value)}/>
+                                            <Input type="date" value={eventStartDate} onChange={(e) => setEventStartDate(e.target.value)}/>
                                             <FormLabel m="auto">Heure de début</FormLabel>
-                                            <Input type="time" value={eventStartTime}
-                                                   onChange={(e) => setEventStartTime(e.target.value)}/>
+                                            <Input type="time" value={eventStartTime} onChange={(e) => setEventStartTime(e.target.value)}/>
                                         </SimpleGrid>
                                         {(eventStartDate === "" || eventStartTime === "") && (
                                             <Text m="auto" color="red.500">
@@ -254,18 +253,15 @@ export default function EventCreation(props) {
                                         <SimpleGrid columns={{ sm: 1, md: 1, xl: 2 }} spacing='8px'>
                                             <Flex direction="row" ml="16px" mr="16px">
                                                 <FormLabel m="auto" maxW="50%" >Premier jour</FormLabel>
-                                                <Input type="date" maxW="50%" value={eventStartDate}
-                                                       onChange={(e) => setEventStartDate(e.target.value)}/>
+                                                <Input type="date" maxW="50%" value={eventStartDate} onChange={(e) => setEventStartDate(e.target.value)}/>
                                             </Flex>
                                             <Flex direction="row" ml="16px" mr="16px">
                                                 <FormLabel m="auto" maxW="50%">Dernier jour</FormLabel>
-                                                <Input type="date" maxW="50%" value={eventLastDate}
-                                                       onChange={(e) => setEventLastDate(e.target.value)}/>
+                                                <Input type="date" maxW="50%" value={eventLastDate} onChange={(e) => setEventLastDate(e.target.value)}/>
                                             </Flex>
                                             <Flex direction="row" ml="16px" mr="16px">
                                                 <FormLabel maxW="50%" m="auto">Heure de début de l'événement</FormLabel>
-                                                <Input type="time" maxW="50%" value={eventStartTime}
-                                                       onChange={(e) => setEventStartTime(e.target.value)}/>
+                                                <Input type="time" maxW="50%" value={eventStartTime} onChange={(e) => setEventStartTime(e.target.value)}/>
                                             </Flex>
                                             <Text m="auto">Date de fin calculée: {new Date(new Date(
                                                 parseInt(eventStartDate.split("-")[0]),
