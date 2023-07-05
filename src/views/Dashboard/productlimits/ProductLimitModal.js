@@ -20,7 +20,7 @@ import {
     Radio,
     RadioGroup,
     SimpleGrid, Skeleton, Spacer,
-    Text, Wrap, WrapItem,
+    Text, useToast, Wrap, WrapItem,
 } from "@chakra-ui/react";
 import {ProductLimit} from "../../../model/ProductLimit";
 import {
@@ -46,6 +46,7 @@ export default function ProductLimitModal(props) {
     const [loadedProducts, setLoadedProducts] = useState(false);
     const [loadingProducts, setLoadingProducts] = useState(false);
     const [products, setProducts] = useState({first:[], second: []});
+    const toast = useToast();
 
     useEffect(() => {
         setProducts({first:[], second: []});
@@ -71,6 +72,13 @@ export default function ProductLimitModal(props) {
             console.log(error);
             setLoadedProducts(false);
             setLoadingProducts(false);
+            toast({
+                title: "Erreur",
+                description: "Echec du chargement des produits.",
+                status: "error",
+                duration: 10_000,
+                isClosable: true
+            });
         });
     }
 
@@ -111,6 +119,13 @@ export default function ProductLimitModal(props) {
                 const errorString = error.toString();
                 setError(errorString);
                 setInProgress(false);
+                toast({
+                    title: "Erreur",
+                    description: "Echec de la création de la limite de produit.",
+                    status: "error",
+                    duration: 10_000,
+                    isClosable: true
+                });
             });
         } else {
             setInProgress(true);
@@ -122,6 +137,13 @@ export default function ProductLimitModal(props) {
                 const errorString = error.toString();
                 setError(errorString);
                 setInProgress(false);
+                toast({
+                    title: "Erreur",
+                    description: "Echec de la mise à jours de la limite de produit.",
+                    status: "error",
+                    duration: 10_000,
+                    isClosable: true
+                });
             });
         }
     }
@@ -183,6 +205,11 @@ export default function ProductLimitModal(props) {
                 </CardBody>
             </Card>
         )
+    }
+
+    const isFormValid = () => {
+
+        return productLimit.name.length > 0 && productLimit.quantity.measurementUnit.length > 0;
     }
 
     return (
@@ -269,7 +296,7 @@ export default function ProductLimitModal(props) {
                     <Button colorScheme="blue" mr={3} onClick={closeModal}>
                         Annuler
                     </Button>
-                    <Button colorScheme="blue" mr={3} isLoading={inProgress}
+                    <Button colorScheme="blue" mr={3} isLoading={inProgress} isDisabled={!isFormValid()}
                             onClick={onOK}>
                         Confirmer
                     </Button>
