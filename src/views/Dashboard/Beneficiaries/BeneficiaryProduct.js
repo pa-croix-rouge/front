@@ -21,9 +21,9 @@ import {
     SimpleGrid,
     Skeleton,
     Spacer,
-    Text, VStack,
+    Text, useToast, VStack,
     Wrap,
-    WrapItem,
+    WrapItem
 } from "@chakra-ui/react";
 import LocalUnitContext from "../../../contexts/LocalUnitContext";
 import {getAllProducts} from "../../../controller/StorageController";
@@ -62,6 +62,7 @@ export default function BeneficiaryProduct(props) {
     const [selectedProduct, setSelectedProduct] = useState(undefined);
 
     const [addingProduct, setAddingProduct] = useState(false);
+    const toast = useToast();
 
     useEffect(() => {
         setLoadedBeneficiaryProducts(false);
@@ -97,6 +98,13 @@ export default function BeneficiaryProduct(props) {
         }).catch((err) => {
             setLoadedProducts(false);
             setLoadingProducts(false);
+            toast({
+                title: "Erreur",
+                description: "Echec du chargement des produits.",
+                status: "error",
+                duration: 10_000,
+                isClosable: true
+            });
         });
     }
 
@@ -182,6 +190,13 @@ export default function BeneficiaryProduct(props) {
             console.log(err)
             setLoadedBeneficiaryProducts(false);
             setLoadingBeneficiaryProducts(false);
+            toast({
+                title: "Erreur",
+                description: "Echec du chargement des produits du bénéficiare.",
+                status: "error",
+                duration: 10_000,
+                isClosable: true
+            });
         });
     }
 
@@ -217,6 +232,13 @@ export default function BeneficiaryProduct(props) {
         }).catch((err) => {
             console.log(err);
             setAddingProduct(false);
+            toast({
+                title: "Erreur",
+                description: "Echec de l'ajout du produit au bénéficiare.",
+                status: "error",
+                duration: 10_000,
+                isClosable: true
+            });
         });
     }
 
