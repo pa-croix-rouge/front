@@ -4,9 +4,9 @@ import {
     Center,
     CircularProgress,
     Flex, HStack, Icon,
-    Menu, MenuButton, MenuItem, MenuList,
+    Menu, MenuButton, MenuItem, MenuList, SimpleGrid, Spacer,
     Text,
-    useDisclosure,
+    useDisclosure, useToast,
     VStack,
     Wrap,
     WrapItem,
@@ -42,7 +42,7 @@ export default function ProductLimits() {
     const [units, setUnits] = useState([]);
 
     const [selectedProductLimit, setSelectedProductLimit] = useState(null);
-
+    const toast = useToast();
 
     if (loadedUnits === false && loadingUnits === false) {
         setLoadingUnits(true);
@@ -56,6 +56,13 @@ export default function ProductLimits() {
                 console.log(e)
                 setLoadedUnits(false);
                 setLoadingUnits(false);
+                toast({
+                    title: "Erreur",
+                    description: "Echec du chargement des unités.",
+                    status: "error",
+                    duration: 10_000,
+                    isClosable: true
+                });
             });
     }
 
@@ -71,6 +78,13 @@ export default function ProductLimits() {
                 console.log(e)
                 setLoadedProductLimits(false);
                 setLoadingProductLimits(false);
+                toast({
+                    title: "Erreur",
+                    description: "Echec du chargement des limits de produit.",
+                    status: "error",
+                    duration: 10_000,
+                    isClosable: true
+                });
             });
     }
 
@@ -105,6 +119,13 @@ export default function ProductLimits() {
             reloadProductLimits();
         }).catch((e) => {
             console.log(e)
+            toast({
+                title: "Erreur",
+                description: "Echec de la suppresion de la limit de produit.",
+                status: "error",
+                duration: 10_000,
+                isClosable: true
+            });
         });
     }
 
@@ -122,15 +143,17 @@ export default function ProductLimits() {
                             produit</Button>
                     </Flex>
                 </Card>
-                <Wrap>
+                <SimpleGrid columns={3} spacing={10}>
                     {productLimits.map((productLimit) => {
-                        return (<WrapItem key={productLimit.id}>
-                            <Card>
-                                <HStack>
-                                    <VStack>
-                                        <Text> {productLimit.name}</Text>
-                                        <Text fontSize="sm" color="gray.500"> {productLimit.quantity.value + ' ' + productLimit.quantity.measurementUnit + ' tous les ' + productLimit.duration + ' jours'}</Text>
+                        return (
+                            <Card key={productLimit.id}>
+                                <HStack align={'start'} >
+                                    <VStack align={'stretch'}>
+                                        <Text fontSize={'xl'} fontWeight="bold"> {productLimit.name}</Text>
+                                        <Text fontSize="sm"
+                                              color="gray.500"> {productLimit.quantity.value + ' ' + productLimit.quantity.measurementUnit + ' tous les ' + productLimit.duration + ' jours'}</Text>
                                     </VStack>
+                                    <Spacer/>
                                     <Menu>
                                         <MenuButton>
                                             <Icon as={FaCog}/>
@@ -160,10 +183,9 @@ export default function ProductLimits() {
                                         </MenuList>
                                     </Menu>
                                 </HStack>
-                            </Card>
-                        </WrapItem>)
-                    })}
-                </Wrap>
+                            </Card>)
+                        })}
+                </SimpleGrid>
             </VStack>
 
             <ProductLimitModal isOpen={isOpenModal} onClose={onCloseModal} size="6xl"
