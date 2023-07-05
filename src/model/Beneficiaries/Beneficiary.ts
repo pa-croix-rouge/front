@@ -1,3 +1,5 @@
+import {FamilyMember} from "./FamilyMember";
+
 export class Beneficiary {
     public id: string;
     public username: string;
@@ -7,9 +9,9 @@ export class Beneficiary {
     public phoneNumber: string;
     public isValidated: boolean;
     public localUnitId: string;
+    public familyMembers: FamilyMember[];
 
-
-    constructor(id: string, username: string, firstName: string, lastName: string, birthDate: Date, phoneNumber: string, isValidated: boolean, localUnitId: string) {
+    constructor(id: string, username: string, firstName: string, lastName: string, birthDate: Date, phoneNumber: string, isValidated: boolean, localUnitId: string, familyMembers: FamilyMember[]) {
         this.id = id;
         this.username = username;
         this.firstName = firstName;
@@ -18,5 +20,6 @@ export class Beneficiary {
         this.phoneNumber = phoneNumber;
         this.isValidated = isValidated;
         this.localUnitId = localUnitId;
+        this.familyMembers = familyMembers;
     }
 }

@@ -6,6 +6,7 @@ import {
     updateBeneficiary
 } from "../../../controller/BeneficiariesController";
 import {
+    Box,
     Button,
     Center,
     CircularProgress,
@@ -22,7 +23,7 @@ import {
     ModalFooter,
     ModalHeader,
     ModalOverlay,
-    SimpleGrid,
+    SimpleGrid, Spacer,
     Text,
     useDisclosure, useToast,
     VStack, Wrap, WrapItem
@@ -36,6 +37,7 @@ import Card from "../../../components/Card/Card";
 import BeneficiaryProduct from "./BeneficiaryProduct";
 import {FaCog, FaPencilAlt, FaTrashAlt, FaUserPlus} from "react-icons/fa";
 import {MdReceipt} from "react-icons/md";
+import {FamilyMember} from "../../../model/Beneficiaries/FamilyMember";
 
 const BeneficiariesContext = createContext({
     beneficiaries: [],
@@ -96,6 +98,7 @@ function Beneficiaries() {
         setLoadingBeneficiaries(true);
         getBeneficiaries().then((res) => {
             setBeneficiaries(res);
+            console.log(res)
             setLoadingBeneficiaries(false);
             setLoadedBeneficiaries(true);
         }).catch((err) => {
@@ -232,7 +235,7 @@ function Beneficiaries() {
 
     const getBeneficiariesCards = (beneficiary) => {
         return (
-            <Card maxW='max'>
+            <Card maxW='max' key={beneficiary.id}>
                 <HStack align={'start'}>
                     <VStack align={'stretch'}>
                         <HStack align={'stretch'}>
@@ -291,15 +294,18 @@ function Beneficiaries() {
         <BeneficiariesContext.Provider value={{beneficiaries, setBeneficiaries}}>
             <VStack pt={{base: "120px", md: "75px"}} mr='32px' align={'stretch'} overflow={'hidden'}>
                 <Card>
-                    <Flex justify="space-between">
-                        <Text fontSize="xl" fontWeight="bold">Gestion des bénéficiaires</Text>
-                        <Button onClick={onOpenCreationModal} colorScheme="green">Ajouter un bénéficiaire</Button>
-                    </Flex>
+                    <VStack align={'stretch'}>
+                        <Flex justify="space-between">
+                            <Text fontSize="xl" fontWeight="bold">Gestion des bénéficiaires</Text>
+                            <Button onClick={onOpenCreationModal} colorScheme="green">Ajouter un bénéficiaire</Button>
+                        </Flex>
+                        <HStack>
+                            <Text fontSize="md" fontWeight="bold">Recherche</Text>
+                            <Input type="text" value={search} onChange={(e) => setSearch(e.target.value)}/>
+                        </HStack>
+                    </VStack>
                 </Card>
-                <HStack>
-                    <Text fontSize="xl" fontWeight="bold">Recherche</Text>
-                    <Input type="text" value={search} onChange={(e) => setSearch(e.target.value)}/>
-                </HStack>
+
                 <Card>
                     <Text fontSize="xl" fontWeight="bold">Bénéficiares non validés</Text>
                     <SimpleGrid columns={{sm: 1, md: 3, xl: 6}} spacing='24px' mb='8px'>
@@ -323,44 +329,125 @@ function Beneficiaries() {
                     <ModalHeader>Ajouter un nouveau bénéficiare</ModalHeader>
                     <ModalCloseButton/>
                     <ModalBody>
-                        <SimpleGrid columns={2} spacing={5}>
-                            <FormLabel>Login</FormLabel>
-                            <Input type="text" placeholder="Login" value={newBeneficiary.username}
-                                   onChange={(e) => setNewBeneficiary({...newBeneficiary, username: e.target.value})}/>
+                        <VStack align={'stretch'}>
+                            <SimpleGrid columns={2} spacing={5}>
+                                <FormLabel>Login</FormLabel>
+                                <Input type="text" placeholder="Login" value={newBeneficiary.username}
+                                       onChange={(e) => setNewBeneficiary({
+                                           ...newBeneficiary,
+                                           username: e.target.value
+                                       })}/>
 
-                            <FormLabel>Most de pass</FormLabel>
-                            <Input type="text" placeholder="Most de pass" value={newBeneficiary.password}
-                                   onChange={(e) => setNewBeneficiary({...newBeneficiary, password: e.target.value})}/>
+                                <FormLabel>Most de pass</FormLabel>
+                                <Input type="text" placeholder="Most de pass" value={newBeneficiary.password}
+                                       onChange={(e) => setNewBeneficiary({
+                                           ...newBeneficiary,
+                                           password: e.target.value
+                                       })}/>
 
-                            <FormLabel>Nom</FormLabel>
-                            <Input type="text" placeholder="nom" value={newBeneficiary.lastName}
-                                   onChange={(e) => setNewBeneficiary({...newBeneficiary, lastName: e.target.value})}/>
+                                <FormLabel>Nom</FormLabel>
+                                <Input type="text" placeholder="nom" value={newBeneficiary.lastName}
+                                       onChange={(e) => setNewBeneficiary({
+                                           ...newBeneficiary,
+                                           lastName: e.target.value
+                                       })}/>
 
-                            <FormLabel>Prenom</FormLabel>
-                            <Input flex={1} type="text" placeholder="prenom" value={newBeneficiary.firstName}
-                                   onChange={(e) => setNewBeneficiary({...newBeneficiary, firstName: e.target.value})}/>
+                                <FormLabel>Prenom</FormLabel>
+                                <Input flex={1} type="text" placeholder="prenom" value={newBeneficiary.firstName}
+                                       onChange={(e) => setNewBeneficiary({
+                                           ...newBeneficiary,
+                                           firstName: e.target.value
+                                       })}/>
 
-                            <FormLabel>Date de naissance</FormLabel>
-                            <Input flex={1} type="date" placeholder="Date de naissance" value={newBeneficiary.birthDate}
-                                   onChange={(e) => setNewBeneficiary({...newBeneficiary, birthDate: e.target.value})}/>
+                                <FormLabel>Date de naissance</FormLabel>
+                                <Input flex={1} type="date" placeholder="Date de naissance"
+                                       value={newBeneficiary.birthDate}
+                                       onChange={(e) => setNewBeneficiary({
+                                           ...newBeneficiary,
+                                           birthDate: e.target.value
+                                       })}/>
 
-                            <FormLabel>Numéro de téléphone</FormLabel>
-                            <Input flex={1} type="text" placeholder="Numéro de téléphone"
-                                   value={newBeneficiary.phoneNumber}
-                                   onChange={(e) => setNewBeneficiary({
-                                       ...newBeneficiary,
-                                       phoneNumber: e.target.value
-                                   })}/>
+                                <FormLabel>Numéro de téléphone</FormLabel>
+                                <Input flex={1} type="text" placeholder="Numéro de téléphone"
+                                       value={newBeneficiary.phoneNumber}
+                                       onChange={(e) => setNewBeneficiary({
+                                           ...newBeneficiary,
+                                           phoneNumber: e.target.value
+                                       })}/>
 
-                            <FormLabel>Numéro de sécu</FormLabel>
-                            <Input flex={1} type="text" placeholder="Numéro de sécu"
-                                   value={newBeneficiary.socialWorkerNumber}
-                                   onChange={(e) => setNewBeneficiary({
-                                       ...newBeneficiary,
-                                       socialWorkerNumber: e.target.value
-                                   })}/>
+                                <FormLabel>Numéro de sécu</FormLabel>
+                                <Input flex={1} type="text" placeholder="Numéro de sécu"
+                                       value={newBeneficiary.socialWorkerNumber}
+                                       onChange={(e) => setNewBeneficiary({
+                                           ...newBeneficiary,
+                                           socialWorkerNumber: e.target.value
+                                       })}/>
 
-                        </SimpleGrid>
+                            </SimpleGrid>
+                            <HStack>
+                                <Text fontSize="md">Membre de la famille</Text>
+                                <Spacer/>
+                                <Button colorScheme="blue" size="sm" onClick={() => {
+                                    setNewBeneficiary(
+                                        {
+                                            ...newBeneficiary,
+                                            familyMembers: [...newBeneficiary.familyMembers, new FamilyMember('', '', '', new Date().toISOString())]
+                                        }
+                                    )
+                                }}>
+                                    ajouter
+                                </Button>
+                            </HStack>
+                            {newBeneficiary.familyMembers?.map((familyMember, index) => {
+                                return (
+                                    <Box key={index} borderWidth="1px" borderRadius="lg" overflow="hidden" p={3}>
+                                        <HStack>
+                                            <Text>Prenom</Text>
+                                            <Input flex={1} type="text" placeholder="Prénom"
+                                                   value={familyMember.firstName}
+                                                   onChange={(e) => {
+                                                       const newFamilyMembers = [...newBeneficiary.familyMembers]
+                                                       newFamilyMembers[index].firstName = e.target.value
+                                                       setNewBeneficiary({
+                                                           ...newBeneficiary,
+                                                           familyMembers: newFamilyMembers
+                                                       })
+                                                   }}/>
+                                            <Text>Nom</Text>
+                                            <Input flex={1} type="text" placeholder="Nom"
+                                                   value={familyMember.lastName}
+                                                   onChange={(e) => {
+                                                       const newFamilyMembers = [...newBeneficiary.familyMembers]
+                                                       newFamilyMembers[index].lastName = e.target.value
+                                                       setNewBeneficiary({
+                                                           ...newBeneficiary,
+                                                           familyMembers: newFamilyMembers
+                                                       })
+                                                   }}/>
+                                            <Text>Date de naissance</Text>
+                                            <Input flex={1} type="date" placeholder="Date de naissance"
+                                                   value={familyMember.birthDate}
+                                                   onChange={(e) => {
+                                                       const newFamilyMembers = [...newBeneficiary.familyMembers]
+                                                       newFamilyMembers[index].birthDate = e.target.value
+                                                       setNewBeneficiary({
+                                                           ...newBeneficiary,
+                                                           familyMembers: newFamilyMembers
+                                                       })
+                                                   }}/>
+                                            <IconButton aria-label={'delete'} icon={<DeleteIcon/>} onClick={() => {
+                                                if (newBeneficiary.familyMembers.length > 0) {
+                                                    setNewBeneficiary({
+                                                        ...newBeneficiary,
+                                                        familyMembers: newBeneficiary.familyMembers.filter((familyMember, i) => i !== index)
+                                                    })
+                                                }
+                                            }}/>
+                                        </HStack>
+                                    </Box>
+                                )
+                            })}
+                        </VStack>
                     </ModalBody>
                     <ModalFooter>
                         <Button colorScheme="blue" mr={3} onClick={onCloseCreationModal}>
@@ -380,59 +467,124 @@ function Beneficiaries() {
                     <ModalHeader>Modifier bénéficiare</ModalHeader>
                     <ModalCloseButton/>
                     <ModalBody>
-                        <SimpleGrid columns={2} spacing={5}>
-                            <FormLabel>Login</FormLabel>
-                            <Input type="text" placeholder="Login" value={selectedBeneficiary.username}
-                                   onChange={(e) => setSelectedBeneficiary({
-                                       ...selectedBeneficiary,
-                                       username: e.target.value
-                                   })}/>
+                        <VStack align={'stretch'}>
+                            <SimpleGrid columns={2} spacing={5}>
+                                <FormLabel>Login</FormLabel>
+                                <Input type="text" placeholder="Login" value={selectedBeneficiary.username}
+                                       onChange={(e) => setSelectedBeneficiary({
+                                           ...selectedBeneficiary,
+                                           username: e.target.value
+                                       })}/>
 
-                            <FormLabel>Most de pass</FormLabel>
-                            <Input type="text" placeholder="Most de pass" value={selectedBeneficiary.password}
-                                   onChange={(e) => setSelectedBeneficiary({
-                                       ...selectedBeneficiary,
-                                       password: e.target.value
-                                   })}/>
+                                <FormLabel>Most de pass</FormLabel>
+                                <Input type="text" placeholder="Most de pass" value={selectedBeneficiary.password}
+                                       onChange={(e) => setSelectedBeneficiary({
+                                           ...selectedBeneficiary,
+                                           password: e.target.value
+                                       })}/>
 
-                            <FormLabel>Nom</FormLabel>
-                            <Input type="text" placeholder="nom" value={selectedBeneficiary.lastName}
-                                   onChange={(e) => setSelectedBeneficiary({
-                                       ...selectedBeneficiary,
-                                       lastName: e.target.value
-                                   })}/>
+                                <FormLabel>Nom</FormLabel>
+                                <Input type="text" placeholder="nom" value={selectedBeneficiary.lastName}
+                                       onChange={(e) => setSelectedBeneficiary({
+                                           ...selectedBeneficiary,
+                                           lastName: e.target.value
+                                       })}/>
 
-                            <FormLabel>Prenom</FormLabel>
-                            <Input flex={1} type="text" placeholder="prenom" value={selectedBeneficiary.firstName}
-                                   onChange={(e) => setSelectedBeneficiary({
-                                       ...selectedBeneficiary,
-                                       firstName: e.target.value
-                                   })}/>
+                                <FormLabel>Prenom</FormLabel>
+                                <Input flex={1} type="text" placeholder="prenom" value={selectedBeneficiary.firstName}
+                                       onChange={(e) => setSelectedBeneficiary({
+                                           ...selectedBeneficiary,
+                                           firstName: e.target.value
+                                       })}/>
 
-                            <FormLabel>Date de naissance</FormLabel>
-                            <Input flex={1} type="date" placeholder="Date de naissance"
-                                   value={selectedBeneficiary.birthDate}
-                                   onChange={(e) => setSelectedBeneficiary({
-                                       ...selectedBeneficiary,
-                                       birthDate: e.target.value
-                                   })}/>
+                                <FormLabel>Date de naissance</FormLabel>
+                                <Input flex={1} type="date" placeholder="Date de naissance"
+                                       value={selectedBeneficiary.birthDate}
+                                       onChange={(e) => setSelectedBeneficiary({
+                                           ...selectedBeneficiary,
+                                           birthDate: e.target.value
+                                       })}/>
 
-                            <FormLabel>Numéro de téléphone</FormLabel>
-                            <Input flex={1} type="text" placeholder="Numéro de téléphone"
-                                   value={selectedBeneficiary.phoneNumber}
-                                   onChange={(e) => setSelectedBeneficiary({
-                                       ...selectedBeneficiary,
-                                       phoneNumber: e.target.value
-                                   })}/>
+                                <FormLabel>Numéro de téléphone</FormLabel>
+                                <Input flex={1} type="text" placeholder="Numéro de téléphone"
+                                       value={selectedBeneficiary.phoneNumber}
+                                       onChange={(e) => setSelectedBeneficiary({
+                                           ...selectedBeneficiary,
+                                           phoneNumber: e.target.value
+                                       })}/>
 
-                            <FormLabel>Numéro de sécu</FormLabel>
-                            <Input flex={1} type="text" placeholder="Numéro de sécu"
-                                   value={selectedBeneficiary.socialWorkerNumber}
-                                   onChange={(e) => setSelectedBeneficiary({
-                                       ...selectedBeneficiary,
-                                       socialWorkerNumber: e.target.value
-                                   })}/>
-                        </SimpleGrid>
+                                <FormLabel>Numéro de sécu</FormLabel>
+                                <Input flex={1} type="text" placeholder="Numéro de sécu"
+                                       value={selectedBeneficiary.socialWorkerNumber}
+                                       onChange={(e) => setSelectedBeneficiary({
+                                           ...selectedBeneficiary,
+                                           socialWorkerNumber: e.target.value
+                                       })}/>
+                            </SimpleGrid>
+                            <HStack>
+                                <Text fontSize="md">Membre de la famille</Text>
+                                <Spacer/>
+                                <Button colorScheme="blue" size="sm" onClick={() => {
+                                    setSelectedBeneficiary(
+                                        {
+                                            ...selectedBeneficiary,
+                                            familyMembers: [...selectedBeneficiary.familyMembers, new FamilyMember('', '', '', new Date().toISOString())]
+                                        }
+                                    )
+                                }}>
+                                    ajouter
+                                </Button>
+                            </HStack>
+                            {selectedBeneficiary.familyMembers?.map((familyMember, index) => {
+                                return (
+                                    <Box key={index} borderWidth="1px" borderRadius="lg" overflow="hidden" p={3}>
+                                        <HStack>
+                                            <Text>Prenom</Text>
+                                            <Input flex={1} type="text" placeholder="Prénom"
+                                                   value={familyMember.firstName}
+                                                   onChange={(e) => {
+                                                       const newFamilyMembers = [...selectedBeneficiary.familyMembers]
+                                                       newFamilyMembers[index].firstName = e.target.value
+                                                       setSelectedBeneficiary({
+                                                           ...selectedBeneficiary,
+                                                           familyMembers: newFamilyMembers
+                                                       })
+                                                   }}/>
+                                            <Text>Nom</Text>
+                                            <Input flex={1} type="text" placeholder="Nom"
+                                                   value={familyMember.lastName}
+                                                   onChange={(e) => {
+                                                       const newFamilyMembers = [...selectedBeneficiary.familyMembers]
+                                                       newFamilyMembers[index].lastName = e.target.value
+                                                       setSelectedBeneficiary({
+                                                           ...selectedBeneficiary,
+                                                           familyMembers: newFamilyMembers
+                                                       })
+                                                   }}/>
+                                            <Text>Date de naissance</Text>
+                                            <Input flex={1} type="date" placeholder="Date de naissance"
+                                                   value={familyMember.birthDate}
+                                                   onChange={(e) => {
+                                                       const newFamilyMembers = [...selectedBeneficiary.familyMembers]
+                                                       newFamilyMembers[index].birthDate = e.target.value
+                                                       setSelectedBeneficiary({
+                                                           ...selectedBeneficiary,
+                                                           familyMembers: newFamilyMembers
+                                                       })
+                                                   }}/>
+                                            <IconButton aria-label={'delete'} icon={<DeleteIcon/>} onClick={() => {
+                                                if (selectedBeneficiary.familyMembers.length > 0) {
+                                                    setSelectedBeneficiary({
+                                                        ...selectedBeneficiary,
+                                                        familyMembers: selectedBeneficiary.familyMembers.filter((familyMember, i) => i !== index)
+                                                    })
+                                                }
+                                            }}/>
+                                        </HStack>
+                                    </Box>
+                                )
+                            })}
+                        </VStack>
                     </ModalBody>
                     <ModalFooter>
                         <Button colorScheme="blue" mr={3} onClick={onCloseEditionModal}>
@@ -452,34 +604,57 @@ function Beneficiaries() {
                     <ModalHeader></ModalHeader>
                     <ModalCloseButton/>
                     <ModalBody>
-                        <SimpleGrid columns={2} spacing={5}>
-                            <FormLabel>Login</FormLabel>
-                            <Input type="text" placeholder="Login" readOnly={true} isDisabled={true}
-                                   value={selectedBeneficiary.username}/>
+                        <VStack align={'stretch'}>
+                            <SimpleGrid columns={2} spacing={5}>
+                                <FormLabel>Login</FormLabel>
+                                <Input type="text" placeholder="Login" readOnly={true} isDisabled={true}
+                                       value={selectedBeneficiary.username}/>
 
-                            <FormLabel>Nom</FormLabel>
-                            <Input type="text" placeholder="nom" readOnly={true} isDisabled={true}
-                                   value={selectedBeneficiary.lastName}/>
+                                <FormLabel>Nom</FormLabel>
+                                <Input type="text" placeholder="nom" readOnly={true} isDisabled={true}
+                                       value={selectedBeneficiary.lastName}/>
 
-                            <FormLabel>Prenom</FormLabel>
-                            <Input flex={1} type="text" placeholder="prenom" readOnly={true} isDisabled={true}
-                                   value={selectedBeneficiary.firstName}/>
+                                <FormLabel>Prenom</FormLabel>
+                                <Input flex={1} type="text" placeholder="prenom" readOnly={true} isDisabled={true}
+                                       value={selectedBeneficiary.firstName}/>
 
-                            <FormLabel>Date de naissance</FormLabel>
-                            <Input flex={1} type="date" placeholder="Date de naissance" readOnly={true}
-                                   isDisabled={true}
-                                   value={selectedBeneficiary.birthDate}/>
+                                <FormLabel>Date de naissance</FormLabel>
+                                <Input flex={1} type="date" placeholder="Date de naissance" readOnly={true}
+                                       isDisabled={true}
+                                       value={selectedBeneficiary.birthDate}/>
 
-                            <FormLabel>Numéro de téléphone</FormLabel>
-                            <Input flex={1} type="text" placeholder="Numéro de téléphone" readOnly={true}
-                                   isDisabled={true}
-                                   value={selectedBeneficiary.phoneNumber}/>
+                                <FormLabel>Numéro de téléphone</FormLabel>
+                                <Input flex={1} type="text" placeholder="Numéro de téléphone" readOnly={true}
+                                       isDisabled={true}
+                                       value={selectedBeneficiary.phoneNumber}/>
 
-                            <FormLabel>Numéro de sécu</FormLabel>
-                            <Input flex={1} type="text" placeholder="Numéro de sécu" readOnly={true} isDisabled={true}
-                                   value={newBeneficiary.socialWorkerNumber}/>
+                                <FormLabel>Numéro de sécu</FormLabel>
+                                <Input flex={1} type="text" placeholder="Numéro de sécu" readOnly={true}
+                                       isDisabled={true}
+                                       value={selectedBeneficiary.socialWorkerNumber}/>
+                            </SimpleGrid>
 
-                        </SimpleGrid>
+                            <Text fontSize="md">Membre de la famille</Text>
+                            {selectedBeneficiary.familyMembers?.map((familyMember, index) => {
+                                return (
+                                    <Box key={index} borderWidth="1px" borderRadius="lg" overflow="hidden" p={3}>
+                                        <HStack>
+                                            <Text>Prenom</Text>
+                                            <Input flex={1} type="text" placeholder="Prénom" isDisabled={true}
+                                                   value={familyMember.firstName}/>
+                                            <Text>Nom</Text>
+                                            <Input flex={1} type="text" placeholder="Nom" isDisabled={true}
+                                                   value={familyMember.lastName}/>
+                                            <Text>Date de naissance</Text>
+                                            <Input flex={1} type="date" placeholder="Date de naissance"
+                                                   isDisabled={true}
+                                                   value={familyMember.birthDate}/>
+                                        </HStack>
+                                    </Box>
+                                )
+                            })}
+                        </VStack>
+
                     </ModalBody>
                     <ModalFooter>
                         <Button colorScheme="blue" mr={3} onClick={onCloseViewModal}>
