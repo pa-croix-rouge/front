@@ -31,7 +31,10 @@ export default function RoleCreationModal(props) {
   const [error, setError] = useState("");
 
   const onAddNewRole = () => {
-    console.log('onAddNewRole');
+    if (role.name === "") {
+      setError("Le nom du role ne peut pas être vide");
+      return;
+    }
 
     setRoleCreationProgress(true);
     (props.role === undefined ? createRole(props.localUnitID, role) : updateRole(role, props.localUnitID)).then((roleId) => {
@@ -126,11 +129,12 @@ export default function RoleCreationModal(props) {
                 </Tbody>
               </Table>
             </VStack>
+            {error !== "" && (
+                <Text color="red.500">{error}</Text>
+            )}
           </FormControl>
-
         </ModalBody>
         <ModalFooter>
-          <Text>{error}</Text>
           <Button isLoading={roleCreationProgress} colorScheme="blue" mr={3} onClick={props.onClose}>
             Annuler
           </Button>

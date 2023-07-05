@@ -60,7 +60,6 @@ export default function Role(props) {
     setRole(props.role)
   }, [props.role]);
 
-
   if (props.localUnitVolunteer === undefined || props.localUnitVolunteer.length === 0 || props.localUnitBeneficiary === undefined) {
     return (
       <></>
@@ -134,7 +133,7 @@ export default function Role(props) {
       setAssignProgress(false);
       toast({
         title: "Erreur",
-        description: "Echec de l'assignement du role.",
+        description: "Echec de l'assignation du role.",
         status: "error",
         duration: 10_000,
         isClosable: true
@@ -263,11 +262,49 @@ export default function Role(props) {
                          onChange={(e) => setSearchVolunteer(e.target.value)} />
                 </HStack>
                 <RadioGroup value={userType} onChange={setUserType}>
-                  <Radio value={'beneficiary'}>Bénéficiares</Radio>
+                  <Radio value={'beneficiary'} mr="8px">Bénéficiares</Radio>
                   <Radio value={'volunteer'}>Volontaires</Radio>
                 </RadioGroup>
-
-                <FormLabel>Volontaire dans l'UL :</FormLabel>
+                {userType === 'beneficiary' && (
+                  <FormLabel>Bénéficiaires ayant le role :</FormLabel>
+                )}
+                {userType === 'volunteer' && (
+                  <FormLabel>Volontaires ayant le role :</FormLabel>
+                )}
+                <VStack align="stretch" spacing={1}>
+                  {userType === 'beneficiary' && role.beneficiary
+                      ?.filter(luv => (luv.firstName.search(searchVolunteer) !== -1 || luv.lastName.search(searchVolunteer) !== -1))
+                      .map((volunteer, index) => {
+                        return (
+                            <Flex direction="row" key={index}>
+                              <Text>{volunteer.firstName} {volunteer.lastName}</Text>
+                              <Spacer grow={"10"} />
+                              <IconButton colorScheme="red" aria-label="unassign" icon={<DeleteIcon />}
+                                          onClick={e => onUnAssign(volunteer)} />
+                            </Flex>
+                        );
+                      })
+                  }
+                  {userType === 'volunteer' && role.volunteer
+                      ?.filter(luv => (luv.firstName.search(searchVolunteer) !== -1 || luv.lastName.search(searchVolunteer) !== -1))
+                      .map((volunteer, index) => {
+                        return (
+                            <Flex direction="row" key={index}>
+                              <Text>{volunteer.firstName} {volunteer.lastName}</Text>
+                              <Spacer grow={"10"} />
+                              <IconButton colorScheme="red" aria-label="unassign" icon={<DeleteIcon />}
+                                          onClick={e => onUnAssign(volunteer)} />
+                            </Flex>
+                        );
+                      })
+                  }
+                </VStack>
+                {userType === 'beneficiary' && (
+                    <FormLabel>Bénéficiaires dans l'UL :</FormLabel>
+                )}
+                {userType === 'volunteer' && (
+                    <FormLabel>Volontaires dans l'UL :</FormLabel>
+                )}
                 <VStack align="stretch" spacing={1}>
                   {userType === 'volunteer' && props.localUnitVolunteer
                     ?.filter(luv =>
@@ -276,7 +313,7 @@ export default function Role(props) {
                     .map((volunteer, index) => {
                       return (
                         <Flex direction="row" key={index}>
-                          <Text>{volunteer.id} {volunteer.firstName} {volunteer.lastName}</Text>
+                          <Text>{volunteer.firstName} {volunteer.lastName}</Text>
                           <Spacer grow={"10"} />
                           <IconButton isLoading={assignProgress} colorScheme="green" aria-label="assign" icon={<AddIcon />}
                                       onClick={e => onAssign(volunteer)} />
@@ -291,39 +328,10 @@ export default function Role(props) {
                     .map((volunteer, index) => {
                       return (
                         <Flex direction="row" key={index}>
-                          <Text>{volunteer.id} {volunteer.firstName} {volunteer.lastName}</Text>
+                          <Text>{volunteer.firstName} {volunteer.lastName}</Text>
                           <Spacer grow={"10"} />
                           <IconButton colorScheme="green" aria-label="assign" icon={<AddIcon />}
                                       onClick={e => onAssign(volunteer)} />
-                        </Flex>
-                      );
-                    })
-                  }
-                </VStack>
-                <FormLabel>Volontaire ayant le role :</FormLabel>
-                <VStack align="stretch" spacing={1}>
-                  {userType === 'beneficiary' && role.beneficiary
-                    ?.filter(luv => (luv.firstName.search(searchVolunteer) !== -1 || luv.lastName.search(searchVolunteer) !== -1))
-                    .map((volunteer, index) => {
-                      return (
-                        <Flex direction="row" key={index}>
-                          <Text>{volunteer.id} {volunteer.firstName} {volunteer.lastName}</Text>
-                          <Spacer grow={"10"} />
-                          <IconButton colorScheme="red" aria-label="unassign" icon={<DeleteIcon />}
-                                      onClick={e => onUnAssign(volunteer)} />
-                        </Flex>
-                      );
-                    })
-                  }
-                  {userType === 'volunteer' && role.volunteer
-                    ?.filter(luv => (luv.firstName.search(searchVolunteer) !== -1 || luv.lastName.search(searchVolunteer) !== -1))
-                    .map((volunteer, index) => {
-                      return (
-                        <Flex direction="row" key={index}>
-                          <Text>{volunteer.id} {volunteer.firstName} {volunteer.lastName}</Text>
-                          <Spacer grow={"10"} />
-                          <IconButton colorScheme="red" aria-label="unassign" icon={<DeleteIcon />}
-                                      onClick={e => onUnAssign(volunteer)} />
                         </Flex>
                       );
                     })
