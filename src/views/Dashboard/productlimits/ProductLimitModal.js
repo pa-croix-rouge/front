@@ -61,11 +61,10 @@ export default function ProductLimitModal(props) {
         return null;
     }
 
-    if (loadedProducts === false && loadingProducts === false) {
+    if (loadedProducts === false && loadingProducts === false && productLimit.id !== undefined) {
         setLoadingProducts(true);
         getAllProductLimitProducts(productLimit.id).then((products) => {
             setProducts(products);
-            console.log(products)
             setLoadedProducts(true);
             setLoadingProducts(false);
         }).catch((error) => {
@@ -93,7 +92,6 @@ export default function ProductLimitModal(props) {
     }
 
     const onOK = () => {
-        console.log('onOK')
         if (props.edit === false) {
             props.onClose();
             return;
