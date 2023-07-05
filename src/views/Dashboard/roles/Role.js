@@ -28,7 +28,7 @@ import {
   VStack
 } from "@chakra-ui/react";
 import Card from "../../../components/Card/Card";
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
 import {
   assignVolunteerToRole,
@@ -52,8 +52,14 @@ export default function Role(props) {
   const [assignProgress, setAssignProgress] = useState(false);
 
   const [roleVolunteerLoaded, setRoleVolunteerLoaded] = useState(false);
+  const [roleVolunteerLoading, setRoleVolunteerLoading] = useState(false);
   const [roleDeletionProgress, setRoleDeleteProgress] = useState(false);
   const toast = useToast();
+
+  useEffect(() => {
+    setRole(props.role)
+  }, [props.role]);
+
 
   if (props.localUnitVolunteer === undefined || props.localUnitVolunteer.length === 0 || props.localUnitBeneficiary === undefined) {
     return (
@@ -61,7 +67,8 @@ export default function Role(props) {
     );
   }
 
-  if (!roleVolunteerLoaded) {
+  if (!roleVolunteerLoaded && !roleVolunteerLoading) {
+    setRoleVolunteerLoading(true);
     getRoleVolunteers(role.id).then(value => {
       setRole({
         ...role,
@@ -70,9 +77,11 @@ export default function Role(props) {
         beneficiary: props.localUnitBeneficiary.filter(beneficiary => value.includes(beneficiary.id)),
       });
       setRoleVolunteerLoaded(true);
+      setRoleVolunteerLoading(false);
     }).catch(error => {
       setTimeout(() => {
         setRoleVolunteerLoaded(false);
+        setRoleVolunteerLoading(false);
       }, 3000);
       toast({
         title: "Erreur",
@@ -161,7 +170,6 @@ export default function Role(props) {
     setRole(role);
   };
 
-  console.log(role);
   return (
     <>
       <Card>
