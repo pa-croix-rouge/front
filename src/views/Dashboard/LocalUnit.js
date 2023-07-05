@@ -318,7 +318,7 @@ function LocalUnit() {
                                                 {v.phoneNumber}
                                             </Text>
                                         </Flex>
-                                        {volunteer.username !== '' && volunteer.username === luManager && (
+                                        {v.username !== '' && volunteer.username === luManager && v.id !== volunteer.id && (
                                             <Flex direction='row' justify="space-evenly" m="8px 0">
                                                 <IconButton colorScheme="gray" aria-label="Bloquer" icon={<FaBan />} onClick={() => setupInvalidateVolunteer(v.id)}/>
                                             </Flex>
