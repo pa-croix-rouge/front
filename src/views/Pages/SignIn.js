@@ -42,7 +42,6 @@ function SignIn() {
         login(user)
             .then((jwtToken) => {
                 setLoading(false);
-                console.log(jwtToken.token)
                 localStorage.setItem('token', jwtToken.token);
                 // setToken(jwtToken.token);
                 setLoadTokenSuccess(true);

@@ -71,7 +71,7 @@ export const assignVolunteerToRole = async (roleID: string, volunteerId: string)
 
 export const unassignVolunteerToRole = async (roleID: string, volunteerId: string) => {
   const response = await deleteWithToken(`role/${roleID}/user/${volunteerId}`);
-  console.log(response);
+
   if (!response.ok) {
     throw new Error(`Fetching local unit failed with status ${response.status}`);
   }
