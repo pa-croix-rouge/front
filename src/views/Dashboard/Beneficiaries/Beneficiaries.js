@@ -24,8 +24,8 @@ import {
     ModalOverlay,
     SimpleGrid,
     Text,
-    useDisclosure,
-    VStack, Wrap, WrapItem,
+    useDisclosure, useToast,
+    VStack, Wrap, WrapItem
 } from "@chakra-ui/react";
 
 import {Beneficiary} from "../../../model/Beneficiaries/Beneficiary";
@@ -90,6 +90,7 @@ function Beneficiaries() {
     const [search, setSearch] = useState('');
 
     const [selectedBeneficiary, setSelectedBeneficiary] = useState(new Beneficiary(undefined, '', '', '', undefined, '', '', ''));
+    const toast = useToast();
 
     if (!loadedBeneficiaries && !loadingBeneficiaries) {
         setLoadingBeneficiaries(true);
@@ -100,6 +101,13 @@ function Beneficiaries() {
         }).catch((err) => {
             setLoadingBeneficiaries(false);
             setLoadedBeneficiaries(false);
+            toast({
+                title: "Erreur",
+                description: "Echec du chargement des bénéficiares.",
+                status: "error",
+                duration: 10_000,
+                isClosable: true
+            });
         });
     }
 
@@ -121,6 +129,13 @@ function Beneficiaries() {
             }).catch((err) => {
             setCreatingNewBeneficiaries(false);
             console.log(err);
+            toast({
+                title: "Erreur",
+                description: "Echec de la création du bénéficiare.",
+                status: "error",
+                duration: 10_000,
+                isClosable: true
+            });
         });
     }
 
@@ -134,6 +149,13 @@ function Beneficiaries() {
             }).catch((err) => {
             setCreatingNewBeneficiaries(false);
             console.log(err);
+            toast({
+                title: "Erreur",
+                description: "Echec de la mise à jour bénéficiare.",
+                status: "error",
+                duration: 10_000,
+                isClosable: true
+            });
         });
     }
 
@@ -148,6 +170,13 @@ function Beneficiaries() {
                 setLoadedBeneficiaries(false);
             }).catch((err) => {
             console.log(err)
+            toast({
+                title: "Erreur",
+                description: "Echec de la suppression du bénéficiare.",
+                status: "error",
+                duration: 10_000,
+                isClosable: true
+            });
         });
     }
 
@@ -166,6 +195,13 @@ function Beneficiaries() {
             setLoadedBeneficiaries(false);
         }).catch((err) => {
             console.log(err)
+            toast({
+                title: "Erreur",
+                description: "Echec de la validation dus bénéficiare.",
+                status: "error",
+                duration: 10_000,
+                isClosable: true
+            });
         });
     }
 
