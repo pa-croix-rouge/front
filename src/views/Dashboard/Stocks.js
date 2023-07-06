@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useRef, useState} from "react";
 import {
-    Badge,
+    Badge, Box,
     Button, CircularProgress,
     Flex,
     FormControl,
@@ -27,7 +27,7 @@ import {
     RadioGroup,
     Select,
     SimpleGrid, Skeleton, Stat, StatLabel, StatNumber,
-    Text, toast, useColorModeValue,
+    Text, toast, Tooltip, useColorModeValue,
     useDisclosure, useToast
 } from "@chakra-ui/react";
 import {
@@ -69,6 +69,7 @@ import {getCitiesFromPostalCode} from "../../controller/IGNController";
 import {ProductsStats} from "../../model/stock/ProductsStats";
 import IconBox from "../../components/Icons/IconBox";
 import {getAllProductLimit} from "../../controller/ProductLimitsController";
+import {getMyAuthorizations} from "../../controller/RoleController";
 
 export default function Stocks() {
     const iconBoxInside = useColorModeValue("white", "white");
@@ -167,6 +168,8 @@ export default function Stocks() {
     const [productLimits, setProductLimits] = useState([]);
 
     const [selectedProductLimit, setSelectedProductLimit] = useState(undefined);
+    const [loadedVolunteerAuthorizations, setLoadedVolunteerAuthorizations] = useState(false);
+    const [volunteerAuthorizations, setVolunteerAuthorizations] = useState({});
 
     const toast = useToast();
 
@@ -469,6 +472,24 @@ export default function Stocks() {
                 toast({
                     title: 'Erreur',
                     description: "Echec du chargement des produits bientôt expirés.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
+            });
+    }
+
+    const loadVolunteerAuthorizations = () => {
+        setLoadedVolunteerAuthorizations(true);
+        getMyAuthorizations()
+            .then((roles) => {
+                setVolunteerAuthorizations(roles);
+            })
+            .catch((_) => {
+                setTimeout(() => {setLoadedVolunteerAuthorizations(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des droits du volontaire.",
                     status: 'error',
                     duration: 10_000,
                     isClosable: true,
@@ -814,6 +835,30 @@ export default function Stocks() {
         }
     }
 
+    const canAddProduct = () => {
+        return volunteerAuthorizations.PRODUCT?.filter((r) => r === 'CREATE').length > 0;
+    }
+
+    const canUpdateProduct = () => {
+        return volunteerAuthorizations.PRODUCT?.filter((r) => r === 'UPDATE').length > 0;
+    }
+
+    const canDeleteProduct = () => {
+        return volunteerAuthorizations.PRODUCT?.filter((r) => r === 'DELETE').length > 0;
+    }
+
+    const canAddStorage = () => {
+        return volunteerAuthorizations.STORAGE?.filter((r) => r === 'CREATE').length > 0;
+    }
+
+    const canUpdateStorage = () => {
+        return volunteerAuthorizations.STORAGE?.filter((r) => r === 'UPDATE').length > 0;
+    }
+
+    const canDeleteStorage = () => {
+        return volunteerAuthorizations.STORAGE?.filter((r) => r === 'DELETE').length > 0;
+    }
+
     return (
         <>
             {!loadedStorages && loadStorages()}
@@ -828,6 +873,7 @@ export default function Stocks() {
             {!loadedProductsByStorage && selectedStorage !== null && loadProductsFromStorage()}
             {!loadedStorageStats && loadStorageStats()}
             {!loadedSoonExpiredProducts && loadSoonExpiredProducts()}
+            {!loadedVolunteerAuthorizations && loadVolunteerAuthorizations()}
             <Flex direction="column" pt={{base: "120px", md: "75px"}} overflow="hidden">
                 <SimpleGrid columns={{sm: 1, md: 2, xl: 3}} spacing='24px' mb='20px'>
                     <Card minH='125px'>
@@ -939,7 +985,11 @@ export default function Stocks() {
                     <CardHeader>
                         <Flex justify="space-between" m="12px 8px">
                             <Text fontSize="2xl">Stock de l'unité locale</Text>
-                            <Button colorScheme="green" onClick={onOpenAddProductModal}>Ajouter un produit aux stocks</Button>
+                            <Tooltip label="Vous n'avez pas les droits" isDisabled={canAddProduct()}>
+                                <Box>
+                                    <Button colorScheme="green" onClick={onOpenAddProductModal} disabled={!canAddProduct()}>Ajouter un produit aux stocks</Button>
+                                </Box>
+                            </Tooltip>
                         </Flex>
                     </CardHeader>
                     <CardBody>
@@ -961,24 +1011,26 @@ export default function Stocks() {
                                                 </MenuButton>
                                                 <MenuList>
                                                     <Flex direction="column">
-                                                        <MenuItem
-                                                            onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenUpdateProductModal)}>
-                                                            <Flex cursor="pointer" align="center" p="12px">
-                                                                <Icon as={FaEdit} mr="8px"/>
-                                                                <Text fontSize="sm" fontWeight="semibold">
-                                                                    Modifier
-                                                                </Text>
-                                                            </Flex>
+                                                        <MenuItem onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenUpdateProductModal)} isDisabled={!canUpdateProduct()}>
+                                                            <Tooltip label="Vous n'avez pas les droits" isDisabled={canUpdateProduct()}>
+                                                                <Flex cursor="pointer" align="center" p="12px">
+                                                                    <Icon as={FaEdit} mr="8px"/>
+                                                                    <Text fontSize="sm" fontWeight="semibold">
+                                                                        Modifier
+                                                                    </Text>
+                                                                </Flex>
+                                                            </Tooltip>
                                                         </MenuItem>
-                                                        <MenuItem
-                                                            onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenDeleteProductModal)}>
-                                                            <Flex cursor="pointer" align="center" p="12px">
-                                                                <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
-                                                                <Text fontSize="sm" fontWeight="semibold"
-                                                                      color="red.500">
-                                                                    Supprimer
-                                                                </Text>
-                                                            </Flex>
+                                                        <MenuItem onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenDeleteProductModal)} isDisabled={!canDeleteProduct()}>
+                                                            <Tooltip label="Vous n'avez pas les droits" isDisabled={canDeleteProduct()}>
+                                                                <Flex cursor="pointer" align="center" p="12px">
+                                                                    <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                                                    <Text fontSize="sm" fontWeight="semibold"
+                                                                          color="red.500">
+                                                                        Supprimer
+                                                                    </Text>
+                                                                </Flex>
+                                                            </Tooltip>
                                                         </MenuItem>
                                                     </Flex>
                                                 </MenuList>
@@ -1040,24 +1092,26 @@ export default function Stocks() {
                                                 </MenuButton>
                                                 <MenuList>
                                                     <Flex direction="column">
-                                                        <MenuItem
-                                                            onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenUpdateProductModal)}>
-                                                            <Flex cursor="pointer" align="center" p="12px">
-                                                                <Icon as={FaEdit} mr="8px"/>
-                                                                <Text fontSize="sm" fontWeight="semibold">
-                                                                    Modifier
-                                                                </Text>
-                                                            </Flex>
+                                                        <MenuItem onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenUpdateProductModal)} isDisabled={!canUpdateProduct()}>
+                                                            <Tooltip label="Vous n'avez pas les droits" isDisabled={canUpdateProduct()}>
+                                                                <Flex cursor="pointer" align="center" p="12px">
+                                                                    <Icon as={FaEdit} mr="8px"/>
+                                                                    <Text fontSize="sm" fontWeight="semibold">
+                                                                        Modifier
+                                                                    </Text>
+                                                                </Flex>
+                                                            </Tooltip>
                                                         </MenuItem>
-                                                        <MenuItem
-                                                            onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenDeleteProductModal)}>
-                                                            <Flex cursor="pointer" align="center" p="12px">
-                                                                <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
-                                                                <Text fontSize="sm" fontWeight="semibold"
-                                                                      color="red.500">
-                                                                    Supprimer
-                                                                </Text>
-                                                            </Flex>
+                                                        <MenuItem onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenDeleteProductModal)} isDisabled={!canDeleteProduct()}>
+                                                            <Tooltip label="Vous n'avez pas les droits" isDisabled={canDeleteProduct()}>
+                                                                <Flex cursor="pointer" align="center" p="12px">
+                                                                    <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                                                    <Text fontSize="sm" fontWeight="semibold"
+                                                                          color="red.500">
+                                                                        Supprimer
+                                                                    </Text>
+                                                                </Flex>
+                                                            </Tooltip>
                                                         </MenuItem>
                                                     </Flex>
                                                 </MenuList>
@@ -1083,9 +1137,13 @@ export default function Stocks() {
                     <CardHeader>
                         <Flex justify="space-between" m="12px 8px">
                             <Text fontSize="2xl">Gestion des espaces de stockage</Text>
-                            <Button onClick={onOpenAddStorageModal} colorScheme="green">
-                                AJOUTER
-                            </Button>
+                            <Tooltip label="Vous n'avez pas les droits" isDisabled={canAddStorage()}>
+                                <Box>
+                                    <Button onClick={onOpenAddStorageModal} colorScheme="green" isDisabled={!canAddStorage()}>
+                                        AJOUTER
+                                    </Button>
+                                </Box>
+                            </Tooltip>
                         </Flex>
                     </CardHeader>
                     <CardBody>
@@ -1104,29 +1162,27 @@ export default function Stocks() {
                                                 </MenuButton>
                                                 <MenuList>
                                                     <Flex direction="column">
-                                                        <MenuItem
-                                                            onClick={() => selectStorageForModal(storage, onOpenViewStorageModal)}>
+                                                        <MenuItem onClick={() => selectStorageForModal(storage, onOpenViewStorageModal)}>
                                                             <Flex direction="row" p="12px">
                                                                 <Icon as={FaEye} mr="8px"/>
-                                                                <Text fontSize="sm" fontWeight="semibold">Voir le
-                                                                    contenu</Text>
+                                                                <Text fontSize="sm" fontWeight="semibold">Voir le contenu</Text>
                                                             </Flex>
                                                         </MenuItem>
-                                                        <MenuItem
-                                                            onClick={() => selectStorageForModal(storage, onOpenUpdateStorageModal)}>
-                                                            <Flex direction="row" p="12px">
-                                                                <Icon as={FaPencilAlt} mr="8px"/>
-                                                                <Text fontSize="sm"
-                                                                      fontWeight="semibold">Modifier</Text>
-                                                            </Flex>
+                                                        <MenuItem onClick={() => selectStorageForModal(storage, onOpenUpdateStorageModal)} isDisabled={!canUpdateStorage()}>
+                                                            <Tooltip label="Vous n'avez pas les droits" isDisabled={canUpdateStorage()}>
+                                                                <Flex direction="row" p="12px">
+                                                                    <Icon as={FaPencilAlt} mr="8px"/>
+                                                                    <Text fontSize="sm" fontWeight="semibold">Modifier</Text>
+                                                                </Flex>
+                                                            </Tooltip>
                                                         </MenuItem>
-                                                        <MenuItem
-                                                            onClick={() => selectStorageForModal(storage, onOpenDeleteStorageModal)}>
-                                                            <Flex direction="row" p="12px">
-                                                                <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
-                                                                <Text color="red.500" fontSize="sm"
-                                                                      fontWeight="semibold">Supprimer</Text>
-                                                            </Flex>
+                                                        <MenuItem onClick={() => selectStorageForModal(storage, onOpenDeleteStorageModal)} isDisabled={!canDeleteStorage()}>
+                                                            <Tooltip label="Vous n'avez pas les droits" isDisabled={canDeleteStorage()}>
+                                                                <Flex direction="row" p="12px">
+                                                                    <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                                                    <Text color="red.500" fontSize="sm" fontWeight="semibold">Supprimer</Text>
+                                                                </Flex>
+                                                            </Tooltip>
                                                         </MenuItem>
                                                     </Flex>
                                                 </MenuList>
@@ -1537,24 +1593,26 @@ export default function Stocks() {
                                                         </MenuButton>
                                                         <MenuList>
                                                             <Flex direction="column">
-                                                                <MenuItem
-                                                                    onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenUpdateProductModal)}>
-                                                                    <Flex cursor="pointer" align="center" p="12px">
-                                                                        <Icon as={FaEdit} mr="8px"/>
-                                                                        <Text fontSize="sm" fontWeight="semibold">
-                                                                            Modifier
-                                                                        </Text>
-                                                                    </Flex>
+                                                                <MenuItem onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenUpdateProductModal)} isDisabled={!canUpdateProduct()}>
+                                                                    <Tooltip label="Vous n'avez pas les droits" isDisabled={canUpdateProduct()}>
+                                                                        <Flex cursor="pointer" align="center" p="12px">
+                                                                            <Icon as={FaEdit} mr="8px"/>
+                                                                            <Text fontSize="sm" fontWeight="semibold">
+                                                                                Modifier
+                                                                            </Text>
+                                                                        </Flex>
+                                                                    </Tooltip>
                                                                 </MenuItem>
-                                                                <MenuItem
-                                                                    onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenDeleteProductModal)}>
-                                                                    <Flex cursor="pointer" align="center" p="12px">
-                                                                        <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
-                                                                        <Text fontSize="sm" fontWeight="semibold"
-                                                                              color="red.500">
-                                                                            Supprimer
-                                                                        </Text>
-                                                                    </Flex>
+                                                                <MenuItem onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenDeleteProductModal)} isDisabled={!canDeleteProduct()}>
+                                                                    <Tooltip label="Vous n'avez pas les droits" isDisabled={canDeleteProduct()}>
+                                                                        <Flex cursor="pointer" align="center" p="12px">
+                                                                            <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                                                            <Text fontSize="sm" fontWeight="semibold"
+                                                                                  color="red.500">
+                                                                                Supprimer
+                                                                            </Text>
+                                                                        </Flex>
+                                                                    </Tooltip>
                                                                 </MenuItem>
                                                             </Flex>
                                                         </MenuList>
@@ -1618,24 +1676,26 @@ export default function Stocks() {
                                                         </MenuButton>
                                                         <MenuList>
                                                             <Flex direction="column">
-                                                                <MenuItem
-                                                                    onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenUpdateProductModal)}>
-                                                                    <Flex cursor="pointer" align="center" p="12px">
-                                                                        <Icon as={FaEdit} mr="8px"/>
-                                                                        <Text fontSize="sm" fontWeight="semibold">
-                                                                            Modifier
-                                                                        </Text>
-                                                                    </Flex>
+                                                                <MenuItem onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenUpdateProductModal)} isDisabled={!canUpdateProduct()}>
+                                                                    <Tooltip label="Vous n'avez pas les droits" isDisabled={canUpdateProduct()}>
+                                                                        <Flex cursor="pointer" align="center" p="12px">
+                                                                            <Icon as={FaEdit} mr="8px"/>
+                                                                            <Text fontSize="sm" fontWeight="semibold">
+                                                                                Modifier
+                                                                            </Text>
+                                                                        </Flex>
+                                                                    </Tooltip>
                                                                 </MenuItem>
-                                                                <MenuItem
-                                                                    onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenDeleteProductModal)}>
-                                                                    <Flex cursor="pointer" align="center" p="12px">
-                                                                        <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
-                                                                        <Text fontSize="sm" fontWeight="semibold"
-                                                                              color="red.500">
-                                                                            Supprimer
-                                                                        </Text>
-                                                                    </Flex>
+                                                                <MenuItem onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenDeleteProductModal)} isDisabled={!canDeleteProduct()}>
+                                                                    <Tooltip label="Vous n'avez pas les droits" isDisabled={canDeleteProduct()}>
+                                                                        <Flex cursor="pointer" align="center" p="12px">
+                                                                            <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                                                            <Text fontSize="sm" fontWeight="semibold"
+                                                                                  color="red.500">
+                                                                                Supprimer
+                                                                            </Text>
+                                                                        </Flex>
+                                                                    </Tooltip>
                                                                 </MenuItem>
                                                             </Flex>
                                                         </MenuList>
@@ -1795,24 +1855,26 @@ export default function Stocks() {
                                                 </MenuButton>
                                                 <MenuList>
                                                     <Flex direction="column">
-                                                        <MenuItem
-                                                            onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenUpdateProductModal)}>
-                                                            <Flex cursor="pointer" align="center" p="12px">
-                                                                <Icon as={FaEdit} mr="8px"/>
-                                                                <Text fontSize="sm" fontWeight="semibold">
-                                                                    Modifier
-                                                                </Text>
-                                                            </Flex>
+                                                        <MenuItem onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenUpdateProductModal)} isDisabled={!canUpdateProduct()}>
+                                                            <Tooltip label="Vous n'avez pas les droits" isDisabled={canUpdateProduct()}>
+                                                                <Flex cursor="pointer" align="center" p="12px">
+                                                                    <Icon as={FaEdit} mr="8px"/>
+                                                                    <Text fontSize="sm" fontWeight="semibold">
+                                                                        Modifier
+                                                                    </Text>
+                                                                </Flex>
+                                                            </Tooltip>
                                                         </MenuItem>
-                                                        <MenuItem
-                                                            onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenDeleteProductModal)}>
-                                                            <Flex cursor="pointer" align="center" p="12px">
-                                                                <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
-                                                                <Text fontSize="sm" fontWeight="semibold"
-                                                                      color="red.500">
-                                                                    Supprimer
-                                                                </Text>
-                                                            </Flex>
+                                                        <MenuItem onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenDeleteProductModal)} isDisabled={!canDeleteProduct()}>
+                                                            <Tooltip label="Vous n'avez pas les droits" isDisabled={canDeleteProduct()}>
+                                                                <Flex cursor="pointer" align="center" p="12px">
+                                                                    <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                                                    <Text fontSize="sm" fontWeight="semibold"
+                                                                          color="red.500">
+                                                                        Supprimer
+                                                                    </Text>
+                                                                </Flex>
+                                                            </Tooltip>
                                                         </MenuItem>
                                                     </Flex>
                                                 </MenuList>

@@ -456,6 +456,7 @@ export default function ManageEvents() {
     const canUpdateEvent = () => {
         return volunteerAuthorizations.EVENT?.filter((r) => r === 'UPDATE').length > 0;
     }
+
     const canDeleteEvent = () => {
         return volunteerAuthorizations.EVENT?.filter((r) => r === 'DELETE').length > 0;
     }
