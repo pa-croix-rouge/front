@@ -219,9 +219,7 @@ function LocalUnit() {
             {callInvalidateVolunteer && selectedVolunteerId !== '' && invalidateVolunteerAccount(selectedVolunteerId)}
             {callDeleteVolunteer && selectedVolunteerId !== '' && deleteVolunteerAccount(selectedVolunteerId)}
             {!loadedVolunteerAuthorizations && loadVolunteerAuthorizations()}
-            <Flex
-                direction='column'
-                pt={{ base: "120px", md: "75px", lg: "100px" }}>
+            <Flex direction='column' pt={{ base: "120px", md: "75px", lg: "100px" }}>
                 <Flex
                     direction={{ sm: "column", md: "row" }}
                     mb='24px'
@@ -235,10 +233,7 @@ function LocalUnit() {
                     p='24px'
                     borderRadius='20px'>
                     <HStack spacing='32px'>
-                        <Avatar
-                            h='96px'
-                            w='96px'
-                            src={crLogo}/>
+                        <Avatar h='96px' w='96px' src={crLogo}/>
                         {!endLoadingLocalUnit && (
                             <CircularProgress isIndeterminate color='green.300'/>
                         )}
