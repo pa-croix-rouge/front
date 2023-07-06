@@ -1,10 +1,10 @@
 import {
-    Avatar, Button, CircularProgress,
+    Avatar, Box, Button, CircularProgress,
     Flex,
     HStack,
     Icon, IconButton, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay,
     SimpleGrid,
-    Text, toast,
+    Text, toast, Tooltip,
     useColorModeValue, useDisclosure, useToast
 } from "@chakra-ui/react";
 
@@ -24,6 +24,7 @@ import {
 import {getLocalUnit, regenerateLocalUnitCode} from "../../controller/LocalUnitController";
 import {CheckIcon, DeleteIcon, EmailIcon, PhoneIcon} from "@chakra-ui/icons";
 import {FaBan} from "react-icons/fa";
+import {getMyAuthorizations} from "../../controller/RoleController";
 
 function LocalUnit() {
     const borderProfileColor = useColorModeValue("white", "transparent");
@@ -46,6 +47,8 @@ function LocalUnit() {
     const [callInvalidateVolunteer, setCallInvalidateVolunteer] = useState(false);
     const [callDeleteVolunteer, setCallDeleteVolunteer] = useState(false);
     const [selectedVolunteerId, setSelectedVolunteerId] = useState('');
+    const [loadedVolunteerAuthorizations, setLoadedVolunteerAuthorizations] = useState(false);
+    const [volunteerAuthorizations, setVolunteerAuthorizations] = useState({});
     const toast = useToast();
 
     const loadLocalUnit = () => {
@@ -83,6 +86,24 @@ function LocalUnit() {
                 toast({
                     title: 'Erreur',
                     description: "Echec du chargement des volontaires.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
+            });
+    }
+
+    const loadVolunteerAuthorizations = () => {
+        setLoadedVolunteerAuthorizations(true);
+        getMyAuthorizations()
+            .then((roles) => {
+                setVolunteerAuthorizations(roles);
+            })
+            .catch((_) => {
+                setTimeout(() => {setLoadedVolunteerAuthorizations(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des droits du volontaire.",
                     status: 'error',
                     duration: 10_000,
                     isClosable: true,
@@ -177,6 +198,18 @@ function LocalUnit() {
             });
     }
 
+    const canUpdateLocalUnit = () => {
+        return volunteerAuthorizations.LOCAL_UNIT?.filter((r) => r === 'UPDATE').length > 0;
+    }
+
+    const canUpdateVolunteer = () => {
+        return volunteerAuthorizations.VOLUNTEER?.filter((r) => r === 'UPDATE').length > 0;
+    }
+
+    const canDeleteVolunteer = () => {
+        return volunteerAuthorizations.VOLUNTEER?.filter((r) => r === 'DELETE').length > 0;
+    }
+
     return (
         <>
             {volunteer && !loadedLocalUnit && loadLocalUnit()}
@@ -185,6 +218,7 @@ function LocalUnit() {
             {callValidateVolunteer && selectedVolunteerId !== '' && validateVolunteerAccount(selectedVolunteerId)}
             {callInvalidateVolunteer && selectedVolunteerId !== '' && invalidateVolunteerAccount(selectedVolunteerId)}
             {callDeleteVolunteer && selectedVolunteerId !== '' && deleteVolunteerAccount(selectedVolunteerId)}
+            {!loadedVolunteerAuthorizations && loadVolunteerAuthorizations()}
             <Flex
                 direction='column'
                 pt={{ base: "120px", md: "75px", lg: "100px" }}>
@@ -240,9 +274,13 @@ function LocalUnit() {
                                     <Text m="auto 0">
                                         Code d'inscription de l'unité locale: <i>{luSecretCode}</i>
                                     </Text>
-                                    <Button colorScheme="orange" onClick={onOpenRegenerateCodeModal}>
-                                        Regénérer le code
-                                    </Button>
+                                    <Tooltip label="Vous n'avez pas les droits" isDisabled={canUpdateLocalUnit()}>
+                                        <Box>
+                                            <Button colorScheme="orange" onClick={onOpenRegenerateCodeModal} disabled={!canUpdateLocalUnit()}>
+                                                Regénérer le code
+                                            </Button>
+                                        </Box>
+                                    </Tooltip>
                                 </Flex>
                                 <Text fontWeight="semibold" mt="8px">
                                     Comptes en attentes de validation
@@ -271,8 +309,16 @@ function LocalUnit() {
                                                 </Text>
                                             </Flex>
                                             <Flex direction='row' justify="space-evenly" m="8px 0">
-                                                <IconButton colorScheme="green" aria-label="Valider" icon={<CheckIcon />} onClick={() => setupValidateVolunteer(v.id)}/>
-                                                <IconButton colorScheme="red" aria-label="Supprimer" icon={<DeleteIcon />} onClick={() => setupDeleteVolunteer(v.id)}/>
+                                                <Tooltip label="Vous n'avez pas les droits" isDisabled={canUpdateVolunteer()}>
+                                                    <Box>
+                                                        <IconButton colorScheme="green" aria-label="Valider" icon={<CheckIcon />} onClick={() => setupValidateVolunteer(v.id)} disabled={!canUpdateVolunteer()}/>
+                                                    </Box>
+                                                </Tooltip>
+                                                <Tooltip label="Vous n'avez pas les droits" isDisabled={canDeleteVolunteer()}>
+                                                    <Box>
+                                                        <IconButton colorScheme="red" aria-label="Supprimer" icon={<DeleteIcon />} onClick={() => setupDeleteVolunteer(v.id)} disabled={!canDeleteVolunteer()}/>
+                                                    </Box>
+                                                </Tooltip>
                                             </Flex>
                                         </Card>
                                     ))}
@@ -320,7 +366,11 @@ function LocalUnit() {
                                         </Flex>
                                         {v.username !== '' && volunteer.username === luManager && v.id !== volunteer.id && (
                                             <Flex direction='row' justify="space-evenly" m="8px 0">
-                                                <IconButton colorScheme="gray" aria-label="Bloquer" icon={<FaBan />} onClick={() => setupInvalidateVolunteer(v.id)}/>
+                                                <Tooltip label="Vous n'avez pas les droits" isDisabled={canUpdateVolunteer()}>
+                                                    <Box>
+                                                        <IconButton colorScheme="gray" aria-label="Bloquer" icon={<FaBan />} onClick={() => setupInvalidateVolunteer(v.id)} disabled={!canDeleteVolunteer()}/>
+                                                    </Box>
+                                                </Tooltip>
                                             </Flex>
                                         )}
                                     </Card>

@@ -11,6 +11,15 @@ export const getLocalUnitRoles = async (localUnitID: string) => {
   return await response.json();
 }
 
+export const getMyAuthorizations = async () => {
+  const response = await getWithToken(`role/user/auths`);
+
+  if (!response.ok) {
+    throw new Error(`Fetching local unit failed with status ${response.status}`);
+  }
+
+  return await response.json();
+}
 
 export const getRole = async (roleID: string) => {
   const response = await getWithToken(`role/${roleID}`);

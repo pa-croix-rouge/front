@@ -26,12 +26,13 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import {getLocalUnit, getLocalUnitStats} from "../../controller/LocalUnitController";
 import VolunteerContext from "../../contexts/VolunteerContext";
 import {getEventForSpecificMonth, getEventsStats} from "../../controller/EventController";
-import {getVolunteerById, getVolunteers} from "../../controller/VolunteerController";
+import {getVolunteers} from "../../controller/VolunteerController";
 import {useHistory} from "react-router-dom";
 import {LocalUnitStats} from "../../model/LocalUnitStats";
 import {EventsStats} from "../../model/event/EventsStats";
 import {getProductsStats, getSoonExpiredFood} from "../../controller/StorageController";
 import {ProductsStats} from "../../model/stock/ProductsStats";
+import {getMyAuthorizations} from "../../controller/RoleController";
 
 export default function ULDashboard() {
   // Chakra Color Mode
@@ -48,6 +49,7 @@ export default function ULDashboard() {
   const [loadedSoonExpiredFood, setLoadedSoonExpiredFood] = useState(false);
   const [endLoadingSoonExpiredFood, setEndLoadingSoonExpiredFood] = useState(false);
   const [loadedVolunteers, setLoadedVolunteers] = useState(false);
+  const [loadedVolunteerAuthorizations, setLoadedVolunteerAuthorizations] = useState(false);
   const [endLoadingVolunteers, setEndLoadingVolunteers] = useState(false);
   const {volunteer, setVolunteer} = useContext(VolunteerContext);
   const [tableMaxHeight, setTableMaxHeight] = useState('320px');
@@ -65,6 +67,7 @@ export default function ULDashboard() {
   const [productStats, setProductStats] = useState(new ProductsStats(-1, -1));
   const [soonExpiredFood, setSoonExpiredFood] = useState([]);
   const [volunteers, setVolunteers] = useState([]);
+  const [volunteerAuthorizations, setVolunteerAuthorizations] = useState([]);
   const history = useHistory();
   const toast = useToast();
 
@@ -241,6 +244,24 @@ export default function ULDashboard() {
         });
   }
 
+  const loadVolunteerAuthorizations = () => {
+    setLoadedVolunteerAuthorizations(true);
+    getMyAuthorizations()
+        .then((roles) => {
+          setVolunteerAuthorizations(roles);
+        })
+        .catch((_) => {
+            setTimeout(() => {setLoadedVolunteerAuthorizations(false)}, 3000);
+            toast({
+                title: 'Erreur',
+                description: "Echec du chargement des droits du volontaire.",
+                status: 'error',
+                duration: 10_000,
+                isClosable: true,
+            });
+        });
+  }
+
   return (
       <Flex flexDirection='column' pt={{ base: "120px", md: "75px" }}>
         {volunteer && !loadedLocalUnit && loadLocalUnit()}
@@ -250,6 +271,7 @@ export default function ULDashboard() {
         {loadedLocalUnit && !loadedProductStats && loadProductStats()}
         {!loadedSoonExpiredFood && loadSoonExpiredFood()}
         {!loadedVolunteers && loadVolunteers()}
+        {!loadedVolunteerAuthorizations && loadVolunteerAuthorizations()}
         <SimpleGrid columns={{ sm: 1, md: 2, xl: 4 }} spacing='24px' mb='20px'>
           <Card minH='125px'>
             <Flex direction='column'>
