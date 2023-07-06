@@ -43,7 +43,7 @@ import {
     getEventForTrimester,
     getEventSessions
 } from "../../../controller/EventController";
-import {FaArrowLeft, FaArrowRight, FaCog, FaEye, FaPencilAlt, FaPlus, FaTrashAlt, FaUser} from "react-icons/fa";
+import {FaArrowLeft, FaArrowRight, FaCog, FaEye, FaPencilAlt, FaTrashAlt, FaUser} from "react-icons/fa";
 import TimelineRow from "../../../components/Tables/TimelineRow";
 import {CalendarIcon, CheckIcon} from "@chakra-ui/icons";
 import EventCreation from "./EventCreation";
@@ -479,10 +479,9 @@ export default function ManageEvents() {
                                 <Box>
                                     <Button p="0px" colorScheme="green" onClick={onOpenCreationModal} disabled={!canAddEvent()}>
                                         <Flex cursor="pointer" align="center" p="12px">
-                                            <Icon as={FaPlus} mr="8px"/>
-                                                <Text fontSize="sm" fontWeight="semibold">
-                                                    Ajouter un événement
-                                                </Text>
+                                            <Text fontSize="sm" fontWeight="semibold">
+                                                Ajouter un événement
+                                            </Text>
                                         </Flex>
                                     </Button>
                                 </Box>
