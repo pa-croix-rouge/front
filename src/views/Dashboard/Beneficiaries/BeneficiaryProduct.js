@@ -1,8 +1,7 @@
 import React, {useContext, useEffect, useState} from "react";
 import {
     Badge,
-    Box,
-    Button, Center, Container, Flex,
+    Button,
     FormLabel,
     HStack,
     Modal,
@@ -33,7 +32,6 @@ import {
     getAllBeneficiaryProductQuantity
 } from "../../../controller/BeneficiaryProductController";
 import {BeneficiaryAddProductRequestDTO} from "../../../model/Beneficiaries/BeneficiaryAddProductRequestDTO";
-import {BeneficiaryProductCounterResponse} from "../../../model/Beneficiaries/BeneficiaryProductCounterResponse";
 import Card from "../../../components/Card/Card";
 import CardHeader from "../../../components/Card/CardHeader";
 import CardBody from "../../../components/Card/CardBody";
