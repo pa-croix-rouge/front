@@ -126,7 +126,7 @@ export default function ProductLimits() {
         onOpenModal();
     }
 
-    const deleteProductLimit = () => {
+    const doDeleteProductLimit = () => {
         setDeleting(true);
         deleteProductLimit(selectedProductLimit.id).then(() => {
             setDeleting(false);
@@ -266,7 +266,7 @@ export default function ProductLimits() {
                             <Button colorScheme="blue" mr={3} onClick={onCloseDeleteModal}>
                                 Annuler
                             </Button>
-                            <Button colorScheme="red" variant="outline" mr={3} onClick={deleteProductLimit} isLoading={deleting}>
+                            <Button colorScheme="red" variant="outline" mr={3} onClick={doDeleteProductLimit} isLoading={deleting}>
                                 Supprimer
                             </Button>
                         </ModalFooter>
