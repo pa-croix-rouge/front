@@ -22,7 +22,7 @@ import {
     ModalContent,
     ModalFooter,
     ModalHeader,
-    ModalOverlay,
+    ModalOverlay, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper,
     SimpleGrid, Spacer,
     Text,
     useDisclosure, useToast,
@@ -80,6 +80,10 @@ function Beneficiaries() {
             </Center>
         );
     }
+    const formatter = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'EUR',
+    });
 
     const [newBeneficiary, setNewBeneficiary] = useState(new BeneficiaryRegistration('', '', '', '', '', localUnit.code, '', '', []));
 
@@ -381,7 +385,17 @@ function Beneficiaries() {
                                            ...newBeneficiary,
                                            socialWorkerNumber: e.target.value
                                        })}/>
-
+                                <FormLabel>Solde</FormLabel>
+                                <NumberInput value={selectedBeneficiary.solde / 100} step={0.01} onChange={(e) => setSelectedBeneficiary({
+                                    ...selectedBeneficiary,
+                                    solde: Number(e) * 100
+                                })}>
+                                    <NumberInputField/>
+                                    <NumberInputStepper>
+                                        <NumberIncrementStepper/>
+                                        <NumberDecrementStepper/>
+                                    </NumberInputStepper>
+                                </NumberInput>
                             </SimpleGrid>
                             <HStack>
                                 <Text fontSize="md">Membre de la famille</Text>
@@ -519,6 +533,18 @@ function Beneficiaries() {
                                            ...selectedBeneficiary,
                                            socialWorkerNumber: e.target.value
                                        })}/>
+                                <FormLabel>Solde</FormLabel>
+                                <NumberInput value={selectedBeneficiary.solde / 100} step={0.01} onChange={(e) => setSelectedBeneficiary({
+                                    ...selectedBeneficiary,
+                                    solde: Number(e) * 100
+                                })}>
+                                    <NumberInputField/>
+                                    <NumberInputStepper>
+                                        <NumberIncrementStepper/>
+                                        <NumberDecrementStepper/>
+                                    </NumberInputStepper>
+                                </NumberInput>
+
                             </SimpleGrid>
                             <HStack>
                                 <Text fontSize="md">Membre de la famille</Text>
@@ -631,6 +657,14 @@ function Beneficiaries() {
                                 <Input flex={1} type="text" placeholder="Numéro de sécu" readOnly={true}
                                        isDisabled={true}
                                        value={selectedBeneficiary.socialWorkerNumber}/>
+                                <FormLabel>Solde</FormLabel>
+                                <NumberInput value={selectedBeneficiary.solde / 100} readOnly={true} isDisabled={true}>
+                                    <NumberInputField/>
+                                    <NumberInputStepper>
+                                        <NumberIncrementStepper/>
+                                        <NumberDecrementStepper/>
+                                    </NumberInputStepper>
+                                </NumberInput>
                             </SimpleGrid>
 
                             <Text fontSize="md">Membre de la famille</Text>

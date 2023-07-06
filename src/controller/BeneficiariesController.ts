@@ -20,7 +20,8 @@ export const getBeneficiaries = async (): Promise<Beneficiary[]> => {
         beneficiary.phoneNumber,
         beneficiary.isValidated,
         beneficiary.localUnitId,
-        beneficiary.familyMembers.length === 0 ? [] : beneficiary.familyMembers.map((familyMember: any) => new FamilyMember(familyMember.id, familyMember.firstName, familyMember.lastName, new Date(familyMember.birthDate) ))
+        beneficiary.familyMembers.length === 0 ? [] : beneficiary.familyMembers.map((familyMember: any) => new FamilyMember(familyMember.id, familyMember.firstName, familyMember.lastName, new Date(familyMember.birthDate) )),
+        beneficiary.solde
     ));
 }
 

@@ -10,8 +10,9 @@ export class Beneficiary {
     public isValidated: boolean;
     public localUnitId: string;
     public familyMembers: FamilyMember[];
+    public solde: number;
 
-    constructor(id: string, username: string, firstName: string, lastName: string, birthDate: Date, phoneNumber: string, isValidated: boolean, localUnitId: string, familyMembers: FamilyMember[]) {
+    constructor(id: string, username: string, firstName: string, lastName: string, birthDate: Date, phoneNumber: string, isValidated: boolean, localUnitId: string, familyMembers: FamilyMember[], solde: number) {
         this.id = id;
         this.username = username;
         this.firstName = firstName;
@@ -21,5 +22,6 @@ export class Beneficiary {
         this.isValidated = isValidated;
         this.localUnitId = localUnitId;
         this.familyMembers = familyMembers;
+        this.solde = solde;
     }
 }
