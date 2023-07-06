@@ -22,7 +22,7 @@ import {
   Tbody,
   Text,
   Th,
-  Thead,
+  Thead, Tooltip,
   Tr,
   useDisclosure, useToast,
   VStack
@@ -63,7 +63,7 @@ export default function Role(props) {
     })
   }, [props.role]);
 
-  if (props.localUnitVolunteer === undefined || props.localUnitVolunteer.length === 0 || props.localUnitBeneficiary === undefined) {
+  if (props.localUnitVolunteer === undefined || props.localUnitVolunteer.length === 0 || props.localUnitBeneficiary === undefined || props.volunteerAuthorizations === undefined) {
     return (
       <></>
     );
@@ -169,6 +169,14 @@ export default function Role(props) {
     setRole(role);
   };
 
+  const canUpdateRole = () => {
+    return props.volunteerAuthorizations.ROLE?.filter((r) => r === 'UPDATE').length > 0;
+  }
+
+  const canDeleteRole = () => {
+    return props.volunteerAuthorizations.ROLE?.filter((r) => r === 'DELETE').length > 0;
+  }
+
   return (
     <>
       <Card>
@@ -184,25 +192,31 @@ export default function Role(props) {
               </MenuButton>
               <MenuList>
                 <Flex direction="column">
-                  <MenuItem onClick={onOpenManageModal}>
-                    <Flex direction="row" cursor="pointer" p="12px">
-                      <Icon as={FaUserPlus} mr="8px" />
-                      <Text fontSize="sm" fontWeight="semibold">Gérer les utilisateurs</Text>
-                    </Flex>
+                  <MenuItem onClick={onOpenManageModal} isDisabled={!canUpdateRole()}>
+                    <Tooltip label="Vous n'avez pas les droits" isDisabled={canUpdateRole()}>
+                      <Flex direction="row" cursor="pointer" p="12px">
+                        <Icon as={FaUserPlus} mr="8px" />
+                        <Text fontSize="sm" fontWeight="semibold">Gérer les utilisateurs</Text>
+                      </Flex>
+                    </Tooltip>
                   </MenuItem>
                   {role.localUnitID !== undefined && role.localUnitID !== null &&
                     <>
-                      <MenuItem onClick={onOpenAddModal}>
-                        <Flex direction="row" cursor="pointer" p="12px">
-                          <Icon as={FaPencilAlt} mr="8px" />
-                          <Text fontSize="sm" fontWeight="semibold">Modifier</Text>
-                        </Flex>
+                      <MenuItem onClick={onOpenAddModal} isDisabled={!canUpdateRole()}>
+                        <Tooltip label="Vous n'avez pas les droits" isDisabled={canUpdateRole()}>
+                          <Flex direction="row" cursor="pointer" p="12px">
+                            <Icon as={FaPencilAlt} mr="8px" />
+                            <Text fontSize="sm" fontWeight="semibold">Modifier</Text>
+                          </Flex>
+                        </Tooltip>
                       </MenuItem>
-                      <MenuItem onClick={onDelete}>
-                        <Flex direction="row" cursor="pointer" p="12px">
-                          <Icon as={FaTrashAlt} mr="8px" color="red.500" />
-                          <Text color="red.500" fontSize="sm" fontWeight="semibold">Supprimer</Text>
-                        </Flex>
+                      <MenuItem onClick={onDelete} isDisabled={!canDeleteRole()}>
+                        <Tooltip label="Vous n'avez pas les droits" isDisabled={canDeleteRole()}>
+                          <Flex direction="row" cursor="pointer" p="12px">
+                            <Icon as={FaTrashAlt} mr="8px" color="red.500" />
+                            <Text color="red.500" fontSize="sm" fontWeight="semibold">Supprimer</Text>
+                          </Flex>
+                        </Tooltip>
                       </MenuItem>
                     </>
                   }
