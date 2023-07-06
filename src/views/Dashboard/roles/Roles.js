@@ -41,7 +41,7 @@ export default function Roles(props) {
     setLoadedVolunteerAuthorizations(true);
     getMyAuthorizations()
         .then((roles) => {
-          // setVolunteerAuthorizations(roles);
+          setVolunteerAuthorizations(roles);
         })
         .catch((_) => {
           setTimeout(() => {setLoadedVolunteerAuthorizations(false)}, 3000);

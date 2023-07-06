@@ -3,8 +3,8 @@ import {
     Badge,
     Button,
     Flex,
-    FormLabel, Icon,
-    Input, Menu, MenuButton, MenuItem, MenuList,
+    FormLabel,
+    Input,
     Modal,
     ModalBody,
     ModalCloseButton,
@@ -32,9 +32,7 @@ import {Quantifier} from "../../../model/Quantifier";
 import ProductLimitsContext from "../../../contexts/ProductLimitsContext";
 import Card from "../../../components/Card/Card";
 import CardHeader from "../../../components/Card/CardHeader";
-import {FaEdit, FaEllipsisV, FaTrashAlt} from "react-icons/fa";
 import CardBody from "../../../components/Card/CardBody";
-
 
 export default function ProductLimitModal(props) {
     const {productLimits, setEvents, reloadProductLimits} = useContext(ProductLimitsContext);
@@ -296,8 +294,7 @@ export default function ProductLimitModal(props) {
                     <Button colorScheme="blue" mr={3} onClick={closeModal}>
                         Annuler
                     </Button>
-                    <Button colorScheme="blue" mr={3} isLoading={inProgress} isDisabled={!isFormValid()}
-                            onClick={onOK}>
+                    <Button colorScheme="green" variant="outline" mr={3} isLoading={inProgress} isDisabled={!isFormValid()} onClick={onOK}>
                         Confirmer
                     </Button>
                 </ModalFooter>
