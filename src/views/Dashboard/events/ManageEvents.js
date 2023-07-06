@@ -1,6 +1,7 @@
 import Card from "../../../components/Card/Card";
 import CardHeader from "../../../components/Card/CardHeader";
 import {
+    Box,
     Button,
     Flex,
     Icon,
@@ -27,7 +28,7 @@ import {
     Td,
     Text,
     Th,
-    Thead,
+    Thead, Tooltip,
     Tr,
     useColorModeValue,
     useDisclosure, useToast
@@ -49,6 +50,7 @@ import EventCreation from "./EventCreation";
 import EventViewer from "./EventViewer";
 import EventEdition from "./EventEdition";
 import EventContext from "../../../contexts/EventContext";
+import {getMyAuthorizations} from "../../../controller/RoleController";
 
 export default function ManageEvents() {
     // Component variables
@@ -81,6 +83,8 @@ export default function ManageEvents() {
     const [deleteAllSessions, setDeleteAllSessions] = useState(false);
     const [callDeleteAllSessions, setCallDeleteAllSessions] = useState(false);
     const [isCallingDeleteAllSessions, setIsCallingDeleteAllSessions] = useState(false);
+    const [loadedVolunteerAuthorizations, setLoadedVolunteerAuthorizations] = useState(false);
+    const [volunteerAuthorizations, setVolunteerAuthorizations] = useState({});
     const toast = useToast();
 
     useEffect(() => {
@@ -207,6 +211,24 @@ export default function ManageEvents() {
             });
     }
 
+    const loadVolunteerAuthorizations = () => {
+        setLoadedVolunteerAuthorizations(true);
+        getMyAuthorizations()
+            .then((roles) => {
+                setVolunteerAuthorizations(roles);
+            })
+            .catch((_) => {
+                setTimeout(() => {setLoadedVolunteerAuthorizations(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des droits du volontaire.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
+            });
+    }
+
     const selectEventForModal = (event, onOpenModal) => {
         setSelectedEventSessionId(event);
         setSelectedEvent(events.find((el) => el.sessionId === event));
@@ -297,16 +319,14 @@ export default function ManageEvents() {
                 {filteredEvent.map((event, index, arr) => {
                     return (
                         <Tr key={index}>
-                            <Td pl="0px" borderColor={borderColor}
-                                borderBottom={index === arr.length - 1 ? "none" : null}>
+                            <Td pl="0px" borderColor={borderColor} borderBottom={index === arr.length - 1 ? "none" : null}>
                                 <Flex align="center" py=".8rem" minWidth="100%" flexWrap="nowrap">
                                     <Text fontSize="md" fontWeight="bold" color="orange.500" m="auto">
                                         {event.startDate.getDate()}
                                     </Text>
                                 </Flex>
                             </Td>
-                            <Td borderColor={borderColor}
-                                borderBottom={index === arr.length - 1 ? "none" : null}>
+                            <Td borderColor={borderColor} borderBottom={index === arr.length - 1 ? "none" : null}>
                                 <Flex align="center" py=".8rem" minWidth="100%" flexWrap="nowrap">
                                     <Text fontSize="md" color={textColor} fontWeight="bold">
                                         {event.name}
@@ -341,34 +361,14 @@ export default function ManageEvents() {
                                 </Text>
                                 {event.maxParticipants === 0 && (
                                     <Flex direction="column">
-                                        <Text
-                                            fontSize="md"
-                                            color="red"
-                                            fontWeight="bold"
-                                            pb=".2rem"
-                                        >100%</Text>
-                                        <Progress
-                                            colorScheme="red"
-                                            size="xs"
-                                            value={100}
-                                            borderRadius="15px"
-                                        />
+                                        <Text fontSize="md" color="red" fontWeight="bold" pb=".2rem">100%</Text>
+                                        <Progress colorScheme="red" size="xs" value={100} borderRadius="15px" />
                                     </Flex>
                                 )}
                                 {event.maxParticipants !== 0 && (
                                     <Flex direction="column">
-                                        <Text
-                                            fontSize="md"
-                                            color={(event.numberOfParticipants / event.maxParticipants) * 100 < 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 < 85 ? "orange" : "red"}
-                                            fontWeight="bold"
-                                            pb=".2rem"
-                                        >{`${(event.numberOfParticipants / event.maxParticipants * 100).toFixed(1)}%`}</Text>
-                                        <Progress
-                                            colorScheme={(event.numberOfParticipants / event.maxParticipants) * 100 < 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 < 85 ? "orange" : "red"}
-                                            size="xs"
-                                            value={event.numberOfParticipants / event.maxParticipants * 100}
-                                            borderRadius="15px"
-                                        />
+                                        <Text fontSize="md" color={(event.numberOfParticipants / event.maxParticipants) * 100 < 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 < 85 ? "orange" : "red"} fontWeight="bold" pb=".2rem">{`${(event.numberOfParticipants / event.maxParticipants * 100).toFixed(1)}%`}</Text>
+                                        <Progress colorScheme={(event.numberOfParticipants / event.maxParticipants) * 100 < 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 < 85 ? "orange" : "red"} size="xs" value={event.numberOfParticipants / event.maxParticipants * 100} borderRadius="15px" />
                                     </Flex>
                                 )}
                             </Td>
@@ -387,21 +387,25 @@ export default function ManageEvents() {
                                                     </Text>
                                                 </Flex>
                                             </MenuItem>
-                                            <MenuItem onClick={() => selectEventForModal(event.sessionId, onOpenEditionModal)} isDisabled={event.startDate.getTime() < Date.now()}>
-                                                <Flex color={textColor} cursor="pointer" align="center" p="12px">
-                                                    <Icon as={FaPencilAlt} mr="8px"/>
-                                                    <Text fontSize="sm" fontWeight="semibold">
-                                                        Modifier
-                                                    </Text>
-                                                </Flex>
+                                            <MenuItem onClick={() => selectEventForModal(event.sessionId, onOpenEditionModal)} isDisabled={event.startDate.getTime() < Date.now() || !canUpdateEvent()}>
+                                                <Tooltip label={event.startDate.getTime() < Date.now() ? "L'événement est dans le passé" : "Vous n'avez pas les droits"} isDisabled={canUpdateEvent() && event.startDate.getTime() > Date.now()}>
+                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
+                                                        <Icon as={FaPencilAlt} mr="8px"/>
+                                                        <Text fontSize="sm" fontWeight="semibold">
+                                                            Modifier
+                                                        </Text>
+                                                    </Flex>
+                                                </Tooltip>
                                             </MenuItem>
-                                            <MenuItem onClick={() => selectEventForModal(event.sessionId, onOpenDeletionModal)}>
-                                                <Flex cursor="pointer" align="center" p="12px">
-                                                    <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
-                                                    <Text fontSize="sm" fontWeight="semibold" color="red.500">
-                                                        Supprimer
-                                                    </Text>
-                                                </Flex>
+                                            <MenuItem onClick={() => selectEventForModal(event.sessionId, onOpenDeletionModal)} isDisabled={event.startDate.getTime() < Date.now() || !canDeleteEvent()}>
+                                                <Tooltip label={event.startDate.getTime() < Date.now() ? "L'événement est dans le passé" : "Vous n'avez pas les droits"} isDisabled={canDeleteEvent() && event.startDate.getTime() > Date.now()}>
+                                                    <Flex cursor="pointer" align="center" p="12px">
+                                                        <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                                        <Text fontSize="sm" fontWeight="semibold" color="red.500">
+                                                            Supprimer
+                                                        </Text>
+                                                    </Flex>
+                                                </Tooltip>
                                             </MenuItem>
                                         </Flex>
                                     </MenuList>
@@ -445,6 +449,17 @@ export default function ManageEvents() {
             });
     }
 
+    const canAddEvent = () => {
+        return volunteerAuthorizations.EVENT?.filter((r) => r === 'CREATE').length > 0;
+    }
+
+    const canUpdateEvent = () => {
+        return volunteerAuthorizations.EVENT?.filter((r) => r === 'UPDATE').length > 0;
+    }
+    const canDeleteEvent = () => {
+        return volunteerAuthorizations.EVENT?.filter((r) => r === 'DELETE').length > 0;
+    }
+
     return (
         <EventContext.Provider value={{events, setEvents, reloadEvents}}>
             <Flex direction="column" pt={{base: "120px", md: "75px"}}>
@@ -453,20 +468,25 @@ export default function ManageEvents() {
                 {!loadVolunteerList && loadVolunteers()}
                 {selectedEvent !== undefined && callDeleteEvent && deleteEvent()}
                 {selectedEvent !== undefined && callDeleteAllSessions && deleteAllEventSessions()}
+                {!loadedVolunteerAuthorizations && loadVolunteerAuthorizations()}
                 <Card overflowX={{sm: "scroll", xl: "hidden"}} pb="0px">
                     <CardHeader p="6px 0px 22px 0px">
                         <Flex direction='row' justifyContent="space-between">
                             <Text fontSize="xl" color={textColor} fontWeight="bold">
                                 Gestion des événements
                             </Text>
-                            <Button p="0px" colorScheme="green" mr="10%" ml="8px" onClick={onOpenCreationModal}>
-                                <Flex cursor="pointer" align="center" p="12px">
-                                    <Icon as={FaPlus} mr="8px"/>
-                                    <Text fontSize="sm" fontWeight="semibold">
-                                        Ajouter un événement
-                                    </Text>
-                                </Flex>
-                            </Button>
+                            <Tooltip label="Vous n'avez pas les droits" isDisabled={canAddEvent()}>
+                                <Box>
+                                    <Button p="0px" colorScheme="green" onClick={onOpenCreationModal} disabled={!canAddEvent()}>
+                                        <Flex cursor="pointer" align="center" p="12px">
+                                            <Icon as={FaPlus} mr="8px"/>
+                                                <Text fontSize="sm" fontWeight="semibold">
+                                                    Ajouter un événement
+                                                </Text>
+                                        </Flex>
+                                    </Button>
+                                </Box>
+                            </Tooltip>
                             <Button onClick={setToPrevious3Months}>
                                 <Flex cursor="pointer" align="center">
                                     <Icon as={FaArrowLeft} mr="8px"/>
