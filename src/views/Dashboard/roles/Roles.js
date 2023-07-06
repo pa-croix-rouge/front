@@ -1,16 +1,17 @@
 import React, { useContext, useState } from "react";
 import {
+  Box,
   Button,
   Center,
   CircularProgress,
   Flex,
   SimpleGrid,
-  Text,
+  Text, Tooltip,
   useDisclosure, useToast,
   VStack
 } from "@chakra-ui/react";
 import VolunteerContext from "../../../contexts/VolunteerContext";
-import { getLocalUnitRoles, getRoleAuth } from "../../../controller/RoleController";
+import {getLocalUnitRoles, getMyAuthorizations, getRoleAuth} from "../../../controller/RoleController";
 import Role from "./Role";
 import RoleCreationModal from "./RoleCreationModal";
 import { getVolunteers } from "../../../controller/VolunteerController";
@@ -29,17 +30,45 @@ export default function Roles(props) {
 
   const [localUnitVolunteer, setLocalUnitVolunteer] = useState([]);
   const [localUnitVolunteerLoaded, setLocalUnitVolunteerLoaded] = useState(false);
+  const [localUnitVolunteerLoading, setLocalUnitVolunteerLoading] = useState(false);
   const { volunteer, setVolunteer } = useContext(VolunteerContext);
   const { isOpen: isOpenAddModal, onOpen: onOpenAddModal, onClose: onCloseAddModal } = useDisclosure();
+  const [loadedVolunteerAuthorizations, setLoadedVolunteerAuthorizations] = useState(false);
+  const [volunteerAuthorizations, setVolunteerAuthorizations] = useState({});
   const toast = useToast();
+
+  const loadVolunteerAuthorizations = () => {
+    setLoadedVolunteerAuthorizations(true);
+    getMyAuthorizations()
+        .then((roles) => {
+          setVolunteerAuthorizations(roles);
+        })
+        .catch((_) => {
+          setTimeout(() => {setLoadedVolunteerAuthorizations(false)}, 3000);
+          toast({
+            title: 'Erreur',
+            description: "Echec du chargement des droits du volontaire.",
+            status: 'error',
+            duration: 10_000,
+            isClosable: true,
+          });
+        });
+  }
 
   const onNewValidRole = (role) => {
     setRoles([...roles, role]);
   };
 
   const onDeleteRole = (roleId) => {
+    console.log('onDeleteRole');
+    console.log(roleId);
+    console.log(roles);
     setRoles(roles.filter(role => role.id !== roleId));
   };
+
+  const canAddRole = () => {
+    return volunteerAuthorizations.ROLE?.filter((r) => r === 'CREATE').length > 0;
+  }
 
   if (roleAuth === undefined) {
     getRoleAuth()
@@ -47,7 +76,6 @@ export default function Roles(props) {
         setRoleAuth(roleAuth);
       })
       .catch((e) => {
-        console.log(e.message);
         toast({
           title: "Erreur",
           description: "Echec du chargement des rôles.",
@@ -58,15 +86,18 @@ export default function Roles(props) {
       });
   }
 
-  if (!localUnitVolunteerLoaded) {
+  if (!localUnitVolunteerLoaded && !localUnitVolunteerLoading) {
+    setLocalUnitVolunteerLoading(true);
     getVolunteers()
       .then((volunteers) => {
         setLocalUnitVolunteer(volunteers);
         setLocalUnitVolunteerLoaded(true);
+        setLocalUnitVolunteerLoading(false);
       })
       .catch((e) => {
         setTimeout(() => {
           setLocalUnitVolunteerLoaded(false);
+          setLocalUnitVolunteerLoading(false);
         }, 3000);
         toast({
           title: "Erreur",
@@ -77,7 +108,6 @@ export default function Roles(props) {
         });
       });
   }
-
 
   if (!localUnitBeneficiaryLoaded && !localUnitBeneficiaryLoading) {
     setLocalUnitBeneficiaryLoading(true);
@@ -126,19 +156,24 @@ export default function Roles(props) {
   } else if (rolesLoaded) {
     return (
       <>
+        {!loadedVolunteerAuthorizations && loadVolunteerAuthorizations()}
         <VStack spacing={10}
                 align="stretch"
                 pt={{ base: "120px", md: "75px", lg: "75px" }}>
           <Card>
             <Flex justify="space-between">
               <Text fontSize="xl" fontWeight="bold">Gestion des rôles</Text>
-              <Button onClick={onOpenAddModal} colorScheme="green">Ajouter un rôle</Button>
+              <Tooltip label="Vous n'avez pas les droits" isDisabled={canAddRole()}>
+                <Box>
+                  <Button onClick={onOpenAddModal} colorScheme="green" disabled={!canAddRole()}>Ajouter un rôle</Button>
+                </Box>
+              </Tooltip>
             </Flex>
           </Card>
-          <SimpleGrid columns={3} spacing={10}>
+          <SimpleGrid columns={{sm: 1, md: 1, lg: 2, xl: 2, "2xl": 3}} spacing={10}>
             {roles.map((role, index) => (
               <Role localUnitID={volunteer.localUnitId} localUnitVolunteer={localUnitVolunteer} localUnitBeneficiary={localUnitBeneficiary} role={role}
-                    roleAuth={roleAuth} onDelete={onDeleteRole} key={index}></Role>
+                    roleAuth={roleAuth} volunteerAuthorizations={volunteerAuthorizations} onDelete={onDeleteRole} key={index}></Role>
             ))}
           </SimpleGrid>
         </VStack>

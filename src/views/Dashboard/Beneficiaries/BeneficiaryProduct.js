@@ -46,6 +46,11 @@ export default function BeneficiaryProduct(props) {
         return null;
     }
 
+    const formatter = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'EUR',
+    });
+
     const [periode, setPeriode] = useState(7);
 
     const [loadedBeneficiaryProducts, setLoadedBeneficiaryProducts] = useState(false);
@@ -72,7 +77,6 @@ export default function BeneficiaryProduct(props) {
         setLoadingProducts(true);
         getAllProducts().then((res) => {
             setProducts(res);
-
             for (const temp of res.foods) {
                 if (temp.product.productLimit === undefined) {
                     continue;
@@ -229,6 +233,7 @@ export default function BeneficiaryProduct(props) {
         addProductToBeneficiary(dto).then((res) => {
             setLoadedBeneficiaryProducts(false);
             setAddingProduct(false);
+            props.beneficiary.solde -= selectedProduct.price * quantity;
         }).catch((err) => {
             console.log(err);
             setAddingProduct(false);
@@ -276,7 +281,8 @@ export default function BeneficiaryProduct(props) {
                             <Text> Total {Number(foodProduct.product.quantityQuantifier) * quantity} {foodProduct.product.quantifierName}</Text>
                             <VStack>
                                 <Text fontWeight="semibold">Limitation {productLimit.name}</Text>
-                                <Text color={productLimit.currentQuantity >= productLimit.quantity.value ? 'red' : 'black'}> {productLimit.currentQuantity + ' / ' + productLimit.quantity.value + productLimit.quantity.measurementUnit} </Text>
+                                <Text
+                                    color={productLimit.currentQuantity >= productLimit.quantity.value ? 'red' : 'black'}> {productLimit.currentQuantity + ' / ' + productLimit.quantity.value + productLimit.quantity.measurementUnit} </Text>
                                 <Text> {'tous les ' + productLimit.duration + ' jours'} </Text>
                             </VStack>
                         </HStack>
@@ -303,9 +309,10 @@ export default function BeneficiaryProduct(props) {
                     <CardBody>
                         <HStack>
                             <Text> Total {Number(clothProduct.product.quantityQuantifier) * quantity} {clothProduct.product.quantifierName}</Text>
-                            <VStack >
+                            <VStack>
                                 <Text fontWeight="semibold">Limitation {productLimit.name}</Text>
-                                <Text color={productLimit.currentQuantity >= productLimit.quantity.value ? 'red' : 'black'} > {productLimit.currentQuantity + ' / ' + productLimit.quantity.value + productLimit.quantity.measurementUnit} </Text>
+                                <Text
+                                    color={productLimit.currentQuantity >= productLimit.quantity.value ? 'red' : 'black'}> {productLimit.currentQuantity + ' / ' + productLimit.quantity.value + productLimit.quantity.measurementUnit} </Text>
                                 <Text> {'tous les ' + productLimit.duration + ' jours'} </Text>
                             </VStack>
                         </HStack>
@@ -375,7 +382,14 @@ export default function BeneficiaryProduct(props) {
                             </NumberInput>
                         </SimpleGrid>
                         <HStack align={'stretch'}>
-                            <Text color={'red'}></Text>
+                            {selectedProduct !== undefined &&
+                                <>
+                                    <Text fontWeight="semibold">Budget restant</Text>
+                                    <Text> {formatter.format(props.beneficiary.solde / 100)}</Text>
+                                    <Text fontWeight="semibold">Budget après</Text>
+                                    <Text color={props.beneficiary.solde - selectedProduct.price * quantity <= 0? 'red' : 'black'} > {formatter.format((props.beneficiary.solde - selectedProduct.price * quantity) / 100)}</Text>
+                                </>
+                            }
                             <Spacer></Spacer>
                             <Button isLoading={addingProduct} colorScheme="blue" mr={3} onClick={onOK}>
                                 Ajouter

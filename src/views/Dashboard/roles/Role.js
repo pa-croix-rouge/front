@@ -1,4 +1,5 @@
 import {
+  Badge,
   Button,
   Flex,
   FormControl,
@@ -12,23 +13,23 @@ import {
   MenuItem,
   MenuList,
   Modal,
-  ModalBody,
+  ModalBody, ModalCloseButton,
   ModalContent,
   ModalFooter,
   ModalHeader,
-  ModalOverlay, Radio, RadioGroup,
+  ModalOverlay, Radio, RadioGroup, SimpleGrid,
   Spacer,
   Table,
   Tbody,
   Text,
   Th,
-  Thead,
+  Thead, Tooltip,
   Tr,
   useDisclosure, useToast,
   VStack
 } from "@chakra-ui/react";
 import Card from "../../../components/Card/Card";
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
 import {
   assignVolunteerToRole,
@@ -42,6 +43,7 @@ import { FaCog, FaPencilAlt, FaTrashAlt, FaUserPlus } from "react-icons/fa";
 export default function Role(props) {
   const { isOpen: isOpenAddModal, onOpen: onOpenAddModal, onClose: onCloseAddModal } = useDisclosure();
   const { isOpen: isOpenManageModal, onOpen: onOpenManageModal, onClose: onCloseManageModal } = useDisclosure();
+  const { isOpen: isOpenDeleteModal, onOpen: onOpenDeleteModal, onClose: onCloseDeleteModal } = useDisclosure();
 
   const [userType, setUserType] = useState('volunteer');
 
@@ -52,16 +54,25 @@ export default function Role(props) {
   const [assignProgress, setAssignProgress] = useState(false);
 
   const [roleVolunteerLoaded, setRoleVolunteerLoaded] = useState(false);
+  const [roleVolunteerLoading, setRoleVolunteerLoading] = useState(false);
   const [roleDeletionProgress, setRoleDeleteProgress] = useState(false);
   const toast = useToast();
 
-  if (props.localUnitVolunteer === undefined || props.localUnitVolunteer.length === 0 || props.localUnitBeneficiary === undefined) {
+  useEffect(() => {
+    setRole({...props.role,
+      volunteer: props.role.volunteer === undefined ? [] :  props.role.volunteer,
+      beneficiary: props.role.beneficiary === undefined ? [] :  props.role.beneficiary,
+    })
+  }, [props.role]);
+
+  if (props.localUnitVolunteer === undefined || props.localUnitVolunteer.length === 0 || props.localUnitBeneficiary === undefined || props.volunteerAuthorizations === undefined) {
     return (
       <></>
     );
   }
 
-  if (!roleVolunteerLoaded) {
+  if (!roleVolunteerLoaded && !roleVolunteerLoading) {
+    setRoleVolunteerLoading(true);
     getRoleVolunteers(role.id).then(value => {
       setRole({
         ...role,
@@ -70,9 +81,11 @@ export default function Role(props) {
         beneficiary: props.localUnitBeneficiary.filter(beneficiary => value.includes(beneficiary.id)),
       });
       setRoleVolunteerLoaded(true);
+      setRoleVolunteerLoading(false);
     }).catch(error => {
       setTimeout(() => {
         setRoleVolunteerLoaded(false);
+        setRoleVolunteerLoading(false);
       }, 3000);
       toast({
         title: "Erreur",
@@ -89,6 +102,7 @@ export default function Role(props) {
     deleteRole(role.id).then(value => {
       props.onDelete(role.id);
       setRoleDeleteProgress(false);
+      onCloseDeleteModal();
     }).catch(error => {
       setError(error.message);
       setRoleDeleteProgress(false);
@@ -122,11 +136,10 @@ export default function Role(props) {
       }
       setAssignProgress(false);
     }).catch(error => {
-      console.log(error.message);
       setAssignProgress(false);
       toast({
         title: "Erreur",
-        description: "Echec de l'assignement du role.",
+        description: "Echec de l'assignation du role.",
         status: "error",
         duration: 10_000,
         isClosable: true
@@ -137,7 +150,6 @@ export default function Role(props) {
   const onUnAssign = (e) => {
     setAssignProgress(true);
     unassignVolunteerToRole(role.id, e.id).then(value => {
-      console.log(role);
       setRole({
         ...role,
         volunteer: role.volunteer.filter(volunteer => volunteer.id !== e.id),
@@ -145,7 +157,6 @@ export default function Role(props) {
       });
       setAssignProgress(false);
     }).catch(error => {
-      console.log(error.message);
       setAssignProgress(false);
       toast({
         title: "Erreur",
@@ -161,7 +172,14 @@ export default function Role(props) {
     setRole(role);
   };
 
-  console.log(role);
+  const canUpdateRole = () => {
+    return props.volunteerAuthorizations.ROLE?.filter((r) => r === 'UPDATE').length > 0;
+  }
+
+  const canDeleteRole = () => {
+    return props.volunteerAuthorizations.ROLE?.filter((r) => r === 'DELETE').length > 0;
+  }
+
   return (
     <>
       <Card>
@@ -177,25 +195,31 @@ export default function Role(props) {
               </MenuButton>
               <MenuList>
                 <Flex direction="column">
-                  <MenuItem onClick={onOpenManageModal}>
-                    <Flex direction="row" cursor="pointer" p="12px">
-                      <Icon as={FaUserPlus} mr="8px" />
-                      <Text fontSize="sm" fontWeight="semibold">Gérer les utilisateurs</Text>
-                    </Flex>
+                  <MenuItem onClick={onOpenManageModal} isDisabled={!canUpdateRole()}>
+                    <Tooltip label="Vous n'avez pas les droits" isDisabled={canUpdateRole()}>
+                      <Flex direction="row" cursor="pointer" p="12px">
+                        <Icon as={FaUserPlus} mr="8px" />
+                        <Text fontSize="sm" fontWeight="semibold">Gérer les utilisateurs</Text>
+                      </Flex>
+                    </Tooltip>
                   </MenuItem>
                   {role.localUnitID !== undefined && role.localUnitID !== null &&
                     <>
-                      <MenuItem onClick={onOpenAddModal}>
-                        <Flex direction="row" cursor="pointer" p="12px">
-                          <Icon as={FaPencilAlt} mr="8px" />
-                          <Text fontSize="sm" fontWeight="semibold">Modifier</Text>
-                        </Flex>
+                      <MenuItem onClick={onOpenAddModal} isDisabled={!canUpdateRole()}>
+                        <Tooltip label="Vous n'avez pas les droits" isDisabled={canUpdateRole()}>
+                          <Flex direction="row" cursor="pointer" p="12px">
+                            <Icon as={FaPencilAlt} mr="8px" />
+                            <Text fontSize="sm" fontWeight="semibold">Modifier</Text>
+                          </Flex>
+                        </Tooltip>
                       </MenuItem>
-                      <MenuItem onClick={onDelete}>
-                        <Flex direction="row" cursor="pointer" p="12px">
-                          <Icon as={FaTrashAlt} mr="8px" color="red.500" />
-                          <Text color="red.500" fontSize="sm" fontWeight="semibold">Supprimer</Text>
-                        </Flex>
+                      <MenuItem onClick={onOpenDeleteModal} isDisabled={!canDeleteRole()}>
+                        <Tooltip label="Vous n'avez pas les droits" isDisabled={canDeleteRole()}>
+                          <Flex direction="row" cursor="pointer" p="12px">
+                            <Icon as={FaTrashAlt} mr="8px" color="red.500" />
+                            <Text color="red.500" fontSize="sm" fontWeight="semibold">Supprimer</Text>
+                          </Flex>
+                        </Tooltip>
                       </MenuItem>
                     </>
                   }
@@ -258,11 +282,49 @@ export default function Role(props) {
                          onChange={(e) => setSearchVolunteer(e.target.value)} />
                 </HStack>
                 <RadioGroup value={userType} onChange={setUserType}>
-                  <Radio value={'beneficiary'}>Bénéficiares</Radio>
+                  <Radio value={'beneficiary'} mr="8px">Bénéficiares</Radio>
                   <Radio value={'volunteer'}>Volontaires</Radio>
                 </RadioGroup>
-
-                <FormLabel>Volontaire dans l'UL :</FormLabel>
+                {userType === 'beneficiary' && (
+                  <FormLabel>Bénéficiaires ayant le role :</FormLabel>
+                )}
+                {userType === 'volunteer' && (
+                  <FormLabel>Volontaires ayant le role :</FormLabel>
+                )}
+                <VStack align="stretch" spacing={1}>
+                  {userType === 'beneficiary' && role.beneficiary
+                      ?.filter(luv => (luv.firstName.search(searchVolunteer) !== -1 || luv.lastName.search(searchVolunteer) !== -1))
+                      .map((volunteer, index) => {
+                        return (
+                            <Flex direction="row" key={index}>
+                              <Text>{volunteer.firstName} {volunteer.lastName}</Text>
+                              <Spacer grow={"10"} />
+                              <IconButton colorScheme="red" aria-label="unassign" icon={<DeleteIcon />}
+                                          onClick={e => onUnAssign(volunteer)} />
+                            </Flex>
+                        );
+                      })
+                  }
+                  {userType === 'volunteer' && role.volunteer
+                      ?.filter(luv => (luv.firstName.search(searchVolunteer) !== -1 || luv.lastName.search(searchVolunteer) !== -1))
+                      .map((volunteer, index) => {
+                        return (
+                            <Flex direction="row" key={index}>
+                              <Text>{volunteer.firstName} {volunteer.lastName}</Text>
+                              <Spacer grow={"10"} />
+                              <IconButton colorScheme="red" aria-label="unassign" icon={<DeleteIcon />}
+                                          onClick={e => onUnAssign(volunteer)} />
+                            </Flex>
+                        );
+                      })
+                  }
+                </VStack>
+                {userType === 'beneficiary' && (
+                    <FormLabel>Bénéficiaires dans l'UL :</FormLabel>
+                )}
+                {userType === 'volunteer' && (
+                    <FormLabel>Volontaires dans l'UL :</FormLabel>
+                )}
                 <VStack align="stretch" spacing={1}>
                   {userType === 'volunteer' && props.localUnitVolunteer
                     ?.filter(luv =>
@@ -271,7 +333,7 @@ export default function Role(props) {
                     .map((volunteer, index) => {
                       return (
                         <Flex direction="row" key={index}>
-                          <Text>{volunteer.id} {volunteer.firstName} {volunteer.lastName}</Text>
+                          <Text>{volunteer.firstName} {volunteer.lastName}</Text>
                           <Spacer grow={"10"} />
                           <IconButton isLoading={assignProgress} colorScheme="green" aria-label="assign" icon={<AddIcon />}
                                       onClick={e => onAssign(volunteer)} />
@@ -286,39 +348,10 @@ export default function Role(props) {
                     .map((volunteer, index) => {
                       return (
                         <Flex direction="row" key={index}>
-                          <Text>{volunteer.id} {volunteer.firstName} {volunteer.lastName}</Text>
+                          <Text>{volunteer.firstName} {volunteer.lastName}</Text>
                           <Spacer grow={"10"} />
                           <IconButton colorScheme="green" aria-label="assign" icon={<AddIcon />}
                                       onClick={e => onAssign(volunteer)} />
-                        </Flex>
-                      );
-                    })
-                  }
-                </VStack>
-                <FormLabel>Volontaire ayant le role :</FormLabel>
-                <VStack align="stretch" spacing={1}>
-                  {userType === 'beneficiary' && role.beneficiary
-                    ?.filter(luv => (luv.firstName.search(searchVolunteer) !== -1 || luv.lastName.search(searchVolunteer) !== -1))
-                    .map((volunteer, index) => {
-                      return (
-                        <Flex direction="row" key={index}>
-                          <Text>{volunteer.id} {volunteer.firstName} {volunteer.lastName}</Text>
-                          <Spacer grow={"10"} />
-                          <IconButton colorScheme="red" aria-label="unassign" icon={<DeleteIcon />}
-                                      onClick={e => onUnAssign(volunteer)} />
-                        </Flex>
-                      );
-                    })
-                  }
-                  {userType === 'volunteer' && role.volunteer
-                    ?.filter(luv => (luv.firstName.search(searchVolunteer) !== -1 || luv.lastName.search(searchVolunteer) !== -1))
-                    .map((volunteer, index) => {
-                      return (
-                        <Flex direction="row" key={index}>
-                          <Text>{volunteer.id} {volunteer.firstName} {volunteer.lastName}</Text>
-                          <Spacer grow={"10"} />
-                          <IconButton colorScheme="red" aria-label="unassign" icon={<DeleteIcon />}
-                                      onClick={e => onUnAssign(volunteer)} />
                         </Flex>
                       );
                     })
@@ -331,6 +364,27 @@ export default function Role(props) {
             <Text>{error}</Text>
             <Button colorScheme="blue" mr={3} onClick={onCloseManageModal}>
               OK
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <Modal isOpen={isOpenDeleteModal} onClose={onCloseDeleteModal} size="3xl" scrollBehavior="outside">
+        <ModalOverlay/>
+        <ModalContent>
+          <ModalHeader>Supprimer un role</ModalHeader>
+          <ModalCloseButton/>
+          <ModalBody>
+            <FormControl>
+                <Text>Etes-vous sur de vouloir supprimer le role {role.name} ?</Text>
+            </FormControl>
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" mr={3} onClick={onCloseDeleteModal}>
+              Annuler
+            </Button>
+            <Button colorScheme="red" variant="outline" mr={3} onClick={onDelete}>
+              Supprimer
             </Button>
           </ModalFooter>
         </ModalContent>

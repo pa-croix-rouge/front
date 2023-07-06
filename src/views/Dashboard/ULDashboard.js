@@ -26,12 +26,13 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import {getLocalUnit, getLocalUnitStats} from "../../controller/LocalUnitController";
 import VolunteerContext from "../../contexts/VolunteerContext";
 import {getEventForSpecificMonth, getEventsStats} from "../../controller/EventController";
-import {getVolunteerById, getVolunteers} from "../../controller/VolunteerController";
+import {getVolunteers} from "../../controller/VolunteerController";
 import {useHistory} from "react-router-dom";
 import {LocalUnitStats} from "../../model/LocalUnitStats";
 import {EventsStats} from "../../model/event/EventsStats";
 import {getProductsStats, getSoonExpiredFood} from "../../controller/StorageController";
 import {ProductsStats} from "../../model/stock/ProductsStats";
+import {getMyAuthorizations} from "../../controller/RoleController";
 
 export default function ULDashboard() {
   // Chakra Color Mode
@@ -48,6 +49,7 @@ export default function ULDashboard() {
   const [loadedSoonExpiredFood, setLoadedSoonExpiredFood] = useState(false);
   const [endLoadingSoonExpiredFood, setEndLoadingSoonExpiredFood] = useState(false);
   const [loadedVolunteers, setLoadedVolunteers] = useState(false);
+  const [loadedVolunteerAuthorizations, setLoadedVolunteerAuthorizations] = useState(false);
   const [endLoadingVolunteers, setEndLoadingVolunteers] = useState(false);
   const {volunteer, setVolunteer} = useContext(VolunteerContext);
   const [tableMaxHeight, setTableMaxHeight] = useState('320px');
@@ -55,10 +57,8 @@ export default function ULDashboard() {
   const calendarContainerRef = useRef(null);
   const [loadedEvents, setLoadedEvents] = useState(false);
   const [endLoadingEvents, setEndLoadingEvents] = useState(false);
-  const [loadedReferrers, setLoadedReferrers] = useState(false);
   const [localUnit, setLocalUnit] = useState({});
   const [events, setEvents] = useState([]);
-  const [referrersId, setReferrersId] = useState([]);
   const [referrersName, setReferrersName] = useState([]);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
@@ -67,6 +67,7 @@ export default function ULDashboard() {
   const [productStats, setProductStats] = useState(new ProductsStats(-1, -1));
   const [soonExpiredFood, setSoonExpiredFood] = useState([]);
   const [volunteers, setVolunteers] = useState([]);
+  const [volunteerAuthorizations, setVolunteerAuthorizations] = useState([]);
   const history = useHistory();
   const toast = useToast();
 
@@ -94,6 +95,10 @@ export default function ULDashboard() {
 
   const goToLocalUnit = () => {
     history.push("/admin/local-unit");
+  }
+
+  const goToBeneficiaries = () => {
+    history.push("/admin/beneficiaries");
   }
 
   const goToManageEvent = () => {
@@ -127,8 +132,6 @@ export default function ULDashboard() {
     getEventForSpecificMonth(volunteer.localUnitId, currentMonth, currentYear)
         .then((events) => {
           setEvents(events);
-          const allReferrersId = events.map((el) => el.referrerId);
-          setReferrersId(Array.from(new Set(allReferrersId)));
           setEndLoadingEvents(true)
         })
         .catch((_) => {
@@ -141,26 +144,6 @@ export default function ULDashboard() {
             isClosable: true,
           });
         });
-  }
-
-  const loadReferrersName = () => {
-    setLoadedReferrers(true);
-    referrersId.forEach(el => {
-      getVolunteerById(el)
-          .then((volunteer) => {
-            setReferrersName([...referrersName, volunteer.firstName + ' ' + volunteer.lastName]);
-          })
-          .catch((_) => {
-            setTimeout(() => {setLoadedReferrers(false)}, 3000);
-            toast({
-              title: 'Erreur',
-              description: "Echec du chargement des référents.",
-              status: 'error',
-              duration: 10_000,
-              isClosable: true,
-            });
-          });
-    });
   }
 
   const handleDateChange = (arg) => {
@@ -261,16 +244,34 @@ export default function ULDashboard() {
         });
   }
 
+  const loadVolunteerAuthorizations = () => {
+    setLoadedVolunteerAuthorizations(true);
+    getMyAuthorizations()
+        .then((roles) => {
+          setVolunteerAuthorizations(roles);
+        })
+        .catch((_) => {
+            setTimeout(() => {setLoadedVolunteerAuthorizations(false)}, 3000);
+            toast({
+                title: 'Erreur',
+                description: "Echec du chargement des droits du volontaire.",
+                status: 'error',
+                duration: 10_000,
+                isClosable: true,
+            });
+        });
+  }
+
   return (
       <Flex flexDirection='column' pt={{ base: "120px", md: "75px" }}>
         {volunteer && !loadedLocalUnit && loadLocalUnit()}
         {loadedLocalUnit && !loadedEvents && volunteer && loadEvents()}
-        {!loadedReferrers && referrersId.length > 0 && loadReferrersName()}
         {loadedLocalUnit && !loadedLocalUnitStats && loadLocalUnitStats()}
         {!loadedEventStats  && loadEventStats()}
         {loadedLocalUnit && !loadedProductStats && loadProductStats()}
         {!loadedSoonExpiredFood && loadSoonExpiredFood()}
         {!loadedVolunteers && loadVolunteers()}
+        {!loadedVolunteerAuthorizations && loadVolunteerAuthorizations()}
         <SimpleGrid columns={{ sm: 1, md: 2, xl: 4 }} spacing='24px' mb='20px'>
           <Card minH='125px'>
             <Flex direction='column'>
@@ -347,7 +348,7 @@ export default function ULDashboard() {
                   <FaMedkit h={"24px"} w={"24px"} color={iconBoxInside} />
                 </IconBox>
               </Flex>
-              <Button variant="link" color='gray.400' fontSize='sm' onClick={goToLocalUnit}>
+              <Button variant="link" color='gray.400' fontSize='sm' onClick={goToBeneficiaries}>
                 Voir la liste
               </Button>
             </Flex>
@@ -511,13 +512,24 @@ export default function ULDashboard() {
                                 borderColor={borderColor}>
                               {`${el.startDate.getDate().toString().padStart(2, '0')}/${(el.startDate.getMonth() + 1).toString().padStart(2, '0')}/${el.startDate.getFullYear()} - ${el.startDate.getHours().toString().padStart(2, '0')}h${el.startDate.getMinutes().toString().padStart(2, '0')}`}
                             </Td>
-                            <Td
-                                color={textTableColor}
-                                fontSize='sm'
-                                border={index === arr.length - 1 ? "none" : null}
-                                borderColor={borderColor}>
-                              {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(el.referrerId)] : el.referrerId}
-                            </Td>
+                            {volunteers.length === 0 && (
+                                <Td
+                                    color={textTableColor}
+                                    fontSize='sm'
+                                    border={index === arr.length - 1 ? "none" : null}
+                                    borderColor={borderColor}>
+                                  {el.referrerId}
+                                </Td>
+                            )}
+                            {volunteers.length !== 0 && (
+                              <Td
+                                  color={textTableColor}
+                                  fontSize='sm'
+                                  border={index === arr.length - 1 ? "none" : null}
+                                  borderColor={borderColor}>
+                                {volunteers.filter(v => v.id === el.referrerId)[0].firstName} {volunteers.filter(v => v.id === el.referrerId)[0].lastName}
+                              </Td>
+                            )}
                             <Td
                                 color={textTableColor}
                                 fontSize='sm'
@@ -570,7 +582,7 @@ export default function ULDashboard() {
                   {!endLoadingSoonExpiredFood && (
                       <CircularProgress isIndeterminate color='green.300' m="30% 130%"/>
                   )}
-                  {endLoadingSoonExpiredFood && soonExpiredFood.map((el, index, arr) => {
+                  {endLoadingSoonExpiredFood && soonExpiredFood.sort((a, b) => a.expirationDate.getTime() > b.expirationDate.getTime()).map((el, index, arr) => {
                     return (
                         <Tr key={index}>
                           <Td

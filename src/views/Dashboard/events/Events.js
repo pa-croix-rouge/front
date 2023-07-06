@@ -129,15 +129,6 @@ export default function Events() {
         );
     }
 
-    const getReferrerName = (id) => {
-        const vol = localUnitVolunteer.find((vol) => vol.id === volunteer.localUnitId);
-        if (vol === undefined) {
-            return id;
-        } else {
-            return vol.firstName + ' ' + vol.lastName;
-        }
-    }
-
     const goToManageEvent = () => {
         history.push("/admin/manage-events");
     }
@@ -419,13 +410,24 @@ export default function Events() {
                                                             borderColor={borderColor}>
                                                             {`${el.startDate.getDate().toString().padStart(2, '0')}/${(el.startDate.getMonth() + 1).toString().padStart(2, '0')}/${el.startDate.getFullYear()} - ${el.startDate.getHours().toString().padStart(2, '0')}h${el.startDate.getMinutes().toString().padStart(2, '0')}`}
                                                         </Td>
-                                                        <Td
-                                                            color={textTableColor}
-                                                            fontSize='sm'
-                                                            border={index === arr.length - 1 ? "none" : null}
-                                                            borderColor={borderColor}>
-                                                            {getReferrerName(el.referrerId)}
-                                                        </Td>
+                                                        {localUnitVolunteer.length === 0 && (
+                                                            <Td
+                                                                color={textTableColor}
+                                                                fontSize='sm'
+                                                                border={index === arr.length - 1 ? "none" : null}
+                                                                borderColor={borderColor}>
+                                                                {el.referrerId}
+                                                            </Td>
+                                                        )}
+                                                        {localUnitVolunteer.length !== 0 && (
+                                                            <Td
+                                                                color={textTableColor}
+                                                                fontSize='sm'
+                                                                border={index === arr.length - 1 ? "none" : null}
+                                                                borderColor={borderColor}>
+                                                                {localUnitVolunteer.find((volunteer) => volunteer.id === el.referrerId).firstName} {localUnitVolunteer.find((volunteer) => volunteer.id === el.referrerId).lastName}
+                                                            </Td>
+                                                        )}
                                                         <Td
                                                             color={textTableColor}
                                                             fontSize='sm'

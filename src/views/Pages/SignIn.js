@@ -8,7 +8,7 @@ import {
     Input,
     Progress,
     Text,
-    useColorModeValue,
+    useColorModeValue, useToast,
 } from "@chakra-ui/react";
 import signInImage from "./../../assets/img/signInImage.jpg";
 import {User} from "../../model/User";
@@ -25,6 +25,7 @@ function SignIn() {
     const [isError, setIsError] = useState(false);
     const [loadTokenSuccess, setLoadTokenSuccess] = useState(false);
     const history = useHistory();
+    const toast = useToast();
 
     const handleUsernameChange = (event) => {
         setUsername(event.target.value);
@@ -41,11 +42,17 @@ function SignIn() {
         login(user)
             .then((jwtToken) => {
                 setLoading(false);
-                console.log(jwtToken.token)
                 localStorage.setItem('token', jwtToken.token);
                 // setToken(jwtToken.token);
                 setLoadTokenSuccess(true);
                 history.push("/admin/ul-dashboard");
+                toast({
+                    title: 'Succès',
+                    description: "Connexion réussie, bon retour parmi nous !",
+                    status: 'success',
+                    duration: 4_000,
+                    isClosable: true,
+                });
             })
             .catch((_) => {
                 setLoading(false);

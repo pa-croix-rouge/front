@@ -3,7 +3,7 @@ import {Box, Portal} from "@chakra-ui/react";
 import Footer from "./../components/Footer/Footer.js";
 // core components
 import AuthNavbar from "./../components/Navbars/AuthNavbar.js";
-import React, {useState} from "react";
+import React from "react";
 import {Redirect, Route, Switch, useHistory} from "react-router-dom";
 import routes from "./../routes.js";
 
@@ -12,10 +12,6 @@ export default function Pages(props) {
   const history = useHistory();
   // ref for the wrapper div
   const wrapper = React.createRef();
-  const [isConnectionChecking, setIsConnectionChecking] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
-
-  console.log("Auth layout");
 
   React.useEffect(() => {
     document.body.style.overflow = "unset";

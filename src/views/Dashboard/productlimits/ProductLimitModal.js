@@ -3,8 +3,8 @@ import {
     Badge,
     Button,
     Flex,
-    FormLabel, Icon,
-    Input, Menu, MenuButton, MenuItem, MenuList,
+    FormLabel,
+    Input,
     Modal,
     ModalBody,
     ModalCloseButton,
@@ -20,7 +20,7 @@ import {
     Radio,
     RadioGroup,
     SimpleGrid, Skeleton, Spacer,
-    Text, Wrap, WrapItem,
+    Text, useToast, Wrap, WrapItem,
 } from "@chakra-ui/react";
 import {ProductLimit} from "../../../model/ProductLimit";
 import {
@@ -32,9 +32,7 @@ import {Quantifier} from "../../../model/Quantifier";
 import ProductLimitsContext from "../../../contexts/ProductLimitsContext";
 import Card from "../../../components/Card/Card";
 import CardHeader from "../../../components/Card/CardHeader";
-import {FaEdit, FaEllipsisV, FaTrashAlt} from "react-icons/fa";
 import CardBody from "../../../components/Card/CardBody";
-
 
 export default function ProductLimitModal(props) {
     const {productLimits, setEvents, reloadProductLimits} = useContext(ProductLimitsContext);
@@ -46,6 +44,7 @@ export default function ProductLimitModal(props) {
     const [loadedProducts, setLoadedProducts] = useState(false);
     const [loadingProducts, setLoadingProducts] = useState(false);
     const [products, setProducts] = useState({first:[], second: []});
+    const toast = useToast();
 
     useEffect(() => {
         setProducts({first:[], second: []});
@@ -61,17 +60,23 @@ export default function ProductLimitModal(props) {
         return null;
     }
 
-    if (loadedProducts === false && loadingProducts === false) {
+    if (loadedProducts === false && loadingProducts === false && productLimit.id !== undefined) {
         setLoadingProducts(true);
         getAllProductLimitProducts(productLimit.id).then((products) => {
             setProducts(products);
-            console.log(products)
             setLoadedProducts(true);
             setLoadingProducts(false);
         }).catch((error) => {
             console.log(error);
             setLoadedProducts(false);
             setLoadingProducts(false);
+            toast({
+                title: "Erreur",
+                description: "Echec du chargement des produits.",
+                status: "error",
+                duration: 10_000,
+                isClosable: true
+            });
         });
     }
 
@@ -93,7 +98,6 @@ export default function ProductLimitModal(props) {
     }
 
     const onOK = () => {
-        console.log('onOK')
         if (props.edit === false) {
             props.onClose();
             return;
@@ -113,6 +117,13 @@ export default function ProductLimitModal(props) {
                 const errorString = error.toString();
                 setError(errorString);
                 setInProgress(false);
+                toast({
+                    title: "Erreur",
+                    description: "Echec de la création de la limite de produit.",
+                    status: "error",
+                    duration: 10_000,
+                    isClosable: true
+                });
             });
         } else {
             setInProgress(true);
@@ -124,6 +135,13 @@ export default function ProductLimitModal(props) {
                 const errorString = error.toString();
                 setError(errorString);
                 setInProgress(false);
+                toast({
+                    title: "Erreur",
+                    description: "Echec de la mise à jours de la limite de produit.",
+                    status: "error",
+                    duration: 10_000,
+                    isClosable: true
+                });
             });
         }
     }
@@ -185,6 +203,11 @@ export default function ProductLimitModal(props) {
                 </CardBody>
             </Card>
         )
+    }
+
+    const isFormValid = () => {
+
+        return productLimit.name.length > 0 && productLimit.quantity.measurementUnit.length > 0;
     }
 
     return (
@@ -271,8 +294,7 @@ export default function ProductLimitModal(props) {
                     <Button colorScheme="blue" mr={3} onClick={closeModal}>
                         Annuler
                     </Button>
-                    <Button colorScheme="blue" mr={3} isLoading={inProgress}
-                            onClick={onOK}>
+                    <Button colorScheme="green" variant="outline" mr={3} isLoading={inProgress} isDisabled={!isFormValid()} onClick={onOK}>
                         Confirmer
                     </Button>
                 </ModalFooter>
