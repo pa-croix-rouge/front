@@ -4,11 +4,25 @@ import {
     Button,
     Center,
     CircularProgress,
-    Flex, HStack, Icon,
-    Menu, MenuButton, MenuItem, MenuList, SimpleGrid, Spacer,
-    Text, Tooltip,
-    useDisclosure, useToast,
-    VStack,
+    Flex, FormControl,
+    HStack,
+    Icon,
+    Menu,
+    MenuButton,
+    MenuItem,
+    MenuList, Modal,
+    ModalBody,
+    ModalCloseButton,
+    ModalContent, ModalFooter,
+    ModalHeader,
+    ModalOverlay,
+    SimpleGrid,
+    Spacer,
+    Text,
+    Tooltip,
+    useDisclosure,
+    useToast,
+    VStack
 } from "@chakra-ui/react";
 import LocalUnitContext from "../../../contexts/LocalUnitContext";
 import Card from "../../../components/Card/Card";
@@ -23,8 +37,11 @@ import {getMyAuthorizations} from "../../../controller/RoleController";
 export default function ProductLimits() {
 
     const {isOpen: isOpenModal, onOpen: onOpenModal, onClose: onCloseModal} = useDisclosure();
+    const { isOpen: isOpenDeleteModal, onOpen: onOpenDeleteModal, onClose: onCloseDeleteModal } = useDisclosure();
     const {localUnit} = useContext(LocalUnitContext);
     const [modalEditionMode, setModalEditionMode] = useState(false);
+
+    const [deleting, setDeleting] = useState(false);
 
     const [loadedProductLimits, setLoadedProductLimits] = useState(false);
     const [loadingProductLimits, setLoadingProductLimits] = useState(false);
@@ -109,10 +126,14 @@ export default function ProductLimits() {
         onOpenModal();
     }
 
-    const onDeleteProductLimit = (productLimit) => {
-        deleteProductLimit(productLimit.id).then(() => {
+    const deleteProductLimit = () => {
+        setDeleting(true);
+        deleteProductLimit(selectedProductLimit.id).then(() => {
+            setDeleting(false);
             reloadProductLimits();
+            onCloseDeleteModal();
         }).catch((e) => {
+            setDeleting(false);
             console.log(e)
             toast({
                 title: "Erreur",
@@ -124,7 +145,12 @@ export default function ProductLimits() {
         });
     }
 
-    const reloadProductLimits = (pro) => {
+    const onDeleteProductLimit = (productLimit) => {
+        setSelectedProductLimit(productLimit);
+        onOpenDeleteModal();
+    }
+
+    const reloadProductLimits = () => {
         setLoadedProductLimits(false);
     }
 
@@ -226,6 +252,26 @@ export default function ProductLimits() {
                                    units={units}
                                    scrollBehavior="outside" productLimit={selectedProductLimit}> </ProductLimitModal>
 
+                <Modal isOpen={isOpenDeleteModal} onClose={onCloseDeleteModal} size="3xl" scrollBehavior="outside">
+                    <ModalOverlay/>
+                    <ModalContent>
+                        <ModalHeader>Supprimer une limite de produit</ModalHeader>
+                        <ModalCloseButton/>
+                        <ModalBody>
+                            <FormControl>
+                                <Text>Etes-vous sur de vouloir supprimer la limite de produit {selectedProductLimit?.name} ?</Text>
+                            </FormControl>
+                        </ModalBody>
+                        <ModalFooter>
+                            <Button colorScheme="blue" mr={3} onClick={onCloseDeleteModal}>
+                                Annuler
+                            </Button>
+                            <Button colorScheme="red" variant="outline" mr={3} onClick={deleteProductLimit} isLoading={deleting}>
+                                Supprimer
+                            </Button>
+                        </ModalFooter>
+                    </ModalContent>
+                </Modal>
 
             </ProductLimitsContext.Provider>
         </>
