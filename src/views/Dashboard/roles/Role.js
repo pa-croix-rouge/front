@@ -1,4 +1,5 @@
 import {
+  Badge,
   Button,
   Flex,
   FormControl,
@@ -12,11 +13,11 @@ import {
   MenuItem,
   MenuList,
   Modal,
-  ModalBody,
+  ModalBody, ModalCloseButton,
   ModalContent,
   ModalFooter,
   ModalHeader,
-  ModalOverlay, Radio, RadioGroup,
+  ModalOverlay, Radio, RadioGroup, SimpleGrid,
   Spacer,
   Table,
   Tbody,
@@ -42,6 +43,7 @@ import { FaCog, FaPencilAlt, FaTrashAlt, FaUserPlus } from "react-icons/fa";
 export default function Role(props) {
   const { isOpen: isOpenAddModal, onOpen: onOpenAddModal, onClose: onCloseAddModal } = useDisclosure();
   const { isOpen: isOpenManageModal, onOpen: onOpenManageModal, onClose: onCloseManageModal } = useDisclosure();
+  const { isOpen: isOpenDeleteModal, onOpen: onOpenDeleteModal, onClose: onCloseDeleteModal } = useDisclosure();
 
   const [userType, setUserType] = useState('volunteer');
 
@@ -100,6 +102,7 @@ export default function Role(props) {
     deleteRole(role.id).then(value => {
       props.onDelete(role.id);
       setRoleDeleteProgress(false);
+      onCloseDeleteModal();
     }).catch(error => {
       setError(error.message);
       setRoleDeleteProgress(false);
@@ -210,7 +213,7 @@ export default function Role(props) {
                           </Flex>
                         </Tooltip>
                       </MenuItem>
-                      <MenuItem onClick={onDelete} isDisabled={!canDeleteRole()}>
+                      <MenuItem onClick={onOpenDeleteModal} isDisabled={!canDeleteRole()}>
                         <Tooltip label="Vous n'avez pas les droits" isDisabled={canDeleteRole()}>
                           <Flex direction="row" cursor="pointer" p="12px">
                             <Icon as={FaTrashAlt} mr="8px" color="red.500" />
@@ -361,6 +364,27 @@ export default function Role(props) {
             <Text>{error}</Text>
             <Button colorScheme="blue" mr={3} onClick={onCloseManageModal}>
               OK
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <Modal isOpen={isOpenDeleteModal} onClose={onCloseDeleteModal} size="3xl" scrollBehavior="outside">
+        <ModalOverlay/>
+        <ModalContent>
+          <ModalHeader>Supprimer un role</ModalHeader>
+          <ModalCloseButton/>
+          <ModalBody>
+            <FormControl>
+                <Text>Etes-vous sur de vouloir supprimer le role {role.name} ?</Text>
+            </FormControl>
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" mr={3} onClick={onCloseDeleteModal}>
+              Annuler
+            </Button>
+            <Button colorScheme="red" variant="outline" mr={3} onClick={onDelete}>
+              Supprimer
             </Button>
           </ModalFooter>
         </ModalContent>
