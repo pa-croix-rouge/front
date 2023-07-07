@@ -455,15 +455,15 @@ export default function ULDashboard() {
                       Etat des stocks
                     </StatLabel>
                     <Flex>
-                      {productStats.totalFoodQuantity === -1 && canReadProduct() && (
+                      {productStats.totalFoodQuantity === -1 && canReadStorage() && (
                           <CircularProgress isIndeterminate color='green.300'/>
                       )}
-                      {productStats.totalFoodQuantity !== -1 && canReadProduct() && (
+                      {productStats.totalFoodQuantity !== -1 && canReadStorage() && (
                           <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
                             {productStats.totalFoodQuantity + productStats.totalClothesQuantity} produits
                           </StatNumber>
                       )}
-                      {!canReadProduct() && (
+                      {!canReadStorage() && (
                           <Tooltip label="Vous n'avez pas les droits">
                             <StatNumber fontSize='lg' color="transparent" fontWeight='bold' textShadow="0 0 8px #000">
                               00
