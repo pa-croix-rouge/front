@@ -12,16 +12,14 @@ import {
     Progress,
     SimpleGrid,
     Text,
-    useDisclosure, useToast
+    useToast
 } from "@chakra-ui/react";
 import Card from "../../../components/Card/Card";
-import EventEdition from "./EventEdition";
 import EventContext from "../../../contexts/EventContext";
 import {getBeneficiaries} from "../../../controller/BeneficiariesController";
 import {getVolunteers} from "../../../controller/VolunteerController";
 
 export default function EventViewer(props) {
-    const {isOpen: isOpenEditionModal, onOpen: onOpenEditionModal, onClose: onCloseEditionModal} = useDisclosure();
     const {events} = useContext(EventContext);
     const [beneficiaries, setBeneficiaries] = useState([]);
     const [loadedBeneficiaries, setLoadedBeneficiaries] = useState(false);
@@ -129,19 +127,12 @@ export default function EventViewer(props) {
                         </Flex>
                     </ModalBody>
                     <ModalFooter>
-                        <Button colorScheme="blue" mr={3} onClick={onOpenEditionModal}>
-                            Editer
-                        </Button>
-
                         <Button colorScheme="blue" mr={3} onClick={props.onClose}>
                             Fermer
                         </Button>
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-
-            <EventEdition isOpen={isOpenEditionModal} onClose={onCloseEditionModal} volunteers={props.volunteers}
-                          eventSessionId={props.eventSessionId}></EventEdition>
         </>
     );
 }

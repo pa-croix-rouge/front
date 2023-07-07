@@ -12,7 +12,7 @@ import ManageEvents from "./views/Dashboard/events/ManageEvents";
 import Stocks from "./views/Dashboard/Stocks";
 import Roles from "./views/Dashboard/roles/Roles";
 import Beneficiaries from "./views/Dashboard/Beneficiaries/Beneficiaries";
-import {FaChartBar, FaShoppingCart, FaUsers, FaWrench} from "react-icons/fa";
+import {FaArchive, FaChartBar, FaShoppingCart, FaUsers, FaWrench} from "react-icons/fa";
 import ProductLimits from "./views/Dashboard/productlimits/ProductLImits";
 
 var dashRoutes = [
@@ -22,6 +22,7 @@ var dashRoutes = [
     icon: <FaChartBar color='inherit' />,
     component: ULDashboard,
     layout: "/admin",
+    role: "",
   },
   {
     path: "/local-unit",
@@ -29,6 +30,7 @@ var dashRoutes = [
     icon: <HomeIcon color='inherit' />,
     component: LocalUnit,
     layout: "/admin",
+    role: "",
   },
   {
     path: "/beneficiaries",
@@ -36,6 +38,7 @@ var dashRoutes = [
     icon: <FaUsers color='inherit' />,
     component: Beneficiaries,
     layout: "/admin",
+    role: "BENEFICIARY",
   },
   {
     path: "/events",
@@ -43,6 +46,7 @@ var dashRoutes = [
     icon: <TimeIcon color='inherit' />,
     component: Events,
     layout: "/admin",
+    role: "EVENT",
   },
   {
     path: "/manage-events",
@@ -50,13 +54,15 @@ var dashRoutes = [
     icon: <CalendarIcon color='inherit' />,
     component: ManageEvents,
     layout: "/admin",
+    role: "EVENT",
   },
   {
     path: "/stocks",
     name: "Stocks",
-    icon: <FaShoppingCart color='inherit' />,
+    icon: <FaArchive color='inherit' />,
     component: Stocks,
     layout: "/admin",
+    role: "",
   },
   {
     path: "/product-limits",
@@ -64,6 +70,7 @@ var dashRoutes = [
     icon: <FaShoppingCart color='inherit' />,
     component: ProductLimits,
     layout: "/admin",
+    role: "PRODUCT_LIMIT",
   },
   {
     path: "/roles",
@@ -71,6 +78,7 @@ var dashRoutes = [
     icon: <FaWrench color='inherit' />,
     component: Roles,
     layout: "/admin",
+    role: "ROLE",
   },
   {
     path: "/signin",
@@ -78,6 +86,7 @@ var dashRoutes = [
     icon: <DocumentIcon color='inherit' />,
     component: SignIn,
     layout: "/auth",
+    role: "",
   },
   {
     path: "/signup",
@@ -85,6 +94,7 @@ var dashRoutes = [
     icon: <RocketIcon color='inherit' />,
     component: SignUp,
     layout: "/auth",
+    role: "",
   },
 ];
 export default dashRoutes;

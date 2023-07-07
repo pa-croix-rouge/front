@@ -64,17 +64,13 @@ export default function HeaderLinks(props) {
                     setVolunteer(volunteer);
                     getLocalUnit(volunteer.localUnitId)
                         .then((localUnit) => {
-                            console.log('localUnit');
-                            console.log(localUnit);
                             setLocalUnit(localUnit);
-                        }).catch((e) => {
-                        console.log(e);
+                        }).catch((_) => {
                         localStorage.removeItem('token');
                         history.push("/auth/signin");
                     });
                 })
-                .catch((e) => {
-                    console.log(e);
+                .catch((_) => {
                     localStorage.removeItem('token');
                     history.push("/auth/signin");
                 });

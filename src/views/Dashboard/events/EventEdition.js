@@ -38,6 +38,7 @@ import TimelineRow from "../../../components/Tables/TimelineRow";
 import {CalendarIcon, CheckIcon} from "@chakra-ui/icons";
 import EventContext from "../../../contexts/EventContext";
 import {getBeneficiaries} from "../../../controller/BeneficiariesController";
+import {getVolunteers} from "../../../controller/VolunteerController";
 
 export default function EventEdition(props) {
 
@@ -47,7 +48,7 @@ export default function EventEdition(props) {
         return null;
     }
 
-    const initialEvent = events.find((event) => event.sessionId == props.eventSessionId);
+    const initialEvent = events.find((event) => event.sessionId === props.eventSessionId);
     if(initialEvent === undefined){
         return null;
     }
@@ -78,10 +79,30 @@ export default function EventEdition(props) {
     const [eventMaxParticipants, setEventMaxParticipants] = useState(10);
     const [eventNumberOfTimeWindow, setEventNumberOfTimeWindow] = useState(3);
 
+    const [volunteers, setVolunteers] = useState([]);
+    const [loadedVolunteers, setLoadedVolunteers] = useState(false);
     const [beneficiaries, setBeneficiaries] = useState([]);
     const [loadedBeneficiaries, setLoadedBeneficiaries] = useState(false);
     const [isCallingGetAllSessions, setIsCallingGetAllSessions] = useState(false);
     const toast = useToast();
+
+    const loadVolunteers = () => {
+        setLoadedVolunteers(true);
+        getVolunteers()
+            .then((res) => {
+                setVolunteers(res);
+            })
+            .catch((_) => {
+                setTimeout(() => {setLoadedVolunteers(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des volontaires.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
+            });
+    }
 
     const loadBeneficiaries = () => {
         setLoadedBeneficiaries(true);
@@ -102,7 +123,7 @@ export default function EventEdition(props) {
     }
 
     useEffect(() => {
-            const event = events.find((event) => event.sessionId == props.eventSessionId);
+            const event = events.find((event) => event.sessionId === props.eventSessionId);
             setModifiedEvent(event)
 
             setModifiedEventStartDate(event.startDate.toISOString().substring(0, 10));
@@ -133,15 +154,7 @@ export default function EventEdition(props) {
             parseInt(minutesStart),
         );
 
-        const [yearsEnd, monthsEnd, daysEnd] = modifiedEventEndDate.split("-");
-        const [hoursEnd, minutesEnd] = modifiedEventEndTime.split(":");
-        const eventEnd = new Date(
-            parseInt(yearsEnd),
-            parseInt(monthsEnd) - 1,
-            parseInt(daysEnd),
-            parseInt(hoursEnd),
-            parseInt(minutesEnd),
-        );
+        const eventEnd = new Date(eventStart.getTime() + modifiedEventTimeWindowDuration * modifiedEventNumberOfTimeWindow * 60 * 1000);
 
         setModifiedEvent({
             ...modifiedEvent,
@@ -198,6 +211,14 @@ export default function EventEdition(props) {
             setModifyEventError("Le nombre maximum de participants ne peut pas être inférieur au nombre de participants déjà inscrits");
             return;
         }
+        if (modifiedEventStartDate === "") {
+            setModifyEventError("Veuillez entrer une date de début");
+            return;
+        }
+        if (modifiedEventStartTime === "") {
+            setModifyEventError("Veuillez entrer une heure de début");
+            return;
+        }
 
         let eventStart;
         let eventEnd;
@@ -233,20 +254,19 @@ export default function EventEdition(props) {
         }
     }
 
-    const getReferrerName = (id) => {
-        const vol = props.volunteers.find((vol) => vol.id === id);
-        if (vol === undefined) {
-            return id;
-        } else {
-            return vol.firstName + ' ' + vol.lastName;
-        }
-    }
-
     const getAllSessions = () => {
         const eventId = modifiedEvent.eventId;
         setIsCallingGetAllSessions(true);
         getEventSessions(eventId)
             .then((sessions) => {
+                for (let i = 0; i < sessions.length; i++) {
+                    const participants = sessions[i].timeWindows.map(t => t.participants.length).reduce((acc, el) => acc + el, 0);
+                    if (sessions[i].startDate.getTime() > Date.now() && participants > modifiedEventMaxParticipants) {
+                        onCloseModifyAllModal();
+                        setModifyEventError("Impossible de modifier l'événement car la session du " + sessions[i].startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h") + " a plus de participants que le nombre maximum de participants définit.");
+                        return;
+                    }
+                }
                 setEventSessions(sessions);
                 setIsCallingGetAllSessions(false);
             })
@@ -264,7 +284,11 @@ export default function EventEdition(props) {
 
     return (
         <>
+            {!loadedVolunteers && loadVolunteers()}
             {!loadedBeneficiaries && loadBeneficiaries()}
+            {isNaN(modifiedEventMaxParticipants) && setModifiedEventMaxParticipants(0)}
+            {isNaN(modifiedEventNumberOfTimeWindow) && setModifiedEventNumberOfTimeWindow(1)}
+            {isNaN(modifiedEventTimeWindowDuration) && setModifiedEventTimeWindowDuration(1)}
             <Modal isOpen={props.isOpen} onClose={props.onClose} size="6xl" scrollBehavior="outside">
                 <ModalOverlay/>
                 <ModalContent>
@@ -303,7 +327,7 @@ export default function EventEdition(props) {
                                 <SimpleGrid columns={{sm: 1, md: 2}} spacing='24px' mt="8px">
                                     <Flex direction="column" ml="16px" mr="16px">
                                         <FormLabel>Nombre de participants par plage horaire</FormLabel>
-                                        <NumberInput defaultValue={10} min={1} value={modifiedEventMaxParticipants}
+                                        <NumberInput defaultValue={10} min={0} value={modifiedEventMaxParticipants}
                                                      onChange={(e) => setModifiedEventMaxParticipants(parseInt(e))}>
                                             <NumberInputField/>
                                             <NumberInputStepper>
@@ -371,8 +395,7 @@ export default function EventEdition(props) {
                                     </Flex>
                                 )}
                             </FormControl>
-                            <Text> Plage{modifiedEvent.timeWindows.length > 1 ? "s" : ""} horaire{modifiedEvent.timeWindows.length > 1 ? "s" : ""} avant
-                                modification</Text>
+                            <Text> Plage{modifiedEvent.timeWindows.length > 1 ? "s" : ""} horaire{modifiedEvent.timeWindows.length > 1 ? "s" : ""} avant modification</Text>
                             <SimpleGrid columns={{sm: 1, md: 2, xl: 3}} spacing='24px'>
                                 {modifiedEvent.timeWindows.sort((a, b) => a.startTime.getTime() > b.startTime.getTime()).map((timeWindow, index) => (
                                     <Card key={index}>
@@ -402,8 +425,7 @@ export default function EventEdition(props) {
                                     </Card>
                                 ))}
                             </SimpleGrid>
-                            <Text>Plage{modifiedEvent.timeWindows.length > 1 ? "s" : ""} horaire{modifiedEvent.timeWindows.length > 1 ? "s" : ""} après
-                                modification</Text>
+                            <Text>Plage{modifiedEvent.timeWindows.length > 1 ? "s" : ""} horaire{modifiedEvent.timeWindows.length > 1 ? "s" : ""} après modification</Text>
                             <SimpleGrid columns={{sm: 1, md: 2, xl: 3}} spacing='24px'>
                                 {[...Array(modifiedEventNumberOfTimeWindow)].map((e, i) => (
                                     <Card key={i}>
@@ -432,18 +454,38 @@ export default function EventEdition(props) {
                             <Flex direction="row" justifyContent="space-between" alignItems="center">
                                 <Stat maxW="45%">
                                     <StatLabel>{initialEvent.name} du {initialEvent.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")} au {initialEvent.endDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}</StatLabel>
-                                    <StatNumber><Icon
-                                        as={FaUser}/> {initialEvent.numberOfParticipants} / {initialEvent.maxParticipants} participants</StatNumber>
-                                    <StatHelpText>{initialEvent.description}<br/>Référent: {getReferrerName(initialEvent.referrerId)}
-                                    </StatHelpText>
+                                    <StatNumber>
+                                        <Icon as={FaUser}/>
+                                        {initialEvent.numberOfParticipants} / {initialEvent.maxParticipants} participants
+                                    </StatNumber>
+                                    {volunteers.length === 0 && (
+                                        <StatHelpText>
+                                            {modifiedEvent.description}<br/>Référent: {initialEvent.referrerId}
+                                        </StatHelpText>
+                                    )}
+                                    {volunteers.length > 0 && (
+                                        <StatHelpText>
+                                            {modifiedEvent.description}<br/>Référent: {volunteers.filter(v => v.id == initialEvent.referrerId)[0].firstName} {volunteers.filter(v => v.id == initialEvent.referrerId)[0].lastName}
+                                        </StatHelpText>
+                                    )}
                                 </Stat>
                                 <Icon as={FaArrowRight} h="8" w="8" mr="12px"/>
                                 <Stat maxW="45%">
                                     <StatLabel>{modifiedEvent.name} le {modifiedEvent.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")} au {modifiedEvent.endDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}</StatLabel>
-                                    <StatNumber><Icon
-                                        as={FaUser}/> {modifiedEvent.numberOfParticipants} / {modifiedEventMaxParticipants * modifiedEventNumberOfTimeWindow} participants</StatNumber>
-                                    <StatHelpText>{modifiedEvent.description}<br/>Référent: { getReferrerName(modifiedEvent.referrerId)}
-                                    </StatHelpText>
+                                    <StatNumber>
+                                        <Icon as={FaUser}/>
+                                        {modifiedEvent.numberOfParticipants} / {modifiedEventMaxParticipants * modifiedEventNumberOfTimeWindow} participants
+                                    </StatNumber>
+                                    {volunteers.length === 0 && (
+                                        <StatHelpText>
+                                            {modifiedEvent.description}<br/>Référent: {modifiedEvent.referrerId}
+                                        </StatHelpText>
+                                    )}
+                                    {volunteers.length > 0 && (
+                                        <StatHelpText>
+                                            {modifiedEvent.description}<br/>Référent: {volunteers.filter(v => v.id == modifiedEvent.referrerId)[0].firstName} {volunteers.filter(v => v.id == modifiedEvent.referrerId)[0].lastName}
+                                        </StatHelpText>
+                                    )}
                                 </Stat>
                             </Flex>
                             {modifyEventError !== "" && (

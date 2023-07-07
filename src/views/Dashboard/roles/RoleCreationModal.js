@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {
   Button,
   Checkbox,
@@ -30,16 +30,25 @@ export default function RoleCreationModal(props) {
   const [roleCreationProgress, setRoleCreationProgress] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    setRole(props.role === undefined ? new Role(undefined, "", "", new Map(), [], "") : props.role);
+  }, [props.role] );
+
   const onAddNewRole = () => {
+    if (role.name === "") {
+      setError("Le nom du role ne peut pas être vide");
+      return;
+    }
 
     setRoleCreationProgress(true);
     (props.role === undefined ? createRole(props.localUnitID, role) : updateRole(role, props.localUnitID)).then((roleId) => {
 
       if (props.role === undefined) {
-        getRole(roleId).then((role) => {
+        getRole(roleId.value).then((role) => {
           setRole({ ...role, id: roleId });
           props.onNewValidRole(role);
           setRoleCreationProgress(false);
+          props.onClose();
         }).catch((e) => {
           setRoleCreationProgress(false);
           setError(e.message);
@@ -47,8 +56,8 @@ export default function RoleCreationModal(props) {
       } else {
         props.onNewValidRole(role);
         setRoleCreationProgress(false);
+        props.onClose();
       }
-      props.onClose();
     }).catch((e) => {
       setRoleCreationProgress(false);
       setError(e.message);
@@ -124,11 +133,12 @@ export default function RoleCreationModal(props) {
                 </Tbody>
               </Table>
             </VStack>
+            {error !== "" && (
+                <Text color="red.500">{error}</Text>
+            )}
           </FormControl>
-
         </ModalBody>
         <ModalFooter>
-          <Text>{error}</Text>
           <Button isLoading={roleCreationProgress} colorScheme="blue" mr={3} onClick={props.onClose}>
             Annuler
           </Button>

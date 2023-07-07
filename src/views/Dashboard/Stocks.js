@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useRef, useState} from "react";
 import {
-    Badge,
+    Badge, Box,
     Button, CircularProgress,
     Flex,
     FormControl,
@@ -22,12 +22,12 @@ import {
     NumberIncrementStepper,
     NumberInput,
     NumberInputField,
-    NumberInputStepper,
+    NumberInputStepper, Progress,
     Radio,
     RadioGroup,
     Select,
     SimpleGrid, Skeleton, Stat, StatLabel, StatNumber,
-    Text, toast, useColorModeValue,
+    Text, toast, Tooltip, useColorModeValue,
     useDisclosure, useToast
 } from "@chakra-ui/react";
 import {
@@ -69,6 +69,7 @@ import {getCitiesFromPostalCode} from "../../controller/IGNController";
 import {ProductsStats} from "../../model/stock/ProductsStats";
 import IconBox from "../../components/Icons/IconBox";
 import {getAllProductLimit} from "../../controller/ProductLimitsController";
+import {getMyAuthorizations} from "../../controller/RoleController";
 
 export default function Stocks() {
     const iconBoxInside = useColorModeValue("white", "white");
@@ -96,6 +97,7 @@ export default function Stocks() {
     const [genders, setGenders] = useState([]);
     const [storageStats, setStorageStats] = useState(new ProductsStats(-1, -1, -1));
     const [soonExpiredProducts, setSoonExpiredProducts] = useState([]);
+    const [isCallingSoonExpiredProducts, setIsCallingSoonExpiredProducts] = useState(true);
     const {isOpen: isOpenSoonExpiredProductsModal, onOpen: onOpenSoonExpiredProductsModal, onClose: onCloseSoonExpiredProductsModal} = useDisclosure();
     const {isOpen: isOpenAddStorageModal, onOpen: onOpenAddStorageModal, onClose: onCloseAddStorageModal} = useDisclosure();
     const {isOpen: isOpenDeleteStorageModal, onOpen: onOpenDeleteStorageModal, onClose: onCloseDeleteStorageModal} = useDisclosure();
@@ -110,6 +112,7 @@ export default function Stocks() {
     const [createEventLoading, setCreateEventLoading] = useState(false);
     const [selectedStorage, setSelectedStorage] = useState(null);
     const [selectedStorageProducts, setSelectedStorageProducts] = useState(new ProductList([], []));
+    const [isCallingSelectedStorageProducts, setIsCallingSelectedStorageProducts] = useState(true);
     const [addStorageCityList, setAddStorageCityList] = useState([]);
     const [updatedStorageName, setUpdatedStorageName] = useState("");
     const [updatedStorageDepartment, setUpdatedStorageDepartment] = useState("");
@@ -154,6 +157,7 @@ export default function Stocks() {
     const [isCallingUpdateProduct, setIsCallingUpdateProduct] = useState(false);
     //Delete product
     const {isOpen: isOpenDeleteProductModal, onOpen: onOpenDeleteProductModal, onClose: onCloseDeleteProductModal} = useDisclosure();
+    const [isCallingDeleteProduct, setIsCallingDeleteProduct] = useState(false);
     //Quagga scanner
     const {isOpen: isOpenScannerModal, onOpen: onOpenScannerModal, onClose: onCloseScannerModal} = useDisclosure();
     const scannerRef = useRef(null);
@@ -164,6 +168,8 @@ export default function Stocks() {
     const [productLimits, setProductLimits] = useState([]);
 
     const [selectedProductLimit, setSelectedProductLimit] = useState(undefined);
+    const [loadedVolunteerAuthorizations, setLoadedVolunteerAuthorizations] = useState(false);
+    const [volunteerAuthorizations, setVolunteerAuthorizations] = useState({});
 
     const toast = useToast();
 
@@ -176,7 +182,6 @@ export default function Stocks() {
                 setLoadingProductLimits(false);
             })
             .catch((e) => {
-                console.log(e)
                 setLoadedProductLimits(false);
                 setLoadingProductLimits(false);
             });
@@ -270,24 +275,21 @@ export default function Stocks() {
         if (storagePostalCode.length === 5) {
             getCitiesFromPostalCode(storagePostalCode)
                 .then((cities) => {
-                    console.log(cities);
                     setAddStorageCityList(cities);
                 })
                 .catch((err) => {
-                    console.log(err);
                 });
         }
     }, [storagePostalCode]);
 
     useEffect(() => {
-        if (storagePostalCode.length === 5) {
-            getCitiesFromPostalCode(storagePostalCode)
+        setUpdatedStorageCity("");
+        if (updatedStoragePostalCode.length === 5) {
+            getCitiesFromPostalCode(updatedStoragePostalCode)
                 .then((cities) => {
-                    console.log(cities);
                     setAddStorageCityList(cities);
                 })
                 .catch((err) => {
-                    console.log(err);
                 });
         }
     }, [updatedStoragePostalCode]);
@@ -386,9 +388,11 @@ export default function Stocks() {
 
     const loadProductsFromStorage = () => {
         setLoadedProductsByStorage(true);
+        setIsCallingSelectedStorageProducts(true);
         getProductsByStorage(selectedStorage.id)
             .then((products) => {
                 setSelectedStorageProducts(products);
+                setIsCallingSelectedStorageProducts(false);
             })
             .catch((e) => {
                 setTimeout(() => {setLoadedProductsByStorage(false)}, 3000);
@@ -460,14 +464,32 @@ export default function Stocks() {
         setLoadedSoonExpiredProducts(true);
         getSoonExpiredFood()
             .then((products) => {
-                console.log(products);
                 setSoonExpiredProducts(products);
+                setIsCallingSoonExpiredProducts(false);
             })
             .catch((_) => {
                 setTimeout(() => {setLoadedSoonExpiredProducts(false)}, 3000);
                 toast({
                     title: 'Erreur',
                     description: "Echec du chargement des produits bientôt expirés.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
+            });
+    }
+
+    const loadVolunteerAuthorizations = () => {
+        setLoadedVolunteerAuthorizations(true);
+        getMyAuthorizations()
+            .then((roles) => {
+                setVolunteerAuthorizations(roles);
+            })
+            .catch((_) => {
+                setTimeout(() => {setLoadedVolunteerAuthorizations(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des droits du volontaire.",
                     status: 'error',
                     duration: 10_000,
                     isClosable: true,
@@ -489,25 +511,21 @@ export default function Stocks() {
             setCreateEventLoading(false);
             return;
         }
-
         if (storageDepartment === "") {
             setErrorAddingStorage("Veuillez renseigner un département pour l'espace de stockage");
             setCreateEventLoading(false);
             return;
         }
-
         if (storagePostalCode === "" || storagePostalCode.length !== 5) {
             setErrorAddingStorage("Veuillez renseigner un code postale valide pour l'espace de stockage");
             setCreateEventLoading(false);
             return;
         }
-
         if (storageCity === "") {
             setErrorAddingStorage("Veuillez renseigner une ville pour l'espace de stockage");
             setCreateEventLoading(false);
             return;
         }
-
         if (storageAddress === "") {
             setErrorAddingStorage("Veuillez renseigner une adresse pour l'espace de stockage");
             setCreateEventLoading(false);
@@ -519,6 +537,12 @@ export default function Stocks() {
                 onCloseAddStorageModal();
                 setLoadedStorages(false);
                 setCreateEventLoading(false);
+                setStorageName("");
+                setStorageDepartment("");
+                setStoragePostalCode("");
+                setStorageCity("");
+                setStorageAddress("");
+                setAddStorageCityList([]);
             })
             .catch((_) => {
                 setCreateEventLoading(false);
@@ -563,12 +587,15 @@ export default function Stocks() {
     }
 
     const deleteStorage = () => {
+        setIsCallingDeleteProduct(true);
         deleteStockage(selectedStorage.id)
             .then((_) => {
                 onCloseDeleteStorageModal();
                 setLoadedStorages(false);
+                setIsCallingDeleteProduct(false);
             })
             .catch((_) => {
+                setIsCallingDeleteProduct(false);
             });
     }
 
@@ -589,7 +616,7 @@ export default function Stocks() {
             setUpdatedProductConservation(product.conservation);
             setUpdatedProductExpirationDate(product.expirationDate.toISOString().substring(0, 10));
             setUpdatedProductOptimalDate(product.optimalConsumptionDate.toISOString().substring(0, 10));
-            setUpdatedProductPrice(product.product.price);
+            setUpdatedProductPrice(product.price);
         }
         if (type === "cloth") {
             setUpdatedProductSize(product.size);
@@ -599,7 +626,6 @@ export default function Stocks() {
     }
 
     const selectStorageForModal = (storage, onOpenModal) => {
-        console.log(storage)
         setSelectedStorage(storage);
         setLoadedProductsByStorage(false);
         setUpdatedStorageDepartment(Number(storage.address.departmentCode) - 2);
@@ -609,11 +635,9 @@ export default function Stocks() {
         setUpdatedStorageCity(storage.address.city);
         getCitiesFromPostalCode(storage.address.postalCode)
             .then((cities) => {
-                console.log(cities);
                 setAddStorageCityList(cities);
             })
             .catch((err) => {
-                console.log(err);
             });
         setTimeout(() => onOpenModal(), 500);
     }
@@ -667,6 +691,12 @@ export default function Stocks() {
                 setIsCallingAddProduct(false)
                 onCloseAddProductModal();
                 setLoadedAllProducts(false);
+                setAddProductName("");
+                setAddProductStorageId("");
+                setAddProductUnit("");
+                setAddProductConservation("");
+                setAddProductExpirationDate(new Date().toISOString().substring(0, 10));
+                setAddProductOptimalDate(new Date().toISOString().substring(0, 10));
             })
             .catch((_) => {
                 setIsCallingAddProduct(false)
@@ -745,6 +775,9 @@ export default function Stocks() {
                 setIsCallingUpdateProduct(false)
                 onCloseUpdateProductModal();
                 setLoadedAllProducts(false);
+                setLoadedProductsByStorage(false);
+                setLoadedSoonExpiredProducts(false);
+                setLoadedStorageStats(false);
             })
             .catch((_) => {
                 setIsCallingUpdateProduct(false)
@@ -767,6 +800,8 @@ export default function Stocks() {
                 setIsCallingUpdateProduct(false)
                 onCloseUpdateProductModal();
                 setLoadedAllProducts(false);
+                setLoadedProductsByStorage(false);
+                setLoadedStorageStats(false);
             })
             .catch((_) => {
                 setIsCallingUpdateProduct(false)
@@ -780,6 +815,9 @@ export default function Stocks() {
                 .then((_) => {
                     onCloseDeleteProductModal();
                     setLoadedAllProducts(false);
+                    setLoadedProductsByStorage(false);
+                    setLoadedSoonExpiredProducts(false);
+                    setLoadedStorageStats(false);
                 })
                 .catch((_) => {
                 });
@@ -789,26 +827,61 @@ export default function Stocks() {
                 .then((_) => {
                     onCloseDeleteProductModal();
                     setLoadedAllProducts(false);
+                    setLoadedProductsByStorage(false);
+                    setLoadedStorageStats(false);
                 })
                 .catch((_) => {
                 });
         }
     }
 
+    const canReadProduct = () => {
+        return volunteerAuthorizations.PRODUCT?.filter((r) => r === 'READ').length > 0;
+    }
+
+    const canAddProduct = () => {
+        return volunteerAuthorizations.PRODUCT?.filter((r) => r === 'CREATE').length > 0;
+    }
+
+    const canUpdateProduct = () => {
+        return volunteerAuthorizations.PRODUCT?.filter((r) => r === 'UPDATE').length > 0;
+    }
+
+    const canDeleteProduct = () => {
+        return volunteerAuthorizations.PRODUCT?.filter((r) => r === 'DELETE').length > 0;
+    }
+
+    const canReadStorage = () => {
+        return volunteerAuthorizations.STORAGE?.filter((r) => r === 'READ').length > 0;
+    }
+
+    const canAddStorage = () => {
+        return volunteerAuthorizations.STORAGE?.filter((r) => r === 'CREATE').length > 0;
+    }
+
+    const canUpdateStorage = () => {
+        return volunteerAuthorizations.STORAGE?.filter((r) => r === 'UPDATE').length > 0;
+    }
+
+    const canDeleteStorage = () => {
+        return volunteerAuthorizations.STORAGE?.filter((r) => r === 'DELETE').length > 0;
+    }
+
     return (
         <>
-            {!loadedStorages && loadStorages()}
+            {!loadedStorages && canReadStorage() && loadStorages()}
             {!loadedDepartments && loadDepartments()}
-            {!loadedUnits && loadUnits()}
-            {!loadedConservations && loadConservations()}
-            {!loadedSizes && loadSizes()}
-            {!loadedGenders && loadGenders()}
-            {!loadedAllProducts && loadProducts()}
+            {!loadedUnits && canReadStorage() && loadUnits()}
+            {!loadedConservations && canReadStorage() && loadConservations()}
+            {!loadedSizes && canReadStorage() && loadSizes()}
+            {!loadedGenders && canReadStorage() && loadGenders()}
+            {!loadedAllProducts && canReadProduct() && loadProducts()}
             {callAddStockage && addStorage()}
             {callUpdateStockage && updateStorage()}
             {!loadedProductsByStorage && selectedStorage !== null && loadProductsFromStorage()}
-            {!loadedStorageStats && loadStorageStats()}
-            {!loadedSoonExpiredProducts && loadSoonExpiredProducts()}
+            {!loadedStorageStats && canReadProduct() && loadStorageStats()}
+            {!loadedSoonExpiredProducts && canReadProduct() && loadSoonExpiredProducts()}
+            {!loadedVolunteerAuthorizations && loadVolunteerAuthorizations()}
             <Flex direction="column" pt={{base: "120px", md: "75px"}} overflow="hidden">
                 <SimpleGrid columns={{sm: 1, md: 2, xl: 3}} spacing='24px' mb='20px'>
                     <Card minH='125px'>
@@ -828,13 +901,20 @@ export default function Stocks() {
                                         Quantité total de nourriture
                                     </StatLabel>
                                     <Flex>
-                                        {storageStats.totalFoodQuantity === -1 && (
+                                        {storageStats.totalFoodQuantity === -1 && canReadProduct() && (
                                             <CircularProgress isIndeterminate color='green.300'/>
                                         )}
-                                        {storageStats.totalFoodQuantity !== -1  && (
+                                        {storageStats.totalFoodQuantity !== -1 && canReadProduct() && (
                                             <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
                                                 {storageStats.totalFoodQuantity}
                                             </StatNumber>
+                                        )}
+                                        {!canReadProduct() && (
+                                            <Tooltip label="Vous n'avez pas les droits">
+                                                <StatNumber fontSize='lg' color="transparent" fontWeight='bold' textShadow="0 0 8px #000">
+                                                    00
+                                                </StatNumber>
+                                            </Tooltip>
                                         )}
                                     </Flex>
                                 </Stat>
@@ -865,13 +945,20 @@ export default function Stocks() {
                                         Quantité total de vêtements
                                     </StatLabel>
                                     <Flex>
-                                        {storageStats.totalClothesQuantity === -1 && (
+                                        {storageStats.totalClothesQuantity === -1 && canReadProduct() && (
                                             <CircularProgress isIndeterminate color='green.300'/>
                                         )}
-                                        {storageStats.totalClothesQuantity !== -1  && (
+                                        {storageStats.totalClothesQuantity !== -1 && canReadProduct() && (
                                             <StatNumber fontSize='lg' color={textColor} fontWeight='bold' href='/local-unit'>
                                                 {storageStats.totalClothesQuantity}
                                             </StatNumber>
+                                        )}
+                                        {!canReadProduct() && (
+                                            <Tooltip label="Vous n'avez pas les droits">
+                                                <StatNumber fontSize='lg' color="transparent" fontWeight='bold' textShadow="0 0 8px #000">
+                                                    00
+                                                </StatNumber>
+                                            </Tooltip>
                                         )}
                                     </Flex>
                                 </Stat>
@@ -893,10 +980,10 @@ export default function Stocks() {
                                 justify='center'
                                 w='100%'
                                 mb='25px'>
-                                {storageStats.totalClothesQuantity === -1 && (
+                                {storageStats.totalClothesQuantity === -1 && canReadProduct() && (
                                     <CircularProgress isIndeterminate color='green.300'/>
                                 )}
-                                {storageStats.soonExpiredFood > 0 && (
+                                {storageStats.soonExpiredFood > 0 && canReadProduct() && (
                                     <Flex direction="column" m="auto">
                                         <Text fontWeight="bold" mb="8px" textAlign="center">
                                             ⚠️La date d'expiration de {storageStats.soonExpiredFood} produits nécessite
@@ -907,10 +994,17 @@ export default function Stocks() {
                                         </Button>
                                     </Flex>
                                 )}
-                                {storageStats.soonExpiredFood === 0 && (
+                                {storageStats.soonExpiredFood === 0 && canReadProduct() && (
                                     <Text fontWeight="bold" textAlign="center">
                                         ✅La date d'expiration d'aucun produit ne nécessite votre attention
                                     </Text>
+                                )}
+                                {!canReadProduct() && (
+                                    <Tooltip label="Vous n'avez pas les droits">
+                                        <Text fontSize='lg' color="transparent" fontWeight='bold' textShadow="0 0 8px #000">
+                                            Impossible de savoir si des produits sont bientôt périmés
+                                        </Text>
+                                    </Tooltip>
                                 )}
                             </Flex>
                         </Flex>
@@ -920,8 +1014,11 @@ export default function Stocks() {
                     <CardHeader>
                         <Flex justify="space-between" m="12px 8px">
                             <Text fontSize="2xl">Stock de l'unité locale</Text>
-                            <Button colorScheme="green" onClick={onOpenAddProductModal}>Ajouter un produit aux
-                                stocks</Button>
+                            <Tooltip label="Vous n'avez pas les droits" isDisabled={canAddProduct()}>
+                                <Box>
+                                    <Button colorScheme="green" onClick={onOpenAddProductModal} disabled={!canAddProduct()}>Ajouter un produit aux stocks</Button>
+                                </Box>
+                            </Tooltip>
                         </Flex>
                     </CardHeader>
                     <CardBody>
@@ -929,7 +1026,10 @@ export default function Stocks() {
                             Produits alimentaires
                         </Text>
                         <SimpleGrid columns={{sm: 2, md: 3, lg: 4, xl: 5}} spacing="24px" m="12px">
-                            {!endLoadingAllProducts && (
+                            {!canReadProduct() && (
+                                <Text fontWeight="semibold">Vous n'avez pas les droits</Text>
+                            )}
+                            {!endLoadingAllProducts && canReadProduct() && (
                                 <CircularProgress isIndeterminate color='green.300'/>
                             )}
                             {endLoadingAllProducts && allProducts.foods.map((foodStorageProduct, key) => (
@@ -943,24 +1043,26 @@ export default function Stocks() {
                                                 </MenuButton>
                                                 <MenuList>
                                                     <Flex direction="column">
-                                                        <MenuItem
-                                                            onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenUpdateProductModal)}>
-                                                            <Flex cursor="pointer" align="center" p="12px">
-                                                                <Icon as={FaEdit} mr="8px"/>
-                                                                <Text fontSize="sm" fontWeight="semibold">
-                                                                    Modifier
-                                                                </Text>
-                                                            </Flex>
+                                                        <MenuItem onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenUpdateProductModal)} isDisabled={!canUpdateProduct()}>
+                                                            <Tooltip label="Vous n'avez pas les droits" isDisabled={canUpdateProduct()}>
+                                                                <Flex cursor="pointer" align="center" p="12px">
+                                                                    <Icon as={FaEdit} mr="8px"/>
+                                                                    <Text fontSize="sm" fontWeight="semibold">
+                                                                        Modifier
+                                                                    </Text>
+                                                                </Flex>
+                                                            </Tooltip>
                                                         </MenuItem>
-                                                        <MenuItem
-                                                            onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenDeleteProductModal)}>
-                                                            <Flex cursor="pointer" align="center" p="12px">
-                                                                <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
-                                                                <Text fontSize="sm" fontWeight="semibold"
-                                                                      color="red.500">
-                                                                    Supprimer
-                                                                </Text>
-                                                            </Flex>
+                                                        <MenuItem onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenDeleteProductModal)} isDisabled={!canDeleteProduct()}>
+                                                            <Tooltip label="Vous n'avez pas les droits" isDisabled={canDeleteProduct()}>
+                                                                <Flex cursor="pointer" align="center" p="12px">
+                                                                    <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                                                    <Text fontSize="sm" fontWeight="semibold"
+                                                                          color="red.500">
+                                                                        Supprimer
+                                                                    </Text>
+                                                                </Flex>
+                                                            </Tooltip>
                                                         </MenuItem>
                                                     </Flex>
                                                 </MenuList>
@@ -1008,7 +1110,10 @@ export default function Stocks() {
                             Vêtements
                         </Text>
                         <SimpleGrid columns={{sm: 2, md: 3, lg: 4, xl: 5}} spacing="24px" m="12px">
-                            {!endLoadingAllProducts && (
+                            {!canReadProduct() && (
+                                <Text fontWeight="semibold">Vous n'avez pas les droits</Text>
+                            )}
+                            {!endLoadingAllProducts && canReadProduct() && (
                                 <CircularProgress isIndeterminate color='green.300'/>
                             )}
                             {endLoadingAllProducts && allProducts.clothes.map((clothStorageProduct, key) => (
@@ -1022,24 +1127,26 @@ export default function Stocks() {
                                                 </MenuButton>
                                                 <MenuList>
                                                     <Flex direction="column">
-                                                        <MenuItem
-                                                            onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenUpdateProductModal)}>
-                                                            <Flex cursor="pointer" align="center" p="12px">
-                                                                <Icon as={FaEdit} mr="8px"/>
-                                                                <Text fontSize="sm" fontWeight="semibold">
-                                                                    Modifier
-                                                                </Text>
-                                                            </Flex>
+                                                        <MenuItem onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenUpdateProductModal)} isDisabled={!canUpdateProduct()}>
+                                                            <Tooltip label="Vous n'avez pas les droits" isDisabled={canUpdateProduct()}>
+                                                                <Flex cursor="pointer" align="center" p="12px">
+                                                                    <Icon as={FaEdit} mr="8px"/>
+                                                                    <Text fontSize="sm" fontWeight="semibold">
+                                                                        Modifier
+                                                                    </Text>
+                                                                </Flex>
+                                                            </Tooltip>
                                                         </MenuItem>
-                                                        <MenuItem
-                                                            onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenDeleteProductModal)}>
-                                                            <Flex cursor="pointer" align="center" p="12px">
-                                                                <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
-                                                                <Text fontSize="sm" fontWeight="semibold"
-                                                                      color="red.500">
-                                                                    Supprimer
-                                                                </Text>
-                                                            </Flex>
+                                                        <MenuItem onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenDeleteProductModal)} isDisabled={!canDeleteProduct()}>
+                                                            <Tooltip label="Vous n'avez pas les droits" isDisabled={canDeleteProduct()}>
+                                                                <Flex cursor="pointer" align="center" p="12px">
+                                                                    <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                                                    <Text fontSize="sm" fontWeight="semibold"
+                                                                          color="red.500">
+                                                                        Supprimer
+                                                                    </Text>
+                                                                </Flex>
+                                                            </Tooltip>
                                                         </MenuItem>
                                                     </Flex>
                                                 </MenuList>
@@ -1065,14 +1172,21 @@ export default function Stocks() {
                     <CardHeader>
                         <Flex justify="space-between" m="12px 8px">
                             <Text fontSize="2xl">Gestion des espaces de stockage</Text>
-                            <Button onClick={onOpenAddStorageModal} colorScheme="green">
-                                AJOUTER
-                            </Button>
+                            <Tooltip label="Vous n'avez pas les droits" isDisabled={canAddStorage()}>
+                                <Box>
+                                    <Button onClick={onOpenAddStorageModal} colorScheme="green" isDisabled={!canAddStorage()}>
+                                        AJOUTER
+                                    </Button>
+                                </Box>
+                            </Tooltip>
                         </Flex>
                     </CardHeader>
                     <CardBody>
                         <SimpleGrid columns={{sm: 1, md: 2, xl: 3}} spacing="40px" mb="16px">
-                            {!endLoadingStorages && (
+                            {!canReadStorage() && (
+                                <Text fontWeight="semibold">Vous n'avez pas les droits</Text>
+                            )}
+                            {!endLoadingStorages && canReadStorage() && (
                                 <CircularProgress isIndeterminate color='green.300'/>
                             )}
                             {endLoadingStorages && storages.map((storage) => (
@@ -1086,29 +1200,27 @@ export default function Stocks() {
                                                 </MenuButton>
                                                 <MenuList>
                                                     <Flex direction="column">
-                                                        <MenuItem
-                                                            onClick={() => selectStorageForModal(storage, onOpenViewStorageModal)}>
+                                                        <MenuItem onClick={() => selectStorageForModal(storage, onOpenViewStorageModal)}>
                                                             <Flex direction="row" p="12px">
                                                                 <Icon as={FaEye} mr="8px"/>
-                                                                <Text fontSize="sm" fontWeight="semibold">Voir le
-                                                                    contenu</Text>
+                                                                <Text fontSize="sm" fontWeight="semibold">Voir le contenu</Text>
                                                             </Flex>
                                                         </MenuItem>
-                                                        <MenuItem
-                                                            onClick={() => selectStorageForModal(storage, onOpenUpdateStorageModal)}>
-                                                            <Flex direction="row" p="12px">
-                                                                <Icon as={FaPencilAlt} mr="8px"/>
-                                                                <Text fontSize="sm"
-                                                                      fontWeight="semibold">Modifier</Text>
-                                                            </Flex>
+                                                        <MenuItem onClick={() => selectStorageForModal(storage, onOpenUpdateStorageModal)} isDisabled={!canUpdateStorage()}>
+                                                            <Tooltip label="Vous n'avez pas les droits" isDisabled={canUpdateStorage()}>
+                                                                <Flex direction="row" p="12px">
+                                                                    <Icon as={FaPencilAlt} mr="8px"/>
+                                                                    <Text fontSize="sm" fontWeight="semibold">Modifier</Text>
+                                                                </Flex>
+                                                            </Tooltip>
                                                         </MenuItem>
-                                                        <MenuItem
-                                                            onClick={() => selectStorageForModal(storage, onOpenDeleteStorageModal)}>
-                                                            <Flex direction="row" p="12px">
-                                                                <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
-                                                                <Text color="red.500" fontSize="sm"
-                                                                      fontWeight="semibold">Supprimer</Text>
-                                                            </Flex>
+                                                        <MenuItem onClick={() => selectStorageForModal(storage, onOpenDeleteStorageModal)} isDisabled={!canDeleteStorage()}>
+                                                            <Tooltip label="Vous n'avez pas les droits" isDisabled={canDeleteStorage()}>
+                                                                <Flex direction="row" p="12px">
+                                                                    <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                                                    <Text color="red.500" fontSize="sm" fontWeight="semibold">Supprimer</Text>
+                                                                </Flex>
+                                                            </Tooltip>
                                                         </MenuItem>
                                                     </Flex>
                                                 </MenuList>
@@ -1163,18 +1275,15 @@ export default function Stocks() {
                                 </Flex>
                             )}
                             <FormLabel>Nom du produit</FormLabel>
-                            <Input type="text" placeholder="Nom du produit" value={addProductName}
-                                   onChange={(e) => setAddProductName(e.target.value)}/>
+                            <Input type="text" placeholder="Nom du produit" value={addProductName} onChange={(e) => setAddProductName(e.target.value)}/>
                             <Text size="md" mt="8px" fontWeight="semibold">Espace de stockage</Text>
-                            <Select placeholder="Espace de stockage" value={addProductStorageId}
-                                    onChange={(e) => setAddProductStorageId(e.target.value)}>
+                            <Select placeholder="Espace de stockage" value={addProductStorageId} onChange={(e) => setAddProductStorageId(e.target.value)}>
                                 {storages.map((storage, key) => (
                                     <option key={key} value={storage.id}>{storage.name}</option>
                                 ))}
                             </Select>
                             <Text size="md" mt="8px" fontWeight="semibold">Nombre d'exemplaire du produit perçu</Text>
-                            <NumberInput defaultValue={1} min={1} max={2000000} value={addProductAmount}
-                                         onChange={(e) => setAddProductAmount(parseInt(e))}>
+                            <NumberInput defaultValue={1} min={1} max={2000000} value={addProductAmount} onChange={(e) => setAddProductAmount(parseInt(e))}>
                                 <NumberInputField/>
                                 <NumberInputStepper>
                                     <NumberIncrementStepper/>
@@ -1182,8 +1291,7 @@ export default function Stocks() {
                                 </NumberInputStepper>
                             </NumberInput>
                             <Text size="md" mt="8px" fontWeight="semibold">Contenue du produit en quantité</Text>
-                            <NumberInput defaultValue={1} min={1} max={2000000} value={addProductQuantity}
-                                         onChange={(e) => setAddProductQuantity(parseInt(e))}>
+                            <NumberInput defaultValue={1} min={1} max={2000000} step={0.1} value={addProductQuantity} onChange={(e) => setAddProductQuantity(parseInt(e))}>
                                 <NumberInputField/>
                                 <NumberInputStepper>
                                     <NumberIncrementStepper/>
@@ -1273,7 +1381,7 @@ export default function Stocks() {
                         <Button colorScheme="blue" mr={3} onClick={onCloseAddProductModal}>
                             Fermer
                         </Button>
-                        <Button colorScheme="green" mr={3} onClick={() => addProduct()} disabled={isCallingAddProduct}>
+                        <Button colorScheme="green" variant="outline" mr={3} onClick={() => addProduct()} disabled={isCallingAddProduct}>
                             Ajouter
                         </Button>
                     </ModalFooter>
@@ -1302,20 +1410,20 @@ export default function Stocks() {
                     <ModalHeader>Modifier {selectedProduct?.product?.name}</ModalHeader>
                     <ModalCloseButton/>
                     <ModalBody>
+                        {(isNaN(updatedProductQuantity) || updatedProductQuantity <= 0) && setUpdatedProductQuantity(1)}
+                        {(isNaN(updatedProductPrice) || updatedProductPrice < 0) && setUpdatedProductPrice(0)}
+                        {(isNaN(updatedProductAmount) || updatedProductAmount <= 0) && setUpdatedProductAmount(1)}
                         <FormControl>
                             <FormLabel>Nom du produit</FormLabel>
-                            <Input type="text" placeholder="Nom du produit" value={updatedProductName}
-                                   onChange={(e) => setUpdatedProductName(e.target.value)}/>
+                            <Input type="text" placeholder="Nom du produit" value={updatedProductName} onChange={(e) => setUpdatedProductName(e.target.value)}/>
                             <Text size="md" mt="8px" fontWeight="semibold">Espace de stockage</Text>
-                            <Select placeholder="Espace de stockage" value={updatedProductStorageId}
-                                    onChange={(e) => setUpdatedProductStorageId(e.target.value)}>
+                            <Select placeholder="Espace de stockage" value={updatedProductStorageId} onChange={(e) => setUpdatedProductStorageId(e.target.value)}>
                                 {storages.map((storage, key) => (
                                     <option key={key} value={storage.id}>{storage.name}</option>
                                 ))}
                             </Select>
                             <Text size="md" mt="8px" fontWeight="semibold">Nombre d'exemplaire du produit perçu</Text>
-                            <NumberInput defaultValue={1} min={1} max={2000000} value={updatedProductAmount}
-                                         onChange={(e) => setUpdatedProductAmount(parseInt(e))}>
+                            <NumberInput defaultValue={1} min={1} max={2000000} value={updatedProductAmount} onChange={(e) => setUpdatedProductAmount(parseInt(e))}>
                                 <NumberInputField/>
                                 <NumberInputStepper>
                                     <NumberIncrementStepper/>
@@ -1323,8 +1431,7 @@ export default function Stocks() {
                                 </NumberInputStepper>
                             </NumberInput>
                             <Text size="md" mt="8px" fontWeight="semibold">Contenue du produit en quantité</Text>
-                            <NumberInput defaultValue={1} min={1} max={2000000} value={updatedProductQuantity}
-                                         onChange={(e) => setUpdatedProductQuantity(parseInt(e))}>
+                            <NumberInput defaultValue={1} min={1} max={2000000} precision={1} step={0.1} value={updatedProductQuantity} onChange={(e) => setUpdatedProductQuantity(parseInt(e))}>
                                 <NumberInputField/>
                                 <NumberInputStepper>
                                     <NumberIncrementStepper/>
@@ -1485,8 +1592,7 @@ export default function Stocks() {
                         <Button colorScheme="blue" mr={3} onClick={onCloseAddStorageModal}>
                             Annuler
                         </Button>
-                        <Button variant="outline" colorScheme="green" onClick={() => setCallAddStockage(true)}
-                                isDisabled={createEventLoading}>
+                        <Button variant="outline" colorScheme="green" onClick={() => setCallAddStockage(true)} isDisabled={createEventLoading}>
                             Ajouter
                         </Button>
                     </ModalFooter>
@@ -1507,6 +1613,12 @@ export default function Stocks() {
                                 <Text fontSize="xl" fontWeight="semibold">
                                     Produits alimentaires
                                 </Text>
+                                {isCallingSelectedStorageProducts && (
+                                    <Progress isIndeterminate="true" />
+                                )}
+                                {!isCallingSelectedStorageProducts && selectedStorageProducts.foods.length === 0 && (
+                                    <Text>Aucun produit en stock</Text>
+                                )}
                                 <SimpleGrid columns={{sm: 2, md: 3, lg: 3, xl: 4}} spacing="24px" m="12px">
                                     {selectedStorageProducts.foods.map((foodStorageProduct, key) => (
                                         <Card key={key}>
@@ -1519,24 +1631,26 @@ export default function Stocks() {
                                                         </MenuButton>
                                                         <MenuList>
                                                             <Flex direction="column">
-                                                                <MenuItem
-                                                                    onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenUpdateProductModal)}>
-                                                                    <Flex cursor="pointer" align="center" p="12px">
-                                                                        <Icon as={FaEdit} mr="8px"/>
-                                                                        <Text fontSize="sm" fontWeight="semibold">
-                                                                            Modifier
-                                                                        </Text>
-                                                                    </Flex>
+                                                                <MenuItem onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenUpdateProductModal)} isDisabled={!canUpdateProduct()}>
+                                                                    <Tooltip label="Vous n'avez pas les droits" isDisabled={canUpdateProduct()}>
+                                                                        <Flex cursor="pointer" align="center" p="12px">
+                                                                            <Icon as={FaEdit} mr="8px"/>
+                                                                            <Text fontSize="sm" fontWeight="semibold">
+                                                                                Modifier
+                                                                            </Text>
+                                                                        </Flex>
+                                                                    </Tooltip>
                                                                 </MenuItem>
-                                                                <MenuItem
-                                                                    onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenDeleteProductModal)}>
-                                                                    <Flex cursor="pointer" align="center" p="12px">
-                                                                        <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
-                                                                        <Text fontSize="sm" fontWeight="semibold"
-                                                                              color="red.500">
-                                                                            Supprimer
-                                                                        </Text>
-                                                                    </Flex>
+                                                                <MenuItem onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenDeleteProductModal)} isDisabled={!canDeleteProduct()}>
+                                                                    <Tooltip label="Vous n'avez pas les droits" isDisabled={canDeleteProduct()}>
+                                                                        <Flex cursor="pointer" align="center" p="12px">
+                                                                            <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                                                            <Text fontSize="sm" fontWeight="semibold"
+                                                                                  color="red.500">
+                                                                                Supprimer
+                                                                            </Text>
+                                                                        </Flex>
+                                                                    </Tooltip>
                                                                 </MenuItem>
                                                             </Flex>
                                                         </MenuList>
@@ -1578,13 +1692,16 @@ export default function Stocks() {
                                             </CardBody>
                                         </Card>
                                     ))}
-                                    {selectedStorageProducts.foods.length === 0 && (
-                                        <Text>Aucun produit en stock</Text>
-                                    )}
                                 </SimpleGrid>
                                 <Text fontSize="xl" mt="16px" fontWeight="semibold">
                                     Vêtements
                                 </Text>
+                                {isCallingSelectedStorageProducts && (
+                                    <Progress isIndeterminate="true" />
+                                )}
+                                {!isCallingSelectedStorageProducts && selectedStorageProducts.clothes.length === 0 && (
+                                    <Text>Aucun produit en stock</Text>
+                                )}
                                 <SimpleGrid columns={{sm: 2, md: 3, lg: 3, xl: 4}} spacing="24px" m="12px">
                                     {selectedStorageProducts.clothes.map((clothStorageProduct, key) => (
                                         <Card key={key}>
@@ -1597,24 +1714,26 @@ export default function Stocks() {
                                                         </MenuButton>
                                                         <MenuList>
                                                             <Flex direction="column">
-                                                                <MenuItem
-                                                                    onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenUpdateProductModal)}>
-                                                                    <Flex cursor="pointer" align="center" p="12px">
-                                                                        <Icon as={FaEdit} mr="8px"/>
-                                                                        <Text fontSize="sm" fontWeight="semibold">
-                                                                            Modifier
-                                                                        </Text>
-                                                                    </Flex>
+                                                                <MenuItem onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenUpdateProductModal)} isDisabled={!canUpdateProduct()}>
+                                                                    <Tooltip label="Vous n'avez pas les droits" isDisabled={canUpdateProduct()}>
+                                                                        <Flex cursor="pointer" align="center" p="12px">
+                                                                            <Icon as={FaEdit} mr="8px"/>
+                                                                            <Text fontSize="sm" fontWeight="semibold">
+                                                                                Modifier
+                                                                            </Text>
+                                                                        </Flex>
+                                                                    </Tooltip>
                                                                 </MenuItem>
-                                                                <MenuItem
-                                                                    onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenDeleteProductModal)}>
-                                                                    <Flex cursor="pointer" align="center" p="12px">
-                                                                        <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
-                                                                        <Text fontSize="sm" fontWeight="semibold"
-                                                                              color="red.500">
-                                                                            Supprimer
-                                                                        </Text>
-                                                                    </Flex>
+                                                                <MenuItem onClick={() => selectProductForModal(clothStorageProduct, "cloth", onOpenDeleteProductModal)} isDisabled={!canDeleteProduct()}>
+                                                                    <Tooltip label="Vous n'avez pas les droits" isDisabled={canDeleteProduct()}>
+                                                                        <Flex cursor="pointer" align="center" p="12px">
+                                                                            <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                                                            <Text fontSize="sm" fontWeight="semibold"
+                                                                                  color="red.500">
+                                                                                Supprimer
+                                                                            </Text>
+                                                                        </Flex>
+                                                                    </Tooltip>
                                                                 </MenuItem>
                                                             </Flex>
                                                         </MenuList>
@@ -1630,9 +1749,6 @@ export default function Stocks() {
                                             </CardBody>
                                         </Card>
                                     ))}
-                                    {selectedStorageProducts.clothes.length === 0 && (
-                                        <Text>Aucun produit en stock</Text>
-                                    )}
                                 </SimpleGrid>
                             </Flex>
                         )}
@@ -1688,8 +1804,7 @@ export default function Stocks() {
                         <Button colorScheme="blue" mr={3} onClick={onCloseUpdateStorageModal}>
                             Annuler
                         </Button>
-                        <Button variant="outline" colorScheme="green" onClick={() => setCallUpdateStockage(true)}
-                                isDisabled={createEventLoading}>
+                        <Button variant="outline" colorScheme="green" onClick={() => setCallUpdateStockage(true)} isDisabled={createEventLoading}>
                             Ajouter
                         </Button>
                     </ModalFooter>
@@ -1706,8 +1821,7 @@ export default function Stocks() {
                                 <Text>Etes-vous sur de vouloir supprimer {selectedStorage?.name} ?</Text>
                             )}
                             {selectedStorage !== null && (selectedStorageProducts.foods.length > 0 || selectedStorageProducts.clothes.length > 0) && (
-                                <Text fontWeight="semibold" color="red">Vous ne pouvez pas
-                                    supprimer {selectedStorage?.name} car il contient les produits suivants: </Text>
+                                <Text fontWeight="semibold" color="red">Vous ne pouvez pas supprimer {selectedStorage?.name} car il contient les produits suivants: </Text>
                             )}
                             {selectedStorageProducts.foods.length > 0 && (
                                 <Flex direction="column">
@@ -1718,10 +1832,8 @@ export default function Stocks() {
                                         {selectedStorageProducts.foods.map((foodStorageProduct, key) => (
                                             <Card key={key}>
                                                 <Flex direction="row" justify="space-between">
-                                                    <Text fontSize="sm"
-                                                          mr="4px">{foodStorageProduct.product.name}</Text>
-                                                    <Badge colorScheme="purple"
-                                                           m="auto 0 auto auto">{foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Badge>
+                                                    <Text fontSize="sm" mr="4px">{foodStorageProduct.product.name}</Text>
+                                                    <Badge colorScheme="purple" m="auto 0 auto auto">{foodStorageProduct.product.quantity * foodStorageProduct.product.quantityQuantifier} {foodStorageProduct.product.quantifierName}</Badge>
                                                 </Flex>
                                             </Card>
                                         ))}
@@ -1737,10 +1849,8 @@ export default function Stocks() {
                                         {selectedStorageProducts.clothes.map((clothStorageProduct, key) => (
                                             <Card key={key}>
                                                 <Flex direction="row" justify="space-between">
-                                                    <Text fontSize="sm"
-                                                          mr="4px">{clothStorageProduct.product.name}</Text>
-                                                    <Badge colorScheme="purple"
-                                                           m="auto 0 auto auto">{clothStorageProduct.product.quantity * clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Badge>
+                                                    <Text fontSize="sm" mr="4px">{clothStorageProduct.product.name}</Text>
+                                                    <Badge colorScheme="purple" m="auto 0 auto auto">{clothStorageProduct.product.quantity * clothStorageProduct.product.quantityQuantifier} {clothStorageProduct.product.quantifierName}</Badge>
                                                 </Flex>
                                             </Card>
                                         ))}
@@ -1753,8 +1863,7 @@ export default function Stocks() {
                         <Button colorScheme="blue" mr={3} onClick={onCloseDeleteStorageModal}>
                             Annuler
                         </Button>
-                        <Button colorScheme="red" variant="outline" mr={3} onClick={() => deleteStorage()}
-                                disabled={selectedStorageProducts.foods.length > 0 || selectedStorageProducts.clothes.length > 0}>
+                        <Button colorScheme="red" variant="outline" mr={3} onClick={() => deleteStorage()} disabled={isCallingDeleteProduct || selectedStorageProducts.foods.length > 0 || selectedStorageProducts.clothes.length > 0}>
                             Supprimer
                         </Button>
                     </ModalFooter>
@@ -1766,6 +1875,12 @@ export default function Stocks() {
                     <ModalHeader>Produits dont la date de péremption nécessite votre attention</ModalHeader>
                     <ModalCloseButton/>
                     <ModalBody>
+                        {isCallingSoonExpiredProducts && soonExpiredProducts.length === 0 && (
+                            <Progress isIndeterminate="true" />
+                        )}
+                        {!isCallingSoonExpiredProducts && soonExpiredProducts.length === 0 && (
+                            <Text>Aucun produit ne nécessite votre attention</Text>
+                        )}
                         <SimpleGrid columns={{sm: 1, md: 2, lg: 3, xl: 4}} spacing="24px" m="12px">
                             {soonExpiredProducts.map((foodStorageProduct, key) => (
                                 <Card key={key}>
@@ -1778,24 +1893,26 @@ export default function Stocks() {
                                                 </MenuButton>
                                                 <MenuList>
                                                     <Flex direction="column">
-                                                        <MenuItem
-                                                            onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenUpdateProductModal)}>
-                                                            <Flex cursor="pointer" align="center" p="12px">
-                                                                <Icon as={FaEdit} mr="8px"/>
-                                                                <Text fontSize="sm" fontWeight="semibold">
-                                                                    Modifier
-                                                                </Text>
-                                                            </Flex>
+                                                        <MenuItem onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenUpdateProductModal)} isDisabled={!canUpdateProduct()}>
+                                                            <Tooltip label="Vous n'avez pas les droits" isDisabled={canUpdateProduct()}>
+                                                                <Flex cursor="pointer" align="center" p="12px">
+                                                                    <Icon as={FaEdit} mr="8px"/>
+                                                                    <Text fontSize="sm" fontWeight="semibold">
+                                                                        Modifier
+                                                                    </Text>
+                                                                </Flex>
+                                                            </Tooltip>
                                                         </MenuItem>
-                                                        <MenuItem
-                                                            onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenDeleteProductModal)}>
-                                                            <Flex cursor="pointer" align="center" p="12px">
-                                                                <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
-                                                                <Text fontSize="sm" fontWeight="semibold"
-                                                                      color="red.500">
-                                                                    Supprimer
-                                                                </Text>
-                                                            </Flex>
+                                                        <MenuItem onClick={() => selectProductForModal(foodStorageProduct, "food", onOpenDeleteProductModal)} isDisabled={!canDeleteProduct()}>
+                                                            <Tooltip label="Vous n'avez pas les droits" isDisabled={canDeleteProduct()}>
+                                                                <Flex cursor="pointer" align="center" p="12px">
+                                                                    <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                                                    <Text fontSize="sm" fontWeight="semibold"
+                                                                          color="red.500">
+                                                                        Supprimer
+                                                                    </Text>
+                                                                </Flex>
+                                                            </Tooltip>
                                                         </MenuItem>
                                                     </Flex>
                                                 </MenuList>

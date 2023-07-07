@@ -9,7 +9,7 @@ import {
     Progress,
     Spacer,
     Text,
-    useColorModeValue,
+    useColorModeValue, useToast,
 } from "@chakra-ui/react";
 // Assets
 import BgSignUp from "./../../assets/img/BgSignUp.jpg";
@@ -41,6 +41,7 @@ function SignUp() {
     const [isSuccess, setIsSuccess] = useState(false);
     const history = useHistory();
     const {token} = useContext(TokenContext);
+    const toast = useToast();
 
     if(token) {
         history.push("/admin/ul-dashboard");
@@ -124,6 +125,13 @@ function SignUp() {
                 setPasswordConfirmation('');
                 setLocalUnitCode('');
                 setIsSuccess(true);
+                toast({
+                    title: 'Succès',
+                    description: "Inscription réussie, pensez à valider votre mail !",
+                    status: 'success',
+                    duration: 8_000,
+                    isClosable: true,
+                });
             })
             .catch((_) => {
                 setLoading(false);
@@ -363,7 +371,7 @@ function SignUp() {
                     )}
                     {isSuccess && (
                         <Text color='green.500' fontSize='sm' fontWeight='bold' mb='12px'>
-                            Demande d'inscription réussie ! Veuillez vous rapprocher du responsable de votre unité locale pour valider votre compte.
+                            Demande d'inscription réussie ! Veuillez validez votre email, puis vous rapprocher du responsable de votre unité locale pour valider votre compte.
                         </Text>
                     )}
                     <Flex

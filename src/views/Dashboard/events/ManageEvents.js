@@ -1,6 +1,7 @@
 import Card from "../../../components/Card/Card";
 import CardHeader from "../../../components/Card/CardHeader";
 import {
+    Box,
     Button,
     Flex,
     Icon,
@@ -27,7 +28,7 @@ import {
     Td,
     Text,
     Th,
-    Thead,
+    Thead, Tooltip,
     Tr,
     useColorModeValue,
     useDisclosure, useToast
@@ -42,13 +43,14 @@ import {
     getEventForTrimester,
     getEventSessions
 } from "../../../controller/EventController";
-import {FaArrowLeft, FaArrowRight, FaCog, FaEye, FaPencilAlt, FaPlus, FaTrashAlt, FaUser} from "react-icons/fa";
+import {FaArrowLeft, FaArrowRight, FaCog, FaEye, FaPencilAlt, FaTrashAlt, FaUser} from "react-icons/fa";
 import TimelineRow from "../../../components/Tables/TimelineRow";
 import {CalendarIcon, CheckIcon} from "@chakra-ui/icons";
 import EventCreation from "./EventCreation";
 import EventViewer from "./EventViewer";
 import EventEdition from "./EventEdition";
 import EventContext from "../../../contexts/EventContext";
+import {getMyAuthorizations} from "../../../controller/RoleController";
 
 export default function ManageEvents() {
     // Component variables
@@ -64,7 +66,6 @@ export default function ManageEvents() {
     const {volunteer, setVolunteer} = useContext(VolunteerContext);
     const [loadVolunteerList, setLoadVolunteerList] = useState(false);
     const [volunteerList, setVolunteerList] = useState([]);
-    const [volunteerNameList, setVolunteerNameList] = useState([]);
     const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
     const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
     // Modal variables
@@ -77,9 +78,13 @@ export default function ManageEvents() {
     const [modifiedEvent, setModifiedEvent] = useState(undefined);
     const {isOpen: isOpenDeletionModal, onOpen: onOpenDeletionModal, onClose: onCloseDeletionModal} = useDisclosure();
     const [callDeleteEvent, setCallDeleteEvent] = useState(false);
+    const [isCallingDeleteEvent, setIsCallingDeleteEvent] = useState(false);
     const {isOpen: isOpenDeletionAllModal, onOpen: onOpenDeletionAllModal, onClose: onCloseDeletionAllModal} = useDisclosure();
     const [deleteAllSessions, setDeleteAllSessions] = useState(false);
     const [callDeleteAllSessions, setCallDeleteAllSessions] = useState(false);
+    const [isCallingDeleteAllSessions, setIsCallingDeleteAllSessions] = useState(false);
+    const [loadedVolunteerAuthorizations, setLoadedVolunteerAuthorizations] = useState(false);
+    const [volunteerAuthorizations, setVolunteerAuthorizations] = useState({});
     const toast = useToast();
 
     useEffect(() => {
@@ -193,13 +198,30 @@ export default function ManageEvents() {
         getVolunteers()
             .then((volunteers) => {
                 setVolunteerList(volunteers);
-                setVolunteerNameList(volunteers.map((el) => el.firstName + ' ' + el.lastName));
             })
             .catch((_) => {
                 setTimeout(() => {setLoadVolunteerList(false)}, 3000);
                 toast({
                     title: 'Erreur',
                     description: "Echec du chargement des volontaires.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
+            });
+    }
+
+    const loadVolunteerAuthorizations = () => {
+        setLoadedVolunteerAuthorizations(true);
+        getMyAuthorizations()
+            .then((roles) => {
+                setVolunteerAuthorizations(roles);
+            })
+            .catch((_) => {
+                setTimeout(() => {setLoadedVolunteerAuthorizations(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des droits du volontaire.",
                     status: 'error',
                     duration: 10_000,
                     isClosable: true,
@@ -219,6 +241,7 @@ export default function ManageEvents() {
 
     const deleteEvent = () => {
         setCallDeleteEvent(false);
+        setIsCallingDeleteEvent(true);
         if (selectedEvent !== undefined) {
             const eventId = selectedEvent.eventId;
             const sessionId = selectedEvent.sessionId;
@@ -228,15 +251,25 @@ export default function ManageEvents() {
                     onCloseDeletionModal();
                     setSelectedEvent(undefined);
                     setEvents(events.filter((el) => el.id !== eventId));
+                    setIsCallingDeleteEvent(false);
                     setLoadedEvents(false);
                 })
                 .catch((_) => {
+                    setIsCallingDeleteEvent(false);
+                    toast({
+                        title: 'Erreur',
+                        description: "Echec de la suppression de l'événement. Veuillez réessayer plus tard.",
+                        status: 'error',
+                        duration: 10_000,
+                        isClosable: true,
+                    });
                 });
         }
     }
 
     const deleteAllEventSessions = () => {
         setCallDeleteAllSessions(false);
+        setIsCallingDeleteAllSessions(true);
         if (selectedEvent !== undefined) {
             const eventId = selectedEvent.eventId;
             deleteEventSessions(eventId)
@@ -247,18 +280,18 @@ export default function ManageEvents() {
                     setEvents(events.filter((el) => el.id !== eventId));
                     setLoadedEvents(false);
                     setDeleteAllSessions(false);
+                    setIsCallingDeleteAllSessions(false);
                 })
                 .catch((_) => {
+                    setIsCallingDeleteAllSessions(false);
+                    toast({
+                        title: 'Erreur',
+                        description: "Echec de la suppression de l'événement récurrent. Veuillez réessayer plus tard.",
+                        status: 'error',
+                        duration: 10_000,
+                        isClosable: true,
+                    });
                 });
-        }
-    }
-
-    const getReferrerName = (id) => {
-        const vol = volunteerList.find((vol) => vol.id === id);
-        if (vol === undefined) {
-            return id;
-        } else {
-            return vol.firstName + ' ' + vol.lastName;
         }
     }
 
@@ -267,23 +300,33 @@ export default function ManageEvents() {
         return (
             <>
                 <Tr>
-                    <Td colSpan="8" textAlign="left" fontSize="2xl" fontWeight="bold" ml="24px">
-                        {currentYear} - {(new Date(currentYear, (month) % 12)).toLocaleString('fr-FR', {month: 'long'})}
-                    </Td>
+                    {month >= 12 && (
+                        <Td colSpan="8" textAlign="left" fontSize="2xl" fontWeight="bold" ml="24px">
+                            {currentYear + 1} - {(new Date(currentYear + 1, (month) % 12)).toLocaleString('fr-FR', {month: 'long'})}
+                        </Td>
+                    )}
+                    {month < 0 && (
+                        <Td colSpan="8" textAlign="left" fontSize="2xl" fontWeight="bold" ml="24px">
+                            {currentYear - 1} - {(new Date(currentYear - 1, (month) % 12)).toLocaleString('fr-FR', {month: 'long'})}
+                        </Td>
+                    )}
+                    {month < 12 && month >= 0 && (
+                        <Td colSpan="8" textAlign="left" fontSize="2xl" fontWeight="bold" ml="24px">
+                            {currentYear} - {(new Date(currentYear, (month) % 12)).toLocaleString('fr-FR', {month: 'long'})}
+                        </Td>
+                    )}
                 </Tr>
                 {filteredEvent.map((event, index, arr) => {
                     return (
                         <Tr key={index}>
-                            <Td pl="0px" borderColor={borderColor}
-                                borderBottom={index === arr.length - 1 ? "none" : null}>
+                            <Td pl="0px" borderColor={borderColor} borderBottom={index === arr.length - 1 ? "none" : null}>
                                 <Flex align="center" py=".8rem" minWidth="100%" flexWrap="nowrap">
                                     <Text fontSize="md" fontWeight="bold" color="orange.500" m="auto">
                                         {event.startDate.getDate()}
                                     </Text>
                                 </Flex>
                             </Td>
-                            <Td borderColor={borderColor}
-                                borderBottom={index === arr.length - 1 ? "none" : null}>
+                            <Td borderColor={borderColor} borderBottom={index === arr.length - 1 ? "none" : null}>
                                 <Flex align="center" py=".8rem" minWidth="100%" flexWrap="nowrap">
                                     <Text fontSize="md" color={textColor} fontWeight="bold">
                                         {event.name}
@@ -296,9 +339,16 @@ export default function ManageEvents() {
                                 </Text>
                             </Td>
                             <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                <Text>
-                                    {getReferrerName(event.referrerId)}
-                                </Text>
+                                {volunteerList.length === 0 && (
+                                    <Text>
+                                        {event.referrerId}
+                                    </Text>
+                                )}
+                                {volunteerList.length !== 0 && (
+                                    <Text>
+                                        {volunteerList.filter(v => v.id === event.referrerId)[0].firstName + ' ' + volunteerList.filter(v => v.id === event.referrerId)[0].lastName}
+                                    </Text>
+                                )}
                             </Td>
                             <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
                                 <Text>
@@ -311,34 +361,14 @@ export default function ManageEvents() {
                                 </Text>
                                 {event.maxParticipants === 0 && (
                                     <Flex direction="column">
-                                        <Text
-                                            fontSize="md"
-                                            color="red"
-                                            fontWeight="bold"
-                                            pb=".2rem"
-                                        >100%</Text>
-                                        <Progress
-                                            colorScheme="red"
-                                            size="xs"
-                                            value={100}
-                                            borderRadius="15px"
-                                        />
+                                        <Text fontSize="md" color="red" fontWeight="bold" pb=".2rem">100%</Text>
+                                        <Progress colorScheme="red" size="xs" value={100} borderRadius="15px" />
                                     </Flex>
                                 )}
                                 {event.maxParticipants !== 0 && (
                                     <Flex direction="column">
-                                        <Text
-                                            fontSize="md"
-                                            color={(event.numberOfParticipants / event.maxParticipants) * 100 < 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 < 85 ? "orange" : "red"}
-                                            fontWeight="bold"
-                                            pb=".2rem"
-                                        >{`${(event.numberOfParticipants / event.maxParticipants * 100).toFixed(1)}%`}</Text>
-                                        <Progress
-                                            colorScheme={(event.numberOfParticipants / event.maxParticipants) * 100 < 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 < 85 ? "orange" : "red"}
-                                            size="xs"
-                                            value={event.numberOfParticipants / event.maxParticipants * 100}
-                                            borderRadius="15px"
-                                        />
+                                        <Text fontSize="md" color={(event.numberOfParticipants / event.maxParticipants) * 100 < 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 < 85 ? "orange" : "red"} fontWeight="bold" pb=".2rem">{`${(event.numberOfParticipants / event.maxParticipants * 100).toFixed(1)}%`}</Text>
+                                        <Progress colorScheme={(event.numberOfParticipants / event.maxParticipants) * 100 < 50 ? "green" : (event.numberOfParticipants / event.maxParticipants) * 100 < 85 ? "orange" : "red"} size="xs" value={event.numberOfParticipants / event.maxParticipants * 100} borderRadius="15px" />
                                     </Flex>
                                 )}
                             </Td>
@@ -357,21 +387,25 @@ export default function ManageEvents() {
                                                     </Text>
                                                 </Flex>
                                             </MenuItem>
-                                            <MenuItem onClick={() => selectEventForModal(event.sessionId, onOpenEditionModal)} isDisabled={event.startDate.getTime() < Date.now()}>
-                                                <Flex color={textColor} cursor="pointer" align="center" p="12px">
-                                                    <Icon as={FaPencilAlt} mr="8px"/>
-                                                    <Text fontSize="sm" fontWeight="semibold">
-                                                        Modifier
-                                                    </Text>
-                                                </Flex>
+                                            <MenuItem onClick={() => selectEventForModal(event.sessionId, onOpenEditionModal)} isDisabled={event.startDate.getTime() < Date.now() || !canUpdateEvent()}>
+                                                <Tooltip label={event.startDate.getTime() < Date.now() ? "L'événement est dans le passé" : "Vous n'avez pas les droits"} isDisabled={canUpdateEvent() && event.startDate.getTime() > Date.now()}>
+                                                    <Flex color={textColor} cursor="pointer" align="center" p="12px">
+                                                        <Icon as={FaPencilAlt} mr="8px"/>
+                                                        <Text fontSize="sm" fontWeight="semibold">
+                                                            Modifier
+                                                        </Text>
+                                                    </Flex>
+                                                </Tooltip>
                                             </MenuItem>
-                                            <MenuItem onClick={() => selectEventForModal(event.sessionId, onOpenDeletionModal)} isDisabled={event.startDate.getTime() < Date.now()}>
-                                                <Flex cursor="pointer" align="center" p="12px">
-                                                    <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
-                                                    <Text fontSize="sm" fontWeight="semibold" color="red.500">
-                                                        Supprimer
-                                                    </Text>
-                                                </Flex>
+                                            <MenuItem onClick={() => selectEventForModal(event.sessionId, onOpenDeletionModal)} isDisabled={event.startDate.getTime() < Date.now() || !canDeleteEvent()}>
+                                                <Tooltip label={event.startDate.getTime() < Date.now() ? "L'événement est dans le passé" : "Vous n'avez pas les droits"} isDisabled={canDeleteEvent() && event.startDate.getTime() > Date.now()}>
+                                                    <Flex cursor="pointer" align="center" p="12px">
+                                                        <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                                        <Text fontSize="sm" fontWeight="semibold" color="red.500">
+                                                            Supprimer
+                                                        </Text>
+                                                    </Flex>
+                                                </Tooltip>
                                             </MenuItem>
                                         </Flex>
                                     </MenuList>
@@ -398,15 +432,33 @@ export default function ManageEvents() {
     }
 
     const openDeleteEventModal = () => {
+        onOpenDeletionAllModal();
+        setEventSessions([]);
         const eventId = selectedEvent.eventId;
         getEventSessions(eventId)
             .then((sessions) => {
                 setEventSessions(sessions);
-                onOpenDeletionAllModal();
             })
-            .catch((e) => {
-                console.log(e);
+            .catch((_) => {
+                toast({
+                    title: "Erreur lors de la récupération des sessions de l'événement",
+                    status: "error",
+                    duration: 10000,
+                    isClosable: true,
+                });
             });
+    }
+
+    const canAddEvent = () => {
+        return volunteerAuthorizations.EVENT?.filter((r) => r === 'CREATE').length > 0;
+    }
+
+    const canUpdateEvent = () => {
+        return volunteerAuthorizations.EVENT?.filter((r) => r === 'UPDATE').length > 0;
+    }
+
+    const canDeleteEvent = () => {
+        return volunteerAuthorizations.EVENT?.filter((r) => r === 'DELETE').length > 0;
     }
 
     return (
@@ -417,26 +469,29 @@ export default function ManageEvents() {
                 {!loadVolunteerList && loadVolunteers()}
                 {selectedEvent !== undefined && callDeleteEvent && deleteEvent()}
                 {selectedEvent !== undefined && callDeleteAllSessions && deleteAllEventSessions()}
+                {!loadedVolunteerAuthorizations && loadVolunteerAuthorizations()}
                 <Card overflowX={{sm: "scroll", xl: "hidden"}} pb="0px">
                     <CardHeader p="6px 0px 22px 0px">
                         <Flex direction='row' justifyContent="space-between">
                             <Text fontSize="xl" color={textColor} fontWeight="bold">
                                 Gestion des événements
                             </Text>
-                            <Button p="0px" variant="outline" colorScheme="green" mr="10%"
-                                    onClick={onOpenCreationModal}>
-                                <Flex cursor="pointer" align="center" p="12px">
-                                    <Icon as={FaPlus} mr="8px"/>
-                                    <Text fontSize="sm" fontWeight="semibold">
-                                        Ajouter un événement
-                                    </Text>
-                                </Flex>
-                            </Button>
+                            <Tooltip label="Vous n'avez pas les droits" isDisabled={canAddEvent()}>
+                                <Box>
+                                    <Button p="0px" colorScheme="green" onClick={onOpenCreationModal} disabled={!canAddEvent()}>
+                                        <Flex cursor="pointer" align="center" p="12px">
+                                            <Text fontSize="sm" fontWeight="semibold">
+                                                Ajouter un événement
+                                            </Text>
+                                        </Flex>
+                                    </Button>
+                                </Box>
+                            </Tooltip>
                             <Button onClick={setToPrevious3Months}>
                                 <Flex cursor="pointer" align="center">
                                     <Icon as={FaArrowLeft} mr="8px"/>
                                     <Text fontSize="sm" fontWeight="semibold">
-                                        3 mois précédents
+                                        3 précédents
                                     </Text>
                                 </Flex>
                             </Button>
@@ -444,7 +499,7 @@ export default function ManageEvents() {
                                 <Flex cursor="pointer" align="center">
                                     <Icon as={FaArrowLeft} mr="8px"/>
                                     <Text fontSize="sm" fontWeight="semibold">
-                                        Mois précédent
+                                        Précédent
                                     </Text>
                                 </Flex>
                             </Button>
@@ -458,7 +513,7 @@ export default function ManageEvents() {
                             <Button onClick={setToNextMonth}>
                                 <Flex cursor="pointer" align="center">
                                     <Text fontSize="sm" fontWeight="semibold">
-                                        Mois suivant
+                                        Suivant
                                     </Text>
                                     <Icon as={FaArrowRight} ml="8px"/>
                                 </Flex>
@@ -466,7 +521,7 @@ export default function ManageEvents() {
                             <Button onClick={setToNext3Months}>
                                 <Flex cursor="pointer" align="center">
                                     <Text fontSize="sm" fontWeight="semibold">
-                                        3 mois suivants
+                                        3 suivants
                                     </Text>
                                     <Icon as={FaArrowRight} ml="8px"/>
                                 </Flex>
@@ -498,14 +553,11 @@ export default function ManageEvents() {
                 </Card>
             </Flex>
 
-            <EventCreation isOpen={isOpenCreationModal} onClose={onCloseCreationModal} volunteers={volunteerList}
-                           onNewEvent={onNewEvent}> </EventCreation>
+            <EventCreation isOpen={isOpenCreationModal} onClose={onCloseCreationModal} volunteers={volunteerList} onNewEvent={onNewEvent}> </EventCreation>
 
-            <EventViewer isOpen={isOpenVisualizationModal} onClose={onCloseVisualizationModal}
-                         volunteers={volunteerList} eventSessionId={selectedEventSessionId}></EventViewer>
+            <EventViewer isOpen={isOpenVisualizationModal} onClose={onCloseVisualizationModal} volunteers={volunteerList} eventSessionId={selectedEventSessionId}></EventViewer>
 
-            <EventEdition isOpen={isOpenEditionModal} onClose={onCloseEditionModal} volunteers={volunteerList}
-                          eventSessionId={selectedEventSessionId}></EventEdition>
+            <EventEdition isOpen={isOpenEditionModal} onClose={onCloseEditionModal} volunteers={volunteerList} eventSessionId={selectedEventSessionId}></EventEdition>
 
             <Modal isOpen={isOpenDeletionModal} onClose={onCloseDeletionModal} size="xl" isCentered>
                 <ModalOverlay/>
@@ -519,8 +571,16 @@ export default function ManageEvents() {
                                     <StatLabel>{selectedEvent.name} le {selectedEvent.startDate.toLocaleString().substring(0, 16).replace(" ", " à ").replace(":", "h")}</StatLabel>
                                     <StatNumber><Icon
                                         as={FaUser}/> {selectedEvent.numberOfParticipants} / {selectedEvent.maxParticipants} participants</StatNumber>
-                                    <StatHelpText>{selectedEvent.description}<br/>Référent: {referrersId.length === referrersName.length ? referrersName[referrersId.indexOf(selectedEvent.referrerId)] : selectedEvent.referrerId}
-                                    </StatHelpText>
+                                    {volunteerList.length === 0 && (
+                                        <StatHelpText>
+                                            {selectedEvent.referrerId}
+                                        </StatHelpText>
+                                    )}
+                                    {volunteerList.length !== 0 && (
+                                        <StatHelpText>
+                                            {volunteerList.filter(v => v.id === selectedEvent.referrerId)[0].firstName + ' ' + volunteerList.filter(v => v.id === selectedEvent.referrerId)[0].lastName}
+                                        </StatHelpText>
+                                    )}
                                 </Stat>
                             )}
                             {selectedEvent !== undefined && selectedEvent.recurring && (
@@ -541,11 +601,7 @@ export default function ManageEvents() {
                         <Button colorScheme="blue" mr={3} onClick={onCloseDeletionModal}>
                             Annuler
                         </Button>
-                        <Button variant="outline" colorScheme="red"
-                                onClick={() => {
-                                    deleteAllSessions ? openDeleteEventModal() : setCallDeleteEvent(true);
-                                }
-                                }>
+                        <Button variant="outline" colorScheme="red" disabled={isCallingDeleteEvent} onClick={() => {deleteAllSessions ? openDeleteEventModal() : setCallDeleteEvent(true);}}>
                             Supprimer
                         </Button>
                     </ModalFooter>
@@ -558,6 +614,9 @@ export default function ManageEvents() {
                     <ModalHeader>Confirmer la suppression de {eventSessions.length} événements</ModalHeader>
                     <ModalCloseButton/>
                     <ModalBody>
+                        {eventSessions.length === 0 && (
+                            <Progress isIndeterminate="true" />
+                        )}
                         {eventSessions.map((event, index, arr) => {
                             return (
                                 <TimelineRow
@@ -575,7 +634,7 @@ export default function ManageEvents() {
                         <Button colorScheme="blue" mr={3} onClick={onCloseDeletionAllModal}>
                             Annuler
                         </Button>
-                        <Button variant="outline" colorScheme="red" onClick={() => setCallDeleteAllSessions(true)}>
+                        <Button variant="outline" colorScheme="red" onClick={() => setCallDeleteAllSessions(true)} disabled={isCallingDeleteAllSessions}>
                             Supprimer tout les événements
                         </Button>
                     </ModalFooter>
