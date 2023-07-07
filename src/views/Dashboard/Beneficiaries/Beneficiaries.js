@@ -24,20 +24,21 @@ import {
     ModalHeader,
     ModalOverlay, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper,
     SimpleGrid, Spacer,
-    Text,
+    Text, Tooltip,
     useDisclosure, useToast,
-    VStack, Wrap, WrapItem
+    VStack,
 } from "@chakra-ui/react";
 
 import {Beneficiary} from "../../../model/Beneficiaries/Beneficiary";
 import {BeneficiaryRegistration} from "../../../model/Beneficiaries/BeneficiaryRegistration";
 import LocalUnitContext from "../../../contexts/LocalUnitContext";
-import {NotAllowedIcon, CheckIcon, DeleteIcon, EditIcon, InfoOutlineIcon, PhoneIcon} from "@chakra-ui/icons";
+import {NotAllowedIcon, CheckIcon, DeleteIcon, PhoneIcon} from "@chakra-ui/icons";
 import Card from "../../../components/Card/Card";
 import BeneficiaryProduct from "./BeneficiaryProduct";
 import {FaCog, FaPencilAlt, FaTrashAlt, FaUserPlus} from "react-icons/fa";
 import {MdReceipt} from "react-icons/md";
 import {FamilyMember} from "../../../model/Beneficiaries/FamilyMember";
+import {getMyAuthorizations} from "../../../controller/RoleController";
 
 const BeneficiariesContext = createContext({
     beneficiaries: [],
@@ -46,30 +47,10 @@ const BeneficiariesContext = createContext({
 });
 
 function Beneficiaries() {
-
-    const {
-        isOpen: isOpenProductModal,
-        onOpen: onOpenProductModal,
-        onClose: onCloseProductModal
-    } = useDisclosure();
-
-    const {
-        isOpen: isOpenCreationModal,
-        onOpen: onOpenCreationModal,
-        onClose: onCloseCreationModal
-    } = useDisclosure();
-
-    const {
-        isOpen: isOpenViewModal,
-        onOpen: onOpenViewModal,
-        onClose: onCloseViewModal
-    } = useDisclosure();
-
-    const {
-        isOpen: isOpenEditionModal,
-        onOpen: onOpenEditionModal,
-        onClose: onCloseEditionModal
-    } = useDisclosure();
+    const {isOpen: isOpenProductModal, onOpen: onOpenProductModal, onClose: onCloseProductModal} = useDisclosure();
+    const {isOpen: isOpenCreationModal, onOpen: onOpenCreationModal, onClose: onCloseCreationModal} = useDisclosure();
+    const {isOpen: isOpenViewModal, onOpen: onOpenViewModal, onClose: onCloseViewModal} = useDisclosure();
+    const {isOpen: isOpenEditionModal, onOpen: onOpenEditionModal, onClose: onCloseEditionModal} = useDisclosure();
 
     const {localUnit} = useContext(LocalUnitContext);
 
@@ -96,6 +77,8 @@ function Beneficiaries() {
     const [search, setSearch] = useState('');
 
     const [selectedBeneficiary, setSelectedBeneficiary] = useState(new Beneficiary(undefined, '', '', '', undefined, '', '', ''));
+    const [loadedVolunteerAuthorizations, setLoadedVolunteerAuthorizations] = useState(false);
+    const [volunteerAuthorizations, setVolunteerAuthorizations] = useState({});
     const toast = useToast();
 
     if (!loadedBeneficiaries && !loadingBeneficiaries) {
@@ -213,11 +196,13 @@ function Beneficiaries() {
 
     const getBeneficiaryCardValidateMenItem = (beneficiary) => {
         return (
-            <MenuItem onClick={() => onBeneficiaryValidation(beneficiary)}>
-                <Flex direction="row" cursor="pointer" p="12px">
-                    <Icon as={beneficiary.isValidated ? NotAllowedIcon : CheckIcon} mr="8px"/>
-                    <Text fontSize="sm" fontWeight="semibold">{beneficiary.isValidated ? 'invalider' : 'valider'}</Text>
-                </Flex>
+            <MenuItem onClick={() => onBeneficiaryValidation(beneficiary)} isDisabled={!canUpdateBeneficiary()}>
+                <Tooltip label="Vous n'avez pas les droits" isDisabled={canUpdateBeneficiary()}>
+                    <Flex direction="row" cursor="pointer" p="12px">
+                        <Icon as={beneficiary.isValidated ? NotAllowedIcon : CheckIcon} mr="8px"/>
+                        <Text fontSize="sm" fontWeight="semibold">{beneficiary.isValidated ? 'invalider' : 'valider'}</Text>
+                    </Flex>
+                </Tooltip>
             </MenuItem>
         );
     }
@@ -266,11 +251,13 @@ function Beneficiaries() {
                                         <Text fontSize="sm" fontWeight="semibold">détails</Text>
                                     </Flex>
                                 </MenuItem>
-                                <MenuItem onClick={() => editBeneficiaries(beneficiary)}>
-                                    <Flex direction="row" cursor="pointer" p="12px">
-                                        <Icon as={FaPencilAlt} mr="8px"/>
-                                        <Text fontSize="sm" fontWeight="semibold">Modifier</Text>
-                                    </Flex>
+                                <MenuItem onClick={() => editBeneficiaries(beneficiary)} isDisabled={!canUpdateBeneficiary()}>
+                                    <Tooltip label="Vous n'avez pas les droits" isDisabled={canUpdateBeneficiary()}>
+                                        <Flex direction="row" cursor="pointer" p="12px">
+                                            <Icon as={FaPencilAlt} mr="8px"/>
+                                            <Text fontSize="sm" fontWeight="semibold">Modifier</Text>
+                                        </Flex>
+                                    </Tooltip>
                                 </MenuItem>
                                 {beneficiary.isValidated && <MenuItem onClick={() => onProduct(beneficiary)}>
                                     <Flex direction="row" cursor="pointer" p="12px">
@@ -279,11 +266,13 @@ function Beneficiaries() {
                                     </Flex>
                                 </MenuItem>}
                                 {getBeneficiaryCardValidateMenItem(beneficiary)}
-                                <MenuItem onClick={() => deleteBeneficiaries(beneficiary)}>
-                                    <Flex direction="row" cursor="pointer" p="12px">
-                                        <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
-                                        <Text color="red.500" fontSize="sm" fontWeight="semibold">Supprimer</Text>
-                                    </Flex>
+                                <MenuItem onClick={() => deleteBeneficiaries(beneficiary)} isDisabled={!canDeleteBeneficiary()}>
+                                    <Tooltip label="Vous n'avez pas les droits" isDisabled={canDeleteBeneficiary()}>
+                                        <Flex direction="row" cursor="pointer" p="12px">
+                                            <Icon as={FaTrashAlt} mr="8px" color="red.500"/>
+                                            <Text color="red.500" fontSize="sm" fontWeight="semibold">Supprimer</Text>
+                                        </Flex>
+                                    </Tooltip>
                                 </MenuItem>
                             </Flex>
                         </MenuList>
@@ -293,14 +282,49 @@ function Beneficiaries() {
         );
     }
 
+    const loadVolunteerAuthorizations = () => {
+        setLoadedVolunteerAuthorizations(true);
+        getMyAuthorizations()
+            .then((roles) => {
+                setVolunteerAuthorizations(roles);
+            })
+            .catch((_) => {
+                setTimeout(() => {setLoadedVolunteerAuthorizations(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des droits du volontaire.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
+            });
+    }
+
+    const canAddBeneficiary = () => {
+        return volunteerAuthorizations.BENEFICIARY?.filter((r) => r === 'CREATE').length > 0;
+    }
+
+    const canUpdateBeneficiary = () => {
+        return volunteerAuthorizations.BENEFICIARY?.filter((r) => r === 'UPDATE').length > 0;
+    }
+
+    const canDeleteBeneficiary = () => {
+        return volunteerAuthorizations.BENEFICIARY?.filter((r) => r === 'DELETE').length > 0;
+    }
+
     return (
         <BeneficiariesContext.Provider value={{beneficiaries, setBeneficiaries}}>
+            {!loadedVolunteerAuthorizations && loadVolunteerAuthorizations()}
             <VStack pt={{base: "120px", md: "75px"}} mr='32px' align={'stretch'} overflow={'hidden'}>
                 <Card>
                     <VStack align={'stretch'}>
                         <Flex justify="space-between">
                             <Text fontSize="xl" fontWeight="bold">Gestion des bénéficiaires</Text>
-                            <Button onClick={onOpenCreationModal} colorScheme="green">Ajouter un bénéficiaire</Button>
+                            <Tooltip label="Vous n'avez pas les droits" isDisabled={canAddBeneficiary()}>
+                                <Box>
+                                    <Button onClick={onOpenCreationModal} colorScheme="green" isDisabled={!canAddBeneficiary()}>Ajouter un bénéficiaire</Button>
+                                </Box>
+                            </Tooltip>
                         </Flex>
                         <HStack>
                             <Text fontSize="md" fontWeight="bold">Recherche</Text>
@@ -549,7 +573,7 @@ function Beneficiaries() {
                             <HStack>
                                 <Text fontSize="md">Membre de la famille</Text>
                                 <Spacer/>
-                                <Button colorScheme="blue" size="sm" onClick={() => {
+                                <Button colorScheme="green" size="sm" onClick={() => {
                                     setSelectedBeneficiary(
                                         {
                                             ...selectedBeneficiary,
@@ -615,8 +639,7 @@ function Beneficiaries() {
                         <Button colorScheme="blue" mr={3} onClick={onCloseEditionModal}>
                             Annuler
                         </Button>
-                        <Button isLoading={creatingNewBeneficiaries} colorScheme="blue" mr={3}
-                                onClick={onUpdateBeneficiary}>
+                        <Button isLoading={creatingNewBeneficiaries} colorScheme="green" mr={3} variant="outline" onClick={onUpdateBeneficiary}>
                             Confirmer
                         </Button>
                     </ModalFooter>

@@ -198,8 +198,16 @@ function LocalUnit() {
             });
     }
 
+    const canReadLocalUnit = () => {
+        return volunteerAuthorizations.LOCAL_UNIT?.filter((r) => r === 'READ').length > 0;
+    }
+
     const canUpdateLocalUnit = () => {
         return volunteerAuthorizations.LOCAL_UNIT?.filter((r) => r === 'UPDATE').length > 0;
+    }
+
+    const canReadVolunteer = () => {
+        return volunteerAuthorizations.VOLUNTEER?.filter((r) => r === 'READ').length > 0;
     }
 
     const canUpdateVolunteer = () => {
@@ -212,8 +220,8 @@ function LocalUnit() {
 
     return (
         <>
-            {volunteer && !loadedLocalUnit && loadLocalUnit()}
-            {!loadedVolunteers && loadVolunteers()}
+            {volunteer && !loadedLocalUnit && canReadLocalUnit() && loadLocalUnit()}
+            {!loadedVolunteers && canReadVolunteer() && loadVolunteers()}
             {callRegenerateCode && regenerateCode()}
             {callValidateVolunteer && selectedVolunteerId !== '' && validateVolunteerAccount(selectedVolunteerId)}
             {callInvalidateVolunteer && selectedVolunteerId !== '' && invalidateVolunteerAccount(selectedVolunteerId)}
@@ -234,7 +242,14 @@ function LocalUnit() {
                     borderRadius='20px'>
                     <HStack spacing='32px'>
                         <Avatar h='96px' w='96px' src={crLogo}/>
-                        {!endLoadingLocalUnit && (
+                        {!canReadLocalUnit() && (
+                            <Flex direction='column'>
+                                <Text fontWeight="bold">
+                                    Vous n'avez pas les droits
+                                </Text>
+                            </Flex>
+                        )}
+                        {!endLoadingLocalUnit && canReadLocalUnit() && (
                             <CircularProgress isIndeterminate color='green.300'/>
                         )}
                         {endLoadingLocalUnit && (
@@ -258,13 +273,13 @@ function LocalUnit() {
                                 Information de gestion
                             </Text>
                         </CardHeader>
-                        {!endLoadingLocalUnit || !endLoadingVolunteers && (
+                        {(!endLoadingLocalUnit && canReadLocalUnit()) || (!endLoadingVolunteers && canReadVolunteer()) && (
                             <CardBody>
                                 <CircularProgress isIndeterminate color='green.300'/>
                             </CardBody>
                         )}
-                        {endLoadingLocalUnit && endLoadingVolunteers && (
-                            <CardBody>
+                        <CardBody>
+                            {endLoadingLocalUnit && (
                                 <Flex direction="row" justify="space-between">
                                     <Text m="auto 0">
                                         Code d'inscription de l'unité locale: <i>{luSecretCode}</i>
@@ -277,49 +292,53 @@ function LocalUnit() {
                                         </Box>
                                     </Tooltip>
                                 </Flex>
-                                <Text fontWeight="semibold" mt="8px">
-                                    Comptes en attentes de validation
-                                </Text>
-                                {volunteers.filter(v => !v.isValidated).length === 0 && (
-                                    <Text textAlign="center">
-                                        Aucune demande en attente
+                            )}
+                            {endLoadingVolunteers && (
+                                <>
+                                    <Text fontWeight="semibold" mt="8px">
+                                        Comptes en attentes de validation
                                     </Text>
-                                )}
-                                <SimpleGrid columns={{ sm: 1, md: 3, xl: 5 }} spacing='24px' mb='8px'>
-                                    {volunteers.filter(v => !v.isValidated).map((v, key) => (
-                                        <Card minH='72px' key={key}>
-                                            <Text fontWeight="bold" textAlign="center">
-                                                {v.firstName} {v.lastName}
-                                            </Text>
-                                            <Flex direction='row' m="4px 0">
-                                                <Icon as={EmailIcon} mr="8px"/>
-                                                <Text>
-                                                    {v.username}
+                                    {volunteers.filter(v => !v.isValidated).length === 0 && (
+                                        <Text textAlign="center">
+                                            Aucune demande en attente
+                                        </Text>
+                                    )}
+                                    <SimpleGrid columns={{ sm: 1, md: 3, xl: 5 }} spacing='24px' mb='8px'>
+                                        {volunteers.filter(v => !v.isValidated).map((v, key) => (
+                                            <Card minH='72px' key={key}>
+                                                <Text fontWeight="bold" textAlign="center">
+                                                    {v.firstName} {v.lastName}
                                                 </Text>
-                                            </Flex>
-                                            <Flex direction='row' m="4px 0">
-                                                <Icon as={PhoneIcon} mr="8px"/>
-                                                <Text>
-                                                    {v.phoneNumber}
-                                                </Text>
-                                            </Flex>
-                                            <Flex direction='row' justify="space-evenly" m="8px 0">
-                                                <Tooltip label="Vous n'avez pas les droits" isDisabled={canUpdateVolunteer()}>
-                                                    <Box>
-                                                        <IconButton colorScheme="green" aria-label="Valider" icon={<CheckIcon />} onClick={() => setupValidateVolunteer(v.id)} disabled={!canUpdateVolunteer()}/>
-                                                    </Box>
-                                                </Tooltip>
-                                                <Tooltip label="Vous n'avez pas les droits" isDisabled={canDeleteVolunteer()}>
-                                                    <Box>
-                                                        <IconButton colorScheme="red" aria-label="Supprimer" icon={<DeleteIcon />} onClick={() => setupDeleteVolunteer(v.id)} disabled={!canDeleteVolunteer()}/>
-                                                    </Box>
-                                                </Tooltip>
-                                            </Flex>
-                                        </Card>
-                                    ))}
-                                </SimpleGrid>
-                            </CardBody>
-                        )}
+                                                <Flex direction='row' m="4px 0">
+                                                    <Icon as={EmailIcon} mr="8px"/>
+                                                    <Text>
+                                                        {v.username}
+                                                    </Text>
+                                                </Flex>
+                                                <Flex direction='row' m="4px 0">
+                                                    <Icon as={PhoneIcon} mr="8px"/>
+                                                    <Text>
+                                                        {v.phoneNumber}
+                                                    </Text>
+                                                </Flex>
+                                                <Flex direction='row' justify="space-evenly" m="8px 0">
+                                                    <Tooltip label="Vous n'avez pas les droits" isDisabled={canUpdateVolunteer()}>
+                                                        <Box>
+                                                            <IconButton colorScheme="green" aria-label="Valider" icon={<CheckIcon />} onClick={() => setupValidateVolunteer(v.id)} disabled={!canUpdateVolunteer()}/>
+                                                        </Box>
+                                                    </Tooltip>
+                                                    <Tooltip label="Vous n'avez pas les droits" isDisabled={canDeleteVolunteer()}>
+                                                        <Box>
+                                                            <IconButton colorScheme="red" aria-label="Supprimer" icon={<DeleteIcon />} onClick={() => setupDeleteVolunteer(v.id)} disabled={!canDeleteVolunteer()}/>
+                                                        </Box>
+                                                    </Tooltip>
+                                                </Flex>
+                                            </Card>
+                                        ))}
+                                    </SimpleGrid>
+                                </>
+                            )}
+                        </CardBody>
                     </Card>
                 )}
                 <Card>
@@ -335,12 +354,24 @@ function LocalUnit() {
                     )}
                     {endLoadingLocalUnit && endLoadingVolunteers && (
                         <CardBody>
-                            <Text>
-                                Gérant: {luManager}
-                            </Text>
+                            {!canReadLocalUnit() && (
+                                <Text>
+                                    Vous n'avez pas les droits de consulter le gérant de l'unité locale
+                                </Text>
+                            )}
+                            {canReadLocalUnit() && (
+                                <Text>
+                                    Gérant: {luManager}
+                                </Text>
+                            )}
                             <Text>
                                 Bénévoles: {volunteers.filter(v => v.isValidated).length}
                             </Text>
+                            {!canReadVolunteer() && (
+                                <Text>
+                                    Vous n'avez pas les droits
+                                </Text>
+                            )}
                             <SimpleGrid columns={{ sm: 1, md: 3, xl: 5 }} spacing='24px' mb='8px'>
                                 {volunteers.filter(v => v.isValidated).map((v, key) => (
                                     <Card minH='72px' key={key}>
