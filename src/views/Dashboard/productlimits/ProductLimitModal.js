@@ -254,6 +254,9 @@ export default function ProductLimitModal(props) {
                                         quantity: {...productLimit.quantity, measurementUnit: e}
                                     })}>
                             <Flex direction="row" justify="space-between">
+                                {!props.canReadProduct && (
+                                    <Text>Vous n'avez pas les droits</Text>
+                                )}
                                 {props.units.map((unit, key) => (
                                     <Flex direction="column" key={key}>
                                         <Text>{unit.label}</Text>

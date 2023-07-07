@@ -871,10 +871,10 @@ export default function Stocks() {
         <>
             {!loadedStorages && canReadStorage() && loadStorages()}
             {!loadedDepartments && loadDepartments()}
-            {!loadedUnits && canReadStorage() && loadUnits()}
-            {!loadedConservations && canReadStorage() && loadConservations()}
-            {!loadedSizes && canReadStorage() && loadSizes()}
-            {!loadedGenders && canReadStorage() && loadGenders()}
+            {!loadedUnits && canReadProduct() && loadUnits()}
+            {!loadedConservations && canReadProduct() && loadConservations()}
+            {!loadedSizes && canReadProduct() && loadSizes()}
+            {!loadedGenders && canReadProduct() && loadGenders()}
             {!loadedAllProducts && canReadProduct() && loadProducts()}
             {callAddStockage && addStorage()}
             {callUpdateStockage && updateStorage()}

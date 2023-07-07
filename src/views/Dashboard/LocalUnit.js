@@ -347,12 +347,12 @@ function LocalUnit() {
                             Information générales
                         </Text>
                     </CardHeader>
-                    {!endLoadingLocalUnit || !endLoadingVolunteers && (
+                    {!endLoadingLocalUnit && !endLoadingVolunteers && (
                         <CardBody>
                             <CircularProgress isIndeterminate color='green.300'/>
                         </CardBody>
                     )}
-                    {endLoadingLocalUnit && endLoadingVolunteers && (
+                    {endLoadingLocalUnit || endLoadingVolunteers && (
                         <CardBody>
                             {!canReadLocalUnit() && (
                                 <Text>

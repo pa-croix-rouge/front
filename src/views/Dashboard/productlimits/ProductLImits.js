@@ -56,7 +56,11 @@ export default function ProductLimits() {
     const [volunteerAuthorizations, setVolunteerAuthorizations] = useState({});
     const toast = useToast();
 
-    if (loadedUnits === false && loadingUnits === false) {
+    const canReadProduct =() => {
+        return volunteerAuthorizations.PRODUCT?.filter((r) => r === 'READ').length > 0;
+    }
+
+    if (loadedUnits === false && loadingUnits === false && loadedVolunteerAuthorizations && canReadProduct()) {
         setLoadingUnits(true);
         getMeasurementUnits()
             .then((units) => {
@@ -65,9 +69,7 @@ export default function ProductLimits() {
                 setLoadingUnits(false);
             })
             .catch((e) => {
-                console.log(e)
-                setLoadedUnits(false);
-                setLoadingUnits(false);
+                setTimeout(() => {setLoadedUnits(false)}, 3000);
                 toast({
                     title: "Erreur",
                     description: "Echec du chargement des unités.",
@@ -87,9 +89,7 @@ export default function ProductLimits() {
                 setLoadingProductLimits(false);
             })
             .catch((e) => {
-                console.log(e)
-                setLoadedProductLimits(false);
-                setLoadingProductLimits(false);
+                setTimeout(() => {setLoadedProductLimits(false)}, 3000);
                 toast({
                     title: "Erreur",
                     description: "Echec du chargement des limits de produit.",
@@ -250,7 +250,7 @@ export default function ProductLimits() {
                 <ProductLimitModal isOpen={isOpenModal} onClose={onCloseModal} size="6xl"
                                    edit={modalEditionMode}
                                    units={units}
-                                   scrollBehavior="outside" productLimit={selectedProductLimit}> </ProductLimitModal>
+                                   scrollBehavior="outside" productLimit={selectedProductLimit} canReadProduct={canReadProduct()}> </ProductLimitModal>
 
                 <Modal isOpen={isOpenDeleteModal} onClose={onCloseDeleteModal} size="3xl" scrollBehavior="outside">
                     <ModalOverlay/>

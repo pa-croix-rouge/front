@@ -28,7 +28,7 @@ import {
     StatNumber,
     Switch,
     Text,
-    Textarea,
+    Textarea, Tooltip,
     useDisclosure, useToast
 } from "@chakra-ui/react";
 import Card from "../../../components/Card/Card";
@@ -39,6 +39,7 @@ import {CalendarIcon, CheckIcon} from "@chakra-ui/icons";
 import EventContext from "../../../contexts/EventContext";
 import {getBeneficiaries} from "../../../controller/BeneficiariesController";
 import {getVolunteers} from "../../../controller/VolunteerController";
+import {getMyAuthorizations} from "../../../controller/RoleController";
 
 export default function EventEdition(props) {
 
@@ -84,6 +85,8 @@ export default function EventEdition(props) {
     const [beneficiaries, setBeneficiaries] = useState([]);
     const [loadedBeneficiaries, setLoadedBeneficiaries] = useState(false);
     const [isCallingGetAllSessions, setIsCallingGetAllSessions] = useState(false);
+    const [loadedVolunteerAuthorizations, setLoadedVolunteerAuthorizations] = useState(false);
+    const [volunteerAuthorizations, setVolunteerAuthorizations] = useState({});
     const toast = useToast();
 
     const loadVolunteers = () => {
@@ -115,6 +118,24 @@ export default function EventEdition(props) {
                 toast({
                     title: 'Erreur',
                     description: "Echec du chargement des bénéficiaires.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
+            });
+    }
+
+    const loadVolunteerAuthorizations = () => {
+        setLoadedVolunteerAuthorizations(true);
+        getMyAuthorizations()
+            .then((roles) => {
+                setVolunteerAuthorizations(roles);
+            })
+            .catch((_) => {
+                setTimeout(() => {setLoadedVolunteerAuthorizations(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des droits du volontaire.",
                     status: 'error',
                     duration: 10_000,
                     isClosable: true,
@@ -282,10 +303,19 @@ export default function EventEdition(props) {
             });
     }
 
+    const canReadVolunteer = () => {
+        return volunteerAuthorizations.VOLUNTEER?.filter((r) => r === 'READ').length > 0;
+    }
+
+    const canReadBeneficiary = () => {
+        return volunteerAuthorizations.BENEFICIARY?.filter((r) => r === 'READ').length > 0;
+    }
+
     return (
         <>
-            {!loadedVolunteers && loadVolunteers()}
-            {!loadedBeneficiaries && loadBeneficiaries()}
+            {loadedVolunteerAuthorizations && !loadedVolunteers && canReadVolunteer() && loadVolunteers()}
+            {loadedVolunteerAuthorizations && !loadedBeneficiaries && canReadBeneficiary() && loadBeneficiaries()}
+            {!loadedVolunteerAuthorizations && loadVolunteerAuthorizations()}
             {isNaN(modifiedEventMaxParticipants) && setModifiedEventMaxParticipants(0)}
             {isNaN(modifiedEventNumberOfTimeWindow) && setModifiedEventNumberOfTimeWindow(1)}
             {isNaN(modifiedEventTimeWindowDuration) && setModifiedEventTimeWindowDuration(1)}
@@ -413,7 +443,14 @@ export default function EventEdition(props) {
                                             />
                                             {timeWindow.participants.map((participant, index) => (
                                                 <>
-                                                    {beneficiaries.length === 0 && (
+                                                    {!canReadVolunteer() && (
+                                                        <Tooltip label="Vous n'avez pas les droits">
+                                                            <Text color="transparent" textShadow="0 0 8px #000">
+                                                                James bond
+                                                            </Text>
+                                                        </Tooltip>
+                                                    )}
+                                                    {beneficiaries.length === 0 && canReadBeneficiary() && (
                                                         <Text key={index}>{participant}</Text>
                                                     )}
                                                     {beneficiaries.length > 0 && (

@@ -339,7 +339,7 @@ export default function ULDashboard() {
                     <FaUsers h={"24px"} w={"24px"} color={iconBoxInside} />
                   </IconBox>
                 </Flex>
-                <Button variant="link" color='gray.400' fontSize='sm' onClick={goToLocalUnit}>
+                <Button variant="link" color='gray.400' fontSize='sm' onClick={goToLocalUnit} disabled={!canReadVolunteer()}>
                   Voir la liste
                 </Button>
               </Flex>
@@ -386,7 +386,7 @@ export default function ULDashboard() {
                     <FaMedkit h={"24px"} w={"24px"} color={iconBoxInside} />
                   </IconBox>
                 </Flex>
-                <Button variant="link" color='gray.400' fontSize='sm' onClick={goToBeneficiaries}>
+                <Button variant="link" color='gray.400' fontSize='sm' onClick={goToBeneficiaries} disabled={!canReadBeneficiary()}>
                   Voir la liste
                 </Button>
               </Flex>
@@ -480,7 +480,7 @@ export default function ULDashboard() {
                     <CartIcon h={"24px"} w={"24px"} color={iconBoxInside} />
                   </IconBox>
                 </Flex>
-                <Button variant="link" color='gray.400' fontSize='sm' onClick={goToStocks}>
+                <Button variant="link" color='gray.400' fontSize='sm' onClick={goToStocks} disabled={!canReadStorage()}>
                   Consulter les stocks
                 </Button>
               </Flex>

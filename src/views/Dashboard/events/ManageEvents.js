@@ -157,8 +157,8 @@ export default function ManageEvents() {
                 setLoadingEvents(false);
                 setEvents(eventList);
                 setLoadedEvents(true);
-                const allReferrersId = eventList.map((el) => el.referrerId);
-                setReferrersId(Array.from(new Set(allReferrersId)));
+                // const allReferrersId = eventList.map((el) => el.referrerId);
+                // setReferrersId(Array.from(new Set(allReferrersId)));
             })
             .catch((err) => {
                 setLoadingEvents(false);
@@ -339,7 +339,14 @@ export default function ManageEvents() {
                                 </Text>
                             </Td>
                             <Td borderColor={borderColor} borderBottom={index === arr.length ? "none" : null}>
-                                {volunteerList.length === 0 && (
+                                {!canReadVolunteer() && (
+                                    <Tooltip label="Vous n'avez pas les droits">
+                                        <Text color="transparent" textShadow="0 0 8px #000">
+                                            James bond
+                                        </Text>
+                                    </Tooltip>
+                                )}
+                                {volunteerList.length === 0 && canReadVolunteer() && (
                                     <Text>
                                         {event.referrerId}
                                     </Text>
@@ -449,6 +456,10 @@ export default function ManageEvents() {
             });
     }
 
+    const canReadVolunteer = () => {
+        return volunteerAuthorizations.VOLUNTEER?.filter((r) => r === 'READ').length > 0;
+    }
+
     const canAddEvent = () => {
         return volunteerAuthorizations.EVENT?.filter((r) => r === 'CREATE').length > 0;
     }
@@ -466,7 +477,7 @@ export default function ManageEvents() {
             <Flex direction="column" pt={{base: "120px", md: "75px"}}>
                 {!loadedEvents && !loadingEvents && volunteer && loadEvents()}
                 {!loadedReferrers && referrersId.length > 0 && loadReferrersName()}
-                {!loadVolunteerList && loadVolunteers()}
+                {!loadVolunteerList && canReadVolunteer() && loadVolunteers()}
                 {selectedEvent !== undefined && callDeleteEvent && deleteEvent()}
                 {selectedEvent !== undefined && callDeleteAllSessions && deleteAllEventSessions()}
                 {!loadedVolunteerAuthorizations && loadVolunteerAuthorizations()}

@@ -14,7 +14,7 @@ import {
     Td,
     Text,
     Th,
-    Thead,
+    Thead, Tooltip,
     Tr,
     useColorModeValue,
     useDisclosure, useToast,
@@ -32,6 +32,7 @@ import {EventsStats} from "../../../model/event/EventsStats";
 import {useHistory} from "react-router-dom";
 import EventViewer from "./EventViewer";
 import EventContext from "../../../contexts/EventContext";
+import {getMyAuthorizations} from "../../../controller/RoleController";
 
 export default function Events() {
     const textColor = useColorModeValue("gray.700", "white");
@@ -62,6 +63,8 @@ export default function Events() {
 
     const [selectedEventSessionId, setSelectedEventSessionId] = useState(undefined);
     const {isOpen: isOpenVisualizationModal, onOpen: onOpenVisualizationModal, onClose: onCloseVisualizationModal} = useDisclosure();
+    const [loadedVolunteerAuthorizations, setLoadedVolunteerAuthorizations] = useState(false);
+    const [volunteerAuthorizations, setVolunteerAuthorizations] = useState({});
     const toast = useToast();
 
     const updateTableMaxHeight = () => {
@@ -85,7 +88,11 @@ export default function Events() {
         }
     }, [isInitialRender]);
 
-    if (!localUnitVolunteerLoaded && !localUnitVolunteerLoading) {
+    const canReadVolunteer = () => {
+        return volunteerAuthorizations.VOLUNTEER?.filter((r) => r === 'READ').length > 0;
+    }
+
+    if (!localUnitVolunteerLoaded && !localUnitVolunteerLoading && loadedVolunteerAuthorizations && canReadVolunteer()) {
         setLocalUnitVolunteerLoading(true);
         getVolunteers()
             .then((volunteers) => {
@@ -94,8 +101,14 @@ export default function Events() {
                 setLocalUnitVolunteerLoaded(true);
             })
             .catch((e) => {
-                setLocalUnitVolunteerLoaded(false);
-                setLocalUnitVolunteerLoading(false);
+                setTimeout(() => {setLocalUnitVolunteerLoaded(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des volontaires.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
             });
     }
 
@@ -127,6 +140,24 @@ export default function Events() {
                 <CircularProgress isIndeterminate color='green.300'/>
             </Center>
         );
+    }
+
+    const loadVolunteerAuthorizations = () => {
+        setLoadedVolunteerAuthorizations(true);
+        getMyAuthorizations()
+            .then((roles) => {
+                setVolunteerAuthorizations(roles);
+            })
+            .catch((_) => {
+                setTimeout(() => {setLoadedVolunteerAuthorizations(false)}, 3000);
+                toast({
+                    title: 'Erreur',
+                    description: "Echec du chargement des droits du volontaire.",
+                    status: 'error',
+                    duration: 10_000,
+                    isClosable: true,
+                });
+            });
     }
 
     const goToManageEvent = () => {
@@ -171,6 +202,7 @@ export default function Events() {
     return (
         <EventContext.Provider value={{events, setEvents, reloadEvents}}>
             {!loadedStats && loadStats()}
+            {!loadedVolunteerAuthorizations && loadVolunteerAuthorizations()}
             <Flex flexDirection='column' pt={{base: "120px", md: "75px"}} mr='32px'>
                 <SimpleGrid columns={{sm: 1, md: 2, xl: 4}} spacing='24px' mb='8px'>
                     <Card minH='100px'>
@@ -410,7 +442,20 @@ export default function Events() {
                                                             borderColor={borderColor}>
                                                             {`${el.startDate.getDate().toString().padStart(2, '0')}/${(el.startDate.getMonth() + 1).toString().padStart(2, '0')}/${el.startDate.getFullYear()} - ${el.startDate.getHours().toString().padStart(2, '0')}h${el.startDate.getMinutes().toString().padStart(2, '0')}`}
                                                         </Td>
-                                                        {localUnitVolunteer.length === 0 && (
+                                                        {!canReadVolunteer() && (
+                                                            <Td
+                                                                color={textTableColor}
+                                                                fontSize='sm'
+                                                                border={index === arr.length - 1 ? "none" : null}
+                                                                borderColor={borderColor}>
+                                                                <Tooltip label="Vous n'avez pas les droits">
+                                                                    <Text color="transparent" textShadow="0 0 8px #000">
+                                                                        James bond
+                                                                    </Text>
+                                                                </Tooltip>
+                                                            </Td>
+                                                        )}
+                                                        {localUnitVolunteer.length === 0 && canReadVolunteer() && (
                                                             <Td
                                                                 color={textTableColor}
                                                                 fontSize='sm'

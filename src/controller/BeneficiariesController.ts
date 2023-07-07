@@ -39,7 +39,7 @@ export const setBeneficiaryValidationStatus = async (beneficiaryId: string, vali
     const response = await postWithToken(`beneficiaries/${valid ? 'validate' : 'invalidate'}/${beneficiaryId}`, null);
 
     if (!response.ok) {
-        throw new Error(`Deleting beneficiary failed with status ${response.status}`);
+        throw new Error(`Validating beneficiary failed with status ${response.status}`);
     }
 }
 
