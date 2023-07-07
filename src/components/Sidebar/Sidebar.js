@@ -119,7 +119,6 @@ function Sidebar(props) {
   const { logo, routes } = props;
 
   const canReadRoute = (role) => {
-    console.log(role === "" || volunteerAuthorizations[role]?.filter((r) => r === 'READ').length > 0);
     if (role === "") {
       return true;
     }

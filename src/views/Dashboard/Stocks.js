@@ -835,6 +835,10 @@ export default function Stocks() {
         }
     }
 
+    const canReadProduct = () => {
+        return volunteerAuthorizations.PRODUCT?.filter((r) => r === 'READ').length > 0;
+    }
+
     const canAddProduct = () => {
         return volunteerAuthorizations.PRODUCT?.filter((r) => r === 'CREATE').length > 0;
     }
@@ -845,6 +849,10 @@ export default function Stocks() {
 
     const canDeleteProduct = () => {
         return volunteerAuthorizations.PRODUCT?.filter((r) => r === 'DELETE').length > 0;
+    }
+
+    const canReadStorage = () => {
+        return volunteerAuthorizations.STORAGE?.filter((r) => r === 'READ').length > 0;
     }
 
     const canAddStorage = () => {
@@ -861,18 +869,18 @@ export default function Stocks() {
 
     return (
         <>
-            {!loadedStorages && loadStorages()}
+            {!loadedStorages && canReadStorage() && loadStorages()}
             {!loadedDepartments && loadDepartments()}
-            {!loadedUnits && loadUnits()}
-            {!loadedConservations && loadConservations()}
-            {!loadedSizes && loadSizes()}
-            {!loadedGenders && loadGenders()}
-            {!loadedAllProducts && loadProducts()}
+            {!loadedUnits && canReadStorage() && loadUnits()}
+            {!loadedConservations && canReadStorage() && loadConservations()}
+            {!loadedSizes && canReadStorage() && loadSizes()}
+            {!loadedGenders && canReadStorage() && loadGenders()}
+            {!loadedAllProducts && canReadProduct() && loadProducts()}
             {callAddStockage && addStorage()}
             {callUpdateStockage && updateStorage()}
             {!loadedProductsByStorage && selectedStorage !== null && loadProductsFromStorage()}
-            {!loadedStorageStats && loadStorageStats()}
-            {!loadedSoonExpiredProducts && loadSoonExpiredProducts()}
+            {!loadedStorageStats && canReadProduct() && loadStorageStats()}
+            {!loadedSoonExpiredProducts && canReadProduct() && loadSoonExpiredProducts()}
             {!loadedVolunteerAuthorizations && loadVolunteerAuthorizations()}
             <Flex direction="column" pt={{base: "120px", md: "75px"}} overflow="hidden">
                 <SimpleGrid columns={{sm: 1, md: 2, xl: 3}} spacing='24px' mb='20px'>
@@ -893,13 +901,20 @@ export default function Stocks() {
                                         Quantité total de nourriture
                                     </StatLabel>
                                     <Flex>
-                                        {storageStats.totalFoodQuantity === -1 && (
+                                        {storageStats.totalFoodQuantity === -1 && canReadProduct() && (
                                             <CircularProgress isIndeterminate color='green.300'/>
                                         )}
-                                        {storageStats.totalFoodQuantity !== -1  && (
+                                        {storageStats.totalFoodQuantity !== -1 && canReadProduct() && (
                                             <StatNumber fontSize='lg' color={textColor} fontWeight='bold'>
                                                 {storageStats.totalFoodQuantity}
                                             </StatNumber>
+                                        )}
+                                        {!canReadProduct() && (
+                                            <Tooltip label="Vous n'avez pas les droits">
+                                                <StatNumber fontSize='lg' color="transparent" fontWeight='bold' textShadow="0 0 8px #000">
+                                                    00
+                                                </StatNumber>
+                                            </Tooltip>
                                         )}
                                     </Flex>
                                 </Stat>
@@ -930,13 +945,20 @@ export default function Stocks() {
                                         Quantité total de vêtements
                                     </StatLabel>
                                     <Flex>
-                                        {storageStats.totalClothesQuantity === -1 && (
+                                        {storageStats.totalClothesQuantity === -1 && canReadProduct() && (
                                             <CircularProgress isIndeterminate color='green.300'/>
                                         )}
-                                        {storageStats.totalClothesQuantity !== -1  && (
+                                        {storageStats.totalClothesQuantity !== -1 && canReadProduct() && (
                                             <StatNumber fontSize='lg' color={textColor} fontWeight='bold' href='/local-unit'>
                                                 {storageStats.totalClothesQuantity}
                                             </StatNumber>
+                                        )}
+                                        {!canReadProduct() && (
+                                            <Tooltip label="Vous n'avez pas les droits">
+                                                <StatNumber fontSize='lg' color="transparent" fontWeight='bold' textShadow="0 0 8px #000">
+                                                    00
+                                                </StatNumber>
+                                            </Tooltip>
                                         )}
                                     </Flex>
                                 </Stat>
@@ -958,10 +980,10 @@ export default function Stocks() {
                                 justify='center'
                                 w='100%'
                                 mb='25px'>
-                                {storageStats.totalClothesQuantity === -1 && (
+                                {storageStats.totalClothesQuantity === -1 && canReadProduct() && (
                                     <CircularProgress isIndeterminate color='green.300'/>
                                 )}
-                                {storageStats.soonExpiredFood > 0 && (
+                                {storageStats.soonExpiredFood > 0 && canReadProduct() && (
                                     <Flex direction="column" m="auto">
                                         <Text fontWeight="bold" mb="8px" textAlign="center">
                                             ⚠️La date d'expiration de {storageStats.soonExpiredFood} produits nécessite
@@ -972,10 +994,17 @@ export default function Stocks() {
                                         </Button>
                                     </Flex>
                                 )}
-                                {storageStats.soonExpiredFood === 0 && (
+                                {storageStats.soonExpiredFood === 0 && canReadProduct() && (
                                     <Text fontWeight="bold" textAlign="center">
                                         ✅La date d'expiration d'aucun produit ne nécessite votre attention
                                     </Text>
+                                )}
+                                {!canReadProduct() && (
+                                    <Tooltip label="Vous n'avez pas les droits">
+                                        <Text fontSize='lg' color="transparent" fontWeight='bold' textShadow="0 0 8px #000">
+                                            Impossible de savoir si des produits sont bientôt périmés
+                                        </Text>
+                                    </Tooltip>
                                 )}
                             </Flex>
                         </Flex>
@@ -997,7 +1026,10 @@ export default function Stocks() {
                             Produits alimentaires
                         </Text>
                         <SimpleGrid columns={{sm: 2, md: 3, lg: 4, xl: 5}} spacing="24px" m="12px">
-                            {!endLoadingAllProducts && (
+                            {!canReadProduct() && (
+                                <Text fontWeight="semibold">Vous n'avez pas les droits</Text>
+                            )}
+                            {!endLoadingAllProducts && canReadProduct() && (
                                 <CircularProgress isIndeterminate color='green.300'/>
                             )}
                             {endLoadingAllProducts && allProducts.foods.map((foodStorageProduct, key) => (
@@ -1078,7 +1110,10 @@ export default function Stocks() {
                             Vêtements
                         </Text>
                         <SimpleGrid columns={{sm: 2, md: 3, lg: 4, xl: 5}} spacing="24px" m="12px">
-                            {!endLoadingAllProducts && (
+                            {!canReadProduct() && (
+                                <Text fontWeight="semibold">Vous n'avez pas les droits</Text>
+                            )}
+                            {!endLoadingAllProducts && canReadProduct() && (
                                 <CircularProgress isIndeterminate color='green.300'/>
                             )}
                             {endLoadingAllProducts && allProducts.clothes.map((clothStorageProduct, key) => (
@@ -1148,7 +1183,10 @@ export default function Stocks() {
                     </CardHeader>
                     <CardBody>
                         <SimpleGrid columns={{sm: 1, md: 2, xl: 3}} spacing="40px" mb="16px">
-                            {!endLoadingStorages && (
+                            {!canReadStorage() && (
+                                <Text fontWeight="semibold">Vous n'avez pas les droits</Text>
+                            )}
+                            {!endLoadingStorages && canReadStorage() && (
                                 <CircularProgress isIndeterminate color='green.300'/>
                             )}
                             {endLoadingStorages && storages.map((storage) => (
