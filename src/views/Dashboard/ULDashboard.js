@@ -278,6 +278,10 @@ export default function ULDashboard() {
     return volunteerAuthorizations.PRODUCT?.filter((r) => r === 'READ').length > 0;
   }
 
+  const canReadStorage = () => {
+    return volunteerAuthorizations.STORAGE?.filter((r) => r === 'READ').length > 0;
+  }
+
   const canReadLocalUnit = () => {
     return volunteerAuthorizations.LOCAL_UNIT?.filter((r) => r === 'READ').length > 0;
   }
@@ -288,7 +292,7 @@ export default function ULDashboard() {
           {loadedVolunteerAuthorizations && loadedLocalUnit && !loadedEvents && volunteer && canReadEvent() && loadEvents()}
           {loadedVolunteerAuthorizations && loadedLocalUnit && !loadedLocalUnitStats && canReadLocalUnit() && loadLocalUnitStats()}
           {loadedVolunteerAuthorizations && !loadedEventStats  && canReadEvent() && loadEventStats()}
-          {loadedVolunteerAuthorizations && loadedLocalUnit && !loadedProductStats && canReadProduct() && loadProductStats()}
+          {loadedVolunteerAuthorizations && loadedLocalUnit && !loadedProductStats && canReadStorage() && loadProductStats()}
           {loadedVolunteerAuthorizations && !loadedSoonExpiredFood && canReadProduct() && loadSoonExpiredFood()}
           {loadedVolunteerAuthorizations && !loadedVolunteers && canReadVolunteer() && loadVolunteers()}
           {!loadedVolunteerAuthorizations && loadVolunteerAuthorizations()}
