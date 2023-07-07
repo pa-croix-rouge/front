@@ -4,7 +4,7 @@ import {BeneficiaryRegistration} from "../model/Beneficiaries/BeneficiaryRegistr
 import {FamilyMember} from "../model/Beneficiaries/FamilyMember";
 
 export const getBeneficiaries = async (): Promise<Beneficiary[]> => {
-    const response = await getWithToken(`beneficiaries`);
+    const response = await getWithToken(`beneficiaries/localunit`);
 
     if (!response.ok) {
         throw new Error(`Fetching beneficiaries failed with status ${response.status}`);
