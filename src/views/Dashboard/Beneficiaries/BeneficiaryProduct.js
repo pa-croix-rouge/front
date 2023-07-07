@@ -63,6 +63,7 @@ export default function BeneficiaryProduct(props) {
 
     const [quantity, setQuantity] = useState(1);
     const [selectedProduct, setSelectedProduct] = useState(undefined);
+    const [selectedProductLimit, setSelectedProductLimit] = useState(undefined);
 
     const [addingProduct, setAddingProduct] = useState(false);
     const toast = useToast();
@@ -206,10 +207,12 @@ export default function BeneficiaryProduct(props) {
         const foodProduct = products.foods.find((foodStorageProduct) => foodStorageProduct.product.storageProductId == e.target.value);
         if (foodProduct !== undefined) {
             setSelectedProduct(foodProduct);
+            setSelectedProductLimit(foodProduct.product.productLimit);
         } else {
             const clothProduct = products.clothes.find((clothStorageProduct) => clothStorageProduct.product.storageProductId == e.target.value);
             if (clothProduct !== undefined) {
                 setSelectedProduct(clothProduct);
+                setSelectedProductLimit(clothProduct.product.productLimit);
             } else {
                 setSelectedProduct(undefined);
             }
@@ -369,7 +372,12 @@ export default function BeneficiaryProduct(props) {
                                     })}
                                 </Select>
                             </Skeleton>
-                            <Spacer></Spacer>
+                            <HStack>
+                                {selectedProductLimit !== undefined && <>
+                                    <Text fontWeight="semibold">Limite </Text>
+                                    <Text>{selectedProductLimit.name} : {selectedProductLimit.quantity.value} {selectedProductLimit.quantity.measurementUnit} tout les {selectedProductLimit.duration} jours </Text>
+                                </>}
+                            </HStack>
                             <FormLabel>Quantitée</FormLabel>
                             <NumberInput value={quantity} onChange={setQuantity} isInvalid={quantity == 0}>
                                 <NumberInputField/>
